@@ -57,7 +57,7 @@ int main(int argc, char **argv) {
 	// read command line arguments
 	opterr = 0;
 	
-	while ((c = getopt (argc, argv, "hvl:o:")) != -1)
+	while ((c = getopt (argc, argv, "hvl:s:")) != -1)
 		switch (c) {
 			case 'v':
 				verboseLogging = 1;
@@ -326,7 +326,7 @@ int solve() {
 
 		// suche in allen Zeilen nach Zahlen, die nur an einer Position
 		// moeglich sind (auch wenn in dieser Zelle mehrere Zahlen moeglich
-		// waeren, aber die anderen Moeglichkeit kann man dann verwerfen)
+		// waeren, aber die anderen Moeglichkeiten kann man dann verwerfen)
 		printf("??? Searching for: unique places in rows ... \n");
 		for (y = 0; y < 9; y++) {
 			for (n = 1; n <= 9; n++) {
@@ -343,7 +343,7 @@ int solve() {
 
 		// suche in allen Spalten nach Zahlen, die nur an einer Position
 		// moeglich sind (auch wenn in dieser Zelle mehrere Zahlen moeglich
-		// waeren, aber die anderen Moeglichkeit kann man dann verwerfen)
+		// waeren, aber die anderen Moeglichkeiten kann man dann verwerfen)
 		printf("??? Searching for: unique places in cols ... \n");
 		for (x = 0; x < 9; x++) {
 			for (n = 1; n <= 9; n++) {
@@ -353,6 +353,30 @@ int solve() {
                     printf("!!! Neue Erkenntnis 2b: In Spalte %d kann %d nur an Position %d vorkommen => (%d/%d) = %d!\n", x+1, n, y+1, y+1, x+1, n);
 					fields[y][x] = n;
 					progress = 1; // Flag "neue Erkenntnis" setzen
+				}
+			}
+		}
+		showSvg();
+
+		// suche in allen Quadranten nach Zahlen, die nur an einer Position
+		// moeglich sind (auch wenn in diesem Quadrant mehrere Zahlen moeglich
+		// waeren, aber die anderen Moeglichkeiten kann man dann verwerfen)
+		{
+			int position;
+			
+			printf("??? Searching for: unique places in quadrants ... \n");
+			for (q = 0; q < 9; q++) {
+				for (n = 1; n <= 9; n++) {
+					position = getUniquePositionInQuadrant(n, q);
+					if (position) {
+						getQuadrantField(q, position, &x, &y);
+						if (!fields[y][x]) {
+							// Zahl n kann nur an der Position y vorkommen in der Spalte x
+							printf("!!! Neue Erkenntnis 2c: In Quadrant %d kann %d nur an Position %d vorkommen => (%d/%d) = %d!\n", q+1, n, 		position+1, y+1, x+1, n);
+							fields[y][x] = n;
+							progress = 1; // Flag "neue Erkenntnis" setzen
+						}
+					}
 				}
 			}
 		}
@@ -775,6 +799,44 @@ int getUniquePositionInColumn(int n, int x) {
 }
 
 //-------------------------------------------------------------------
+// Checkt die Anzahl der moeglichen Vorkommnisse einer Zahl im 
+// Quadrant q.
+// Liefert:
+//   position ... Position des Feldes, in dem die Zahl n als einziges Feld
+//         des ganzen Quadranten vorkommen koennte oder [0..8]
+//   0 ... Zahl koennte im Quadranten an mehreren Positionen vorkommen
+int getUniquePositionInQuadrant(int n, int q) {
+	int x, y;
+	int unique;
+	int position;
+	int i;
+	
+	assert (q >= 0 && q < 9);
+	assert (n >= 1 && n <= 9);
+
+	printf("Suche nach Moeglichkeiten fuer %d in Quadrant %d\n", n, q+1);
+	unique = 0;
+	position = 0;
+	for (i = 0; i < 9; i++) {
+		getQuadrantField(q, i, &x, &y);
+		if ((fields[y][x] == n) || (!fields[y][x] && (possibilities[y][x][n-1] == (char)(n + 48)))) {
+			printf("  %d kann in Quadrant %d (%d/%d) vorkommen [%s].\n", n, q+1, y+1, x+1, possibilities[y][x]);
+			if (!unique) {
+				unique = 1; // erstes gefundenes Vorkommen im Quadranten
+				position = i; // Position merken, falls sie eindeutig ist
+			} else {
+				// oje, das waere schon das 2. Vorkommen der Zahl in diesem Quadranten
+				return 0; // war wohl nix
+			}
+		}
+	}
+	if (unique)
+		return position;
+	else
+		printf("3: Nanu, Zahl %d kann nie vorkommen im Quadranten %d??\n", n, x);
+}
+
+//-------------------------------------------------------------------
 // Checkt, ob alle Zellen mit einer Zahl befuellt sind, dann sind 
 // wir naemlich fertig!
 // Return-Wert:
@@ -820,6 +882,29 @@ void getQuadrantCell(int n, int *qx, int *qy) {
 int getAbsoluteX(int q, int qx) {
 	return (q % 3) * 3 + qx;
 }
+
+
+//-------------------------------------------------------------------
+// Liefert zu dem x-ten Feld eines Quadranten dessen absolute x- und 
+// y-Koordinaten im Sudoku
+// Parameter:
+//   q ... Nummer des Quadranten (0..8)
+//   position ... Position innerhalb des Quadranten (0..8, wobei 0..2
+//     in der ersten Zeile des Quadranten sind)
+//   x ... absolute X-Koordinate (0..8), wird zurueckgeliefert
+//   y ... absolute Y-Koordinate (0..8), wird zurueckgeliefert
+int getQuadrantField(int q, int position, int *x, int *y) {
+	int qx, qy;
+
+	assert(q >= 0 && q < 9);
+	assert(position >= 0 && position < 9);
+
+	getQuadrantStart(q, &qx, &qy);
+
+	*x = qx + (position % 3);
+	*y = qy + (position / 3);
+}
+
 
 //-------------------------------------------------------------------
 // Rechnet aus Quadrantenkoordinaten in absolute Koordinaten um.
