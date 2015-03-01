@@ -1,5 +1,6 @@
 #include <stdio.h>
 #include <string.h>
+#include <assert.h>
 
 /*
 Fehlende Strategien:
@@ -31,8 +32,8 @@ int getAbsoluteX(int q, int qx);
 int getAbsoluteY(int q, int qx);
 void getQuadrantCell(int n, int *qx, int *qy);
 void getQuadrantStart(int q, int *qx, int *qy);
-int IsolateColumnTwins(int q, int x, int y1, int y2);
-int IsolateRowTwins(int q, int y, int x1, int x2);
+int IsolateColumnTwins(int x, int y1, int y2);
+int IsolateRowTwins(int y, int x1, int x2);
 int IsolateQuadrantTwins(int q, int y1, int x1, int y2, int x2);
 int forbidNumber(int y, int x, int n);
 			
@@ -185,7 +186,9 @@ int solve() {
 	int progress; // Flag: in einer Iteration wurde zumindest eine Erkenntnis gewonnen
 	int x1, x2, y1, y2, qx1, qx2, qy1, qy2, qx, qy;
 	
+	printf("Fehler vor Reset: %d\n", errors); //?DEBUG
 	errors = 0; // noch keine Fehler aufgetreten
+	printf("Fehler nach Reset: %d\n", errors); //?DEBUG
 	iteration = 0;
 
 	// Initialisierung:
@@ -301,6 +304,11 @@ int solve() {
 		}
 		showSvg();
 
+		//? FIXME FEHLT hier nicht, das nicht nur fuer Spalten und Zeile, sondern auch fuer Quadranten anzuwenden?
+		
+		
+		
+		
 /* nicht mehr noetig
 		if (setUniqueNumbers(fields, possibilities)) {
 			progress = 1; // Flag "neue Erkenntnis" setzen
@@ -369,7 +377,7 @@ int solve() {
 						// ja, x1, x2 sind Zwillinge => in der restlichen Zeile
 						// koennen diese 2 Zahlen nicht mehr vorkommen!
 						printf("!! Neue Moeglichkeiten-Erkenntnis 3b: Zwillinge! Feld (%d/%d) und Feld (%d/%d) haben beide: %s\n", y+1, x1+1, y+1, x2+1, possibilities[y][x1]);
-						if (IsolateRowTwins(q, y, x1, x2))
+						if (IsolateRowTwins(y, x1, x2))
 							progress = 1;
 					}
 				}
@@ -389,7 +397,7 @@ int solve() {
 						// ja, y1, y2 sind Zwillinge => in der restlichen Spalte
 						// koennen diese 2 Zahlen nicht mehr vorkommen!
 						printf("!! Neue Moeglichkeiten-Erkenntnis 3c: Zwillinge! Feld (%d/%d) und Feld (%d/%d) haben beide: %s\n", y1+1, x+1, y2+1, x+1, possibilities[y1][x]);
-						if (IsolateColumnTwins(q, x, y1, y2))
+						if (IsolateColumnTwins(x, y1, y2))
 							progress = 1;
 					}
 				}
@@ -552,6 +560,10 @@ int solve() {
 // Q6 Q7 Q8
 // Jeder Quadrant ist eine 3x3-Matrix
 int getQuadrantNr(int x, int y) {
+
+	assert(x >= 0 && x < 9);
+	assert(y >= 0 && y < 9);
+
 	return (y / 3) * 3 + (x / 3);		
 }
 
@@ -620,9 +632,14 @@ int setUniqueNumbers() {
 int setUniqueNumber(int x, int y) {
 	int n;
 
+	assert (x >= 0 && x < 9);
+	assert (y >= 0 && y < 9);
+
 	if (fields[y][x]) {
 		printf("FEHLER! HUCH! Obwohl schon ausgefuellt, wird das aufgerufen! (%d/%d) soll gesetzt werden, ist aber bereits %d!\n", y+1, x+1, fields[y][x]);
+		printf("Fehler vor inc: %d\n", errors); //?DEBUG
 		errors++;
+		printf("Fehler nach inc: %d\n", errors); //?DEBUG
 	}
 
 	for (n = 1; n <= 9; n++)
@@ -647,6 +664,9 @@ int getUniquePositionInRow(int n, int y) {
 	int unique;
 	int xPosition ;
 	
+	assert (y >= 0 && y < 9);
+	assert (n >= 1 && n <= 9);
+
 	unique = 0;
 	xPosition = 0;
 	for (x = 0; x < 9; x++) {
@@ -676,6 +696,9 @@ int getUniquePositionInColumn(int n, int x) {
 	int unique;
 	int yPosition ;
 	
+	assert (x >= 0 && x < 9);
+	assert (n >= 1 && n <= 9);
+
 	printf("Suche nach Moeglichkeiten fuer %d in Spalte %d\n", n, x+1);
 	unique = 0;
 	yPosition = 0;
@@ -768,19 +791,23 @@ void getQuadrantStart(int q, int *qx, int *qy) {
 
 //-------------------------------------------------------------------
 // "Isoliert" Zwillinge in einer Spalte: die beiden Zahlenpaare, die
-// in diesen beiden Zellen moeglich sein, koennen weder im restlichen
+// in diesen beiden Zellen moeglich sind, koennen weder im restlichen
 // Quadranten noch im Rest der Spalte vorkommen
 // Return-Wert:
 //   1 ... mind. 1 Nummer in der restlichen Spalte oder dem restlichen
 //         Quadranten wurde verboten, wir "sind weitergekommen"
 //   0 ... Isolieren der Zwillinge hat keine Aenderung im Sudoku bewirkt
-int IsolateColumnTwins(int q, int x, int y1, int y2) {
+int IsolateColumnTwins(int x, int y1, int y2) {
 	int n;
 	int progress;
 	int qx, qy;
 	int col, row;
 	int c;
 	
+	assert (x >= 0 && x < 9);
+	assert (y1 >= 0 && y1 < 9);
+	assert (y2 >= 0 && y2 < 9);
+
 	progress = 0; // noch hat sich nichts veraendert
 	printf("Isoliere Zwillinge (%d/%d) und (%d/%d): %s/%s\n", y1+1, x+1, y2+1, x+1, possibilities[y1][x], possibilities[y2][x]);
 	
@@ -798,19 +825,6 @@ int IsolateColumnTwins(int q, int x, int y1, int y2) {
 					progress = 1;
 				}
 			}
-
-			// im restlichen Quadranten verbieten
-			printf("Gehe Quadrant %d durch und verbiete %d ...\n", q+1, n);
-			qy = getAbsoluteY(q, 0);
-			qx = getAbsoluteX(q, 0);
-			for (row = qy; row < qy + 3; row++) {
-				for (col = qx; col < qx + 3; col++) {
-					if (!(row == y1 && col == x) && !(row == y2 && col == x) && !fields[row][col] && forbidNumber(row, col, n)) {
-						printf("!! Neue Moeglichkeiten-Erkenntnis 7a: (Nummer %d im gleichen Quadranten %d wie Zwilling (%d/%d) und (%d/%d) verboten)\n", n, q+1, y1+1, x+1, y2+1, x+1);
-						progress = 1;
-					}
-				}
-			}
 		}
 	}
 	return progress;	
@@ -824,12 +838,19 @@ int IsolateColumnTwins(int q, int x, int y1, int y2) {
 //   1 ... mind. 1 Nummer in der restlichen Zeile oder dem restlichen
 //         Quadranten wurde verboten, wir "sind weitergekommen"
 //   0 ... Isolieren der Zwillinge hat keine Aenderung im Sudoku bewirkt
-int IsolateRowTwins(int q, int y, int x1, int x2) {
+int IsolateRowTwins(int y, int x1, int x2) {
 	int n;
 	int progress;
 	int qx, qy;
 	int col, row;
 	int c;
+	
+	assert (y >= 0 && y < 9);
+	assert (x1 >= 0 && x1 < 9);
+	assert (x2 >= 0 && x2 < 9);
+	
+	//? FIXME: warum sollen diese Zahlen im restliche Quadranten nicht mehr vorkommen koennen????
+	 // das ist ja Arbeit von IsolateQuadrantTwins, nicht aber hier in IsolateRowTwins!
 	
 	progress = 0; // noch hat sich nichts veraendert
 	printf("Isoliere Zwillinge (%d/%d) und (%d/%d): %s/%s\n", y+1, x1+1, y+1, x1+1, possibilities[y][x1], possibilities[y][x2]);
@@ -846,19 +867,6 @@ int IsolateRowTwins(int q, int y, int x1, int x2) {
 				if ((col != x1) && (col != x2) && !fields[y][col] && forbidNumber(y, col, n)) {
 					printf(" (Nummer %d in der gleichen Zeile %d wie Zwilling (%d/%d) und (%d/%d) verboten)\n", n, y+1, y+1, x1+1, y+1, x2+1);
 					progress = 1;
-				}
-			}
-
-			// im restlichen Quadranten verbieten
-			printf("Gehe Quadrant %d durch und verbiete %d ...\n", q+1, n);
-			for (qy = 0; qy < 3; qy++) {
-				for (qx = 0; qx < 3; qx++) {
-					row = getAbsoluteY(q, qy);
-					col = getAbsoluteX(q, qx);
-					if (!(col == x1 && row == y) && !(col == x2 && row == y) && !fields[row][col] && forbidNumber(row, col, n)) {
-						printf("!! Neue Moeglichkeiten-Erkenntnis 7b:  (Nummer %d im gleichen Quadranten %d wie Zwilling (%d/%d) und (%d/%d) verboten)\n", n, q+1, y+1, x1+1, y+1, x2+1);
-						progress = 1;
-					}
 				}
 			}
 		}
@@ -881,6 +889,12 @@ int IsolateQuadrantTwins(int q, int y1, int x1, int y2, int x2) {
 	int col, row;
 	int c;
 	
+	assert (q >= 0 && q < 9);
+	assert (x1 >= 0 && x1 < 9);
+	assert (x2 >= 0 && x2 < 9);
+	assert (y1 >= 0 && y1 < 9);
+	assert (y2 >= 0 && y2 < 9);
+
 	progress = 0; // noch hat sich nichts veraendert
 	printf("Isoliere Zwillinge (%d/%d) und (%d/%d): %s/%s\n", y1+1, x1+1, y2+1, x1+1, possibilities[y1][x1], possibilities[y2][x2]);
 	
@@ -912,6 +926,10 @@ int IsolateQuadrantTwins(int q, int y1, int x1, int y2, int x2) {
 //   1 ... Nummer wurde verboten
 //   0 ... keine Aenderung, Nummer war bereits verboten
 int forbidNumber(int y, int x, int n) {
+
+	assert (x >= 0 && x < 9);
+	assert (y >= 0 && y < 9);
+	assert (n >= 1 && n <= 9);
 
 	if (possibilities[y][x][n-1] != '0') {
 		printf("Vorher: (%d/%d) possibilities=%s\n", y+1, x+1, possibilities[y][x]);
