@@ -1,6 +1,8 @@
 #include <stdio.h>
+#include <stdlib.h>
 #include <string.h>
 #include <assert.h>
+#include <unistd.h>
 
 /*
 Fehlende Strategien:
@@ -19,6 +21,7 @@ in das hier erwartete:
 
 */
 
+void printUsage();
 int readSudoku();
 void show();
 void showSvg();
@@ -42,11 +45,46 @@ int forbidNumber(int y, int x, int n);
 int fields[9][9];
 char possibilities[10][10][10]; // pro Feld die moeglichen Zahlen, als C-String, zB "123000080"
 int nrOfPossibilities[9][9]; // Anzahl der verbleibenden Moeglichkeiten pro Zelle
-int errors;
+int errors; // number of errors in the algorithm
+int verboseLogging; // flag: if truish, switch on verbose logging
+char *outputFilename; // filename of log file
+char *svgFilename; // filename of SVG file
 	
-int main() {
+int main(int argc, char **argv) {
 	int result;
+	int c;
 
+	// read command line arguments
+	opterr = 0;
+	
+	while ((c = getopt (argc, argv, "hvl:o:")) != -1)
+		switch (c) {
+			case 'v':
+				verboseLogging = 1;
+				break;
+			case 's':
+				svgFilename = optarg;
+				break;
+			case 'l':
+				outputFilename = optarg;
+				break;
+			case 'h':
+				printUsage();
+				return 0;
+				break;
+			case '?':
+				if (optopt == 'l' || optopt == 's')
+					fprintf (stderr, "Option -%l requires an argument.\n", optopt);
+				else if (isprint (optopt))
+					fprintf (stderr, "Unknown option `-%c'.\n", optopt);
+				else
+					fprintf (stderr, "Unknown option character `\\x%x'.\n", optopt);
+				return 1;
+			default:
+				abort ();
+		}	
+
+	
 	if (!readSudoku()) {
 		return 1; // Oje ... stopp!
 	}
@@ -84,6 +122,22 @@ int main() {
 	if (errors) {
 		printf("Es sind %d FEHLER aufgetreten!\n", errors);
 	}
+}
+
+
+//-------------------------------------------------------------------
+void printUsage() {
+	// print program usage
+	
+	puts("Usage: ");
+	puts(" solve_sudoku -l LOGFILE -s SVGFILE -v -h");
+	puts("");
+	puts("Parameters:");
+	puts("");
+	puts("  -l LOGFILE  log into LOGFILE (filename) instead of stdout");
+	puts("  -s SVGFILE  write SVG representation of Sudoku grid into SVG file");
+	puts("  -v          verbose logging");
+	puts("  -h          this help screen");
 }
 
 
