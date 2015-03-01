@@ -1,0 +1,33 @@
+rect.outer { 
+	fill:white; 
+	stroke-width: 0.5px; 
+	stroke:black;
+}
+
+line.thin { 
+	stroke: black; 
+	stroke-width: 0.1px;
+}
+
+line.thick {
+	stroke: black; 
+	stroke-width: 0.5px;
+}
+
+text.possibilities {
+	font-size: 2px;
+	font-family: Arial,Helvetica;
+	font-weight: normal;
+	stroke: black;
+	stroke-width: 0px;
+	fill: #888;
+}
+
+text.final {
+	font-size: 8px;
+	font-family: Arial,Helvetica;
+	font-weight: normal;
+	stroke: black;
+	stroke-width: 0px;
+	fill: black;
+}
