@@ -845,8 +845,8 @@ void getQuadrantStart(int q, int *qx, int *qy) {
 
 //-------------------------------------------------------------------
 // "Isoliert" Zwillinge in einer Spalte: die beiden Zahlenpaare, die
-// in diesen beiden Zellen moeglich sind, koennen weder im restlichen
-// Quadranten noch im Rest der Spalte vorkommen
+// in diesen beiden Zellen moeglich sind, koennen im Rest der Spalte 
+// nicht mehr vorkommen
 // Return-Wert:
 //   1 ... mind. 1 Nummer in der restlichen Spalte oder dem restlichen
 //         Quadranten wurde verboten, wir "sind weitergekommen"
@@ -886,8 +886,8 @@ int IsolateColumnTwins(int x, int y1, int y2) {
 
 //-------------------------------------------------------------------
 // "Isoliert" Zwillinge in einer Zeile: die beiden Zahlenpaare, die
-// in diesen beiden Zellen moeglich sein, koennen weder im restlichen
-// Quadranten noch im Rest der Zeile vorkommen
+// in diesen beiden Zellen moeglich sein, koennen im Rest der Zeile 
+// nicht mehr vorkommen
 // Return-Wert:
 //   1 ... mind. 1 Nummer in der restlichen Zeile oder dem restlichen
 //         Quadranten wurde verboten, wir "sind weitergekommen"
@@ -902,9 +902,6 @@ int IsolateRowTwins(int y, int x1, int x2) {
 	assert (y >= 0 && y < 9);
 	assert (x1 >= 0 && x1 < 9);
 	assert (x2 >= 0 && x2 < 9);
-	
-	//? FIXME: warum sollen diese Zahlen im restliche Quadranten nicht mehr vorkommen koennen????
-	 // das ist ja Arbeit von IsolateQuadrantTwins, nicht aber hier in IsolateRowTwins!
 	
 	progress = 0; // noch hat sich nichts veraendert
 	printf("Isoliere Zwillinge (%d/%d) und (%d/%d): %s/%s\n", y+1, x1+1, y+1, x1+1, possibilities[y][x1], possibilities[y][x2]);
