@@ -89,16 +89,14 @@ int main(int argc, char **argv) {
 		return 1; // Oje ... stopp!
 	}
 	
-	printf("Fehler: %d\n", errors);
-	
+	puts("Initial Sudoku:");
 	show();
 	showSvg();
 
 	result = solve();
-	show();
-	printf("Fehler: %d\n", errors);
 
 	showSvg();
+	show();
 
 	if (result) {
 		printf("-----------------------------------------------\n");
@@ -170,7 +168,6 @@ void showSvg() {
 	// display sudoku in SVG format
 	int x, y;
 	
-	show();
 	printf("--- START SVG representation ---\n");
 	printf("<?xml version='1.0'?>"
 "<?xml-stylesheet href='sudoku_style.css' type='text/css'?>"
