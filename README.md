@@ -44,6 +44,8 @@ Usage
 2. Each Sudoku row is written in a separate line
 3. lines starting with a hashbang '#' are considered comments and are silently skippde
 
+A valid Sudoku input file may look like this:
+
 ```
 7....56.4
 6.8...5.7
