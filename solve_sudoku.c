@@ -164,7 +164,12 @@ void printUsage() {
 	puts("Parameters:");
 	puts("");
 	puts("  -l LOGFILE  printlog into LOGFILE (filename) instead of stdout");
-	puts("  -s SVGFILE  write SVG representation of Sudoku grid into SVG file");
+	puts("  -s SVGFILE  write SVG representation of Sudoku grid into SVG files, each iteration will write");
+	puts("              another SVG file with a numeric suffix appended. The SVG file without an additional");
+	puts("              numeric suffix is the final, solved grid.");
+	puts("              For example, when the parameter -s test.svg is specified, you will end up with SVG");
+	puts("              files of test.svg.1, test.svg.2, test.svg.3 etc. plus the final grid, stored in the");
+	puts("              file test.svg (without additional suffix).");
 	puts("  -v          verbose logging");
 	puts("  -h          this help screen");
 }
@@ -219,9 +224,6 @@ void printSvg(int index) {
 
 	if (!svgFilename) return;
 
-	//only print SVG versions if verboseLogging is turned on
-	if (!verboseLogging) return;
-	
 	// build filename
 	if (!index) {
 		filename = svgFilename;
