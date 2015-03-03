@@ -25,7 +25,7 @@ void printUsage();
 int readSudoku();
 void printlog(char *text);
 void show();
-void showSvg();
+void printSvg(int index);
 int solve();
 int getQuadrantNr(int x, int y);
 int setUniqueNumber(int x, int y);
@@ -54,7 +54,7 @@ char *svgFilename; // filename of SVG file
 // file handles
 FILE *logfile;
 char buffer[1000]; // buffer for string operations
-
+int svgIndex;
 	
 int main(int argc, char **argv) {
 	int result;
@@ -102,14 +102,12 @@ int main(int argc, char **argv) {
 	if (verboseLogging) {
 		printlog("Initial Sudoku:");
 		show();
-		showSvg();
 	}
 
 	result = solve();
 
-	//showSvg();
 	show();
-
+	printSvg(0);
 
 	if (result) {
 		printlog("-----------------------------------------------");
@@ -138,6 +136,8 @@ int main(int argc, char **argv) {
 
 	
 	if (logfile) fclose(logfile);
+	
+	exit(EXIT_SUCCESS);
 }
 
 
@@ -200,12 +200,48 @@ void show() {
 }
 
 //-------------------------------------------------------------------
-void showSvg() {
+// if parameter final is truish, the specified svg filename will be used,
+// otherwise an indexed file name will be used to store intermediate
+// versions of the grid. This will only happen if verboseLogging is turned
+// on.
+// @param index integer ... 
+// The parameter index specifies the suffix to be used in the filename
+// so that the log file can reference to a specific SVG intermediate file
+// using this suffix. If index is 0, then no suffix will be appended. This
+// indicates that this SVG depicts the final, solved version - not some 
+// intermediate version
+void printSvg(int index) {
 	// display sudoku in SVG format
 	int x, y;
+	FILE *svgfile;
+	char *filename;
+	char suffix[20];
+
+	if (!svgFilename) return;
+
+	//only print SVG versions if verboseLogging is turned on
+	if (!verboseLogging) return;
 	
-	printlog("--- START SVG representation ---");
-	printlog("<?xml version='1.0'?>"
+	// build filename
+	if (!index) {
+		filename = svgFilename;
+	} else {
+		sprintf(suffix, ".%d", index);
+		filename = (char *)malloc(sizeof(char)*(strlen(svgFilename)+strlen(suffix)+1)); 
+		if (filename == NULL) {
+			perror("Not enough memory to allocate memory for SVG filename.");
+			exit(EXIT_FAILURE);  
+		}
+		strcpy(filename, svgFilename);
+		strcat(filename, suffix);
+	}
+	
+	sprintf(buffer, "Writing SVG file [%s]", filename);
+	printlog(buffer);
+
+	svgfile = fopen(filename, "w");
+
+	fputs("<?xml version='1.0'?>"
 "<?xml-stylesheet href='sudoku_style.css' type='text/css'?>"
 "<!DOCTYPE svg PUBLIC '-//W3C//DTD SVG 1.1//EN'"
 "  'http://www.w3.org/Graphics/SVG/1.1/DTD/svg11.dtd'>"
@@ -231,16 +267,14 @@ void showSvg() {
 "	  <line class='thin'  x1='45' y1='0' x2='45' y2='81' />"
 "	  <line class='thick' x1='54' y1='0' x2='54' y2='81' />"
 "	  <line class='thin'  x1='63' y1='0' x2='63' y2='81' />"
-"	  <line class='thin'  x1='72' y1='0' x2='72' y2='81' />"
-"");
+"	  <line class='thin'  x1='72' y1='0' x2='72' y2='81' />", svgfile);
 
 	for (y = 0; y < 9; y++) {
 		for (x = 0; x < 9; x++) {
 			if (fields[y][x]) {
 				float xPos = x * 9 + 4.5;
 				float yPos = y * 9 + 7.65;
-				sprintf(buffer, "<text class=\"final\" x=\"%f\"  y=\"%f\" text-anchor=\"middle\">%d</text>", xPos, yPos, fields[y][x]);
-				printlog(buffer);
+				fprintf(svgfile, "<text class=\"final\" x=\"%f\"  y=\"%f\" text-anchor=\"middle\">%d</text>\n", xPos, yPos, fields[y][x]);
 			} else {
 			    // alle noch moeglichen Zahlen ausgeben
 			    int n1;
@@ -248,19 +282,16 @@ void showSvg() {
            		    if (possibilities[y][x][n1-1] == (char)(n1 + 48)) {
            		        float xPos = x * 9 + ((n1 - 1) % 3) * 3 + 1;
            		        float yPos = y * 9 + ((int)((n1 - 1) / 3) * 3 + 2.4);
-        				sprintf(buffer, "<text class=\"possibilities\" x=\"%f\"  y=\"%f\" text-anchor=\"middle\">%d</text>", xPos, yPos, n1);
-						printlog(buffer);
-           		        
+        				fprintf(svgfile, "<text class=\"possibilities\" x=\"%f\"  y=\"%f\" text-anchor=\"middle\">%d</text>\n", xPos, yPos, n1);
            		    }
             	}
 			}
 		}
 	}
+	fputs("  </g>\n</svg>", svgfile);
 
-	printlog("  </g>"
-""
-"</svg>");
-	printlog("--- END SVG representation ---");
+	fclose(svgfile);
+	if (filename != svgFilename) free(filename);
 }
 
 //-------------------------------------------------------------------
@@ -274,10 +305,14 @@ int solve() {
 	int iteration;
 	int progress; // Flag: in einer Iteration wurde zumindest eine Erkenntnis gewonnen
 	int x1, x2, y1, y2, qx1, qx2, qy1, qy2, qx, qy;
+	int gridVersion;
 	
 	errors = 0; // noch keine Fehler aufgetreten
 	iteration = 0;
+	gridVersion = 0;
 
+	printSvg(gridVersion++);
+	
 	// Initialisierung:
 	// zunaechst sind ueberall alle Zahlen moeglich
 	for (y = 0; y < 9; y++) {
@@ -371,7 +406,8 @@ int solve() {
 				}
 			}
 		}
-		if (verboseLogging) showSvg();
+
+		printSvg(gridVersion++);
 
 		// suche in allen Zeilen nach Zahlen, die nur an einer Position
 		// moeglich sind (auch wenn in dieser Zelle mehrere Zahlen moeglich
@@ -394,7 +430,8 @@ int solve() {
 				}
 			}
 		}
-		if (verboseLogging) showSvg();
+
+		printSvg(gridVersion++);
 
 		// suche in allen Spalten nach Zahlen, die nur an einer Position
 		// moeglich sind (auch wenn in dieser Zelle mehrere Zahlen moeglich
@@ -417,7 +454,8 @@ int solve() {
 				}
 			}
 		}
-		if (verboseLogging) showSvg();
+
+		printSvg(gridVersion++);
 
 		// suche in allen Quadranten nach Zahlen, die nur an einer Position
 		// moeglich sind (auch wenn in diesem Quadrant mehrere Zahlen moeglich
@@ -447,7 +485,8 @@ int solve() {
 				}
 			}
 		}
-		if (verboseLogging) showSvg();
+
+		printSvg(gridVersion++);
 
 		//? FIXME FEHLT hier nicht, das nicht nur fuer Spalten und Zeile, sondern auch fuer Quadranten anzuwenden?
 		
@@ -506,7 +545,8 @@ int solve() {
 				}
 			}
 		}
-		if (verboseLogging) showSvg();
+
+		printSvg(gridVersion++);
 		
 
 		// Suche nach Zwillingen in einer Zeile oder einer Spalte (nicht unbedingt in einem Quadranten):
@@ -540,7 +580,8 @@ int solve() {
 				}
 			}
 		}
-		if (verboseLogging) showSvg();
+
+		printSvg(gridVersion++);
 
 		// alle Spalten durchgehen
 		for (x = 0; x < 9; x++) {
@@ -566,8 +607,8 @@ int solve() {
 				}
 			}
 		}
-		if (verboseLogging) showSvg();
 
+		printSvg(gridVersion++);
 
 		// Suche nach lokaler Eingrenzung einer Zahl in einem Quadranten:
 		// --------------------------------------------------------------
@@ -664,8 +705,9 @@ int solve() {
 				}
 			}
 		}
-		if (verboseLogging) showSvg();
 		
+		printSvg(gridVersion++);
+
 		// ... analog in Spalten eines Quadranten suchen
 		int xFound;
 		for (q = 0; q < 9; q++) {
@@ -753,8 +795,8 @@ int solve() {
 				}
 			}
 		}
-		if (verboseLogging) showSvg();
-		
+
+		printSvg(gridVersion++);
 
 		// nach der Iteration den Sudoku-Zwischenstand anzeigen
 		if (verboseLogging) show(fields);
