@@ -23,6 +23,7 @@ in das hier erwartete:
 
 void printUsage();
 int readSudoku();
+void printlog(char *text);
 void show();
 void showSvg();
 int solve();
@@ -47,8 +48,11 @@ char possibilities[10][10][10]; // pro Feld die moeglichen Zahlen, als C-String,
 int nrOfPossibilities[9][9]; // Anzahl der verbleibenden Moeglichkeiten pro Zelle
 int errors; // number of errors in the algorithm
 int verboseLogging; // flag: if truish, switch on verbose logging
-char *outputFilename; // filename of log file
+char *outputFilename; // filename of printlog file
 char *svgFilename; // filename of SVG file
+
+// file handles
+FILE *logfile;
 	
 int main(int argc, char **argv) {
 	int result;
@@ -84,12 +88,17 @@ int main(int argc, char **argv) {
 				abort ();
 		}	
 
+		
+	if (outputFilename) {
+		logfile = fopen(outputFilename, "w");
+	}
+		
 	
 	if (!readSudoku()) {
 		return 1; // Oje ... stopp!
 	}
 	
-	puts("Initial Sudoku:");
+	printlog("Initial Sudoku:");
 	show();
 	showSvg();
 
@@ -99,9 +108,9 @@ int main(int argc, char **argv) {
 	show();
 
 	if (result) {
-		printf("-----------------------------------------------\n");
-		printf("         FERTIG, SUDOKU WURDE GELOEST!\n");
-		printf("-----------------------------------------------\n");
+		printlog("-----------------------------------------------");
+		printlog("         FERTIG, SUDOKU WURDE GELOEST!");
+		printlog("-----------------------------------------------");
 	}	else {
 		
 		int x, y;
@@ -111,14 +120,30 @@ int main(int argc, char **argv) {
 				if (fields[y][x])
 					numbersFound++;
 		
-		printf("-----------------------------------------------\n");
-		printf("      Sudoku konnte nicht geloest werden!\n");
-		printf("      %d von 81 Zellen wurden gefunden.\n", numbersFound);
-		printf("-----------------------------------------------\n");
+		printlog("-----------------------------------------------");
+		printlog("      Sudoku konnte nicht geloest werden!");
+		printlog(sprintf("      %d von 81 Zellen wurden gefunden.", numbersFound));
+		printlog("-----------------------------------------------");
 	}
 
 	if (errors) {
-		printf("Es sind %d FEHLER aufgetreten!\n", errors);
+		printlog(sprintf("Es sind %d FEHLER aufgetreten!\n", errors));
+	}
+
+	
+	if (logfile) fclose(logfile);
+}
+
+
+//-------------------------------------------------------------------
+void printlog(char *text) {
+	// printlog a message to printlog file or to stdout
+
+	if (printlog) {
+		fputs(f, text);
+	} else {
+		// no printlog file => write to stdout
+		puts(text);
 	}
 }
 
@@ -132,7 +157,7 @@ void printUsage() {
 	puts("");
 	puts("Parameters:");
 	puts("");
-	puts("  -l LOGFILE  log into LOGFILE (filename) instead of stdout");
+	puts("  -l LOGFILE  printlog into LOGFILE (filename) instead of stdout");
 	puts("  -s SVGFILE  write SVG representation of Sudoku grid into SVG file");
 	puts("  -v          verbose logging");
 	puts("  -h          this help screen");
@@ -142,14 +167,16 @@ void printUsage() {
 //-------------------------------------------------------------------
 void show() {
 	// display sudoku
-	int x, y;
+	int x, y
+	char row[50] = "";
 	
 	for (y = 0; y < 9; y++) {
 		if (!(y % 3))
-			puts("+-----+-----+-----+");
+			printlog("+-----+-----+-----+");
+		
 		for (x = 0; x < 9; x++) {
 			if (x % 3)
-				printf(" ");
+				sprintf(" ");
 			else
 				printf("|");
 			if (fields[y][x])
@@ -158,9 +185,9 @@ void show() {
 				// leeres Feld
 				printf(" ");
 		}
-		puts("|");
+		printlog(sprintf("%s|", row));
 	}
-	puts("+-----+-----+-----+");
+	printlog("+-----+-----+-----+");
 }
 
 //-------------------------------------------------------------------
@@ -219,7 +246,7 @@ void showSvg() {
 		}
 	}
 
-	puts("  </g>"
+	printlog("  </g>"
 ""
 "</svg>");
 	printf("--- END SVG representation ---\n");
@@ -1115,7 +1142,7 @@ int readSudoku() {
 			// alle Zeichen der Zeile durchgehen, das sollten nur Ziffern 
 			// und Leerzeichen sein
 			if (y > 9) {
-				puts("Fehler beim Einlesen des Sudokus: zu viele Datenzeilen.");
+				printlog("Fehler beim Einlesen des Sudokus: zu viele Datenzeilen.");
 				ok = 0; // oje, das war keine Ziffer!
 				break;
 			}
@@ -1126,7 +1153,7 @@ int readSudoku() {
 				} else if ((c == ' ') || (c == '.')) {
 					fields[y][x] = 0;
 				} else {
-					printf("Fehler beim Einlesen des Sudokus: illegales Zeichen ('%c') in Zeile %d an Position %d.\n", c, x+1, linecount);
+					printlog(sprintf("Fehler beim Einlesen des Sudokus: illegales Zeichen ('%c') in Zeile %d an Position %d.\n", c, x+1, linecount));
 					ok = 0; // oje, das war keine Ziffer!
 					break;
 				}
@@ -1138,7 +1165,7 @@ int readSudoku() {
 	}
 
 	if (ok && y != 9) {
-		puts("Fehler beim Einlesen des Sudokus: es muessen genau 9 Datenzeilen sein.");
+		printlog("Fehler beim Einlesen des Sudokus: es muessen genau 9 Datenzeilen sein.");
 		ok = 0;
 	}
 		
