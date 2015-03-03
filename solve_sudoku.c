@@ -36,7 +36,7 @@ int getAbsoluteX(int q, int qx);
 int getAbsoluteY(int q, int qx);
 void getQuadrantCell(int n, int *qx, int *qy);
 void getQuadrantStart(int q, int *qx, int *qy);
-int IsolateColumnTwins(int x, int y1, int y2);
+int IsolateColumnTwins(int x, int y3, int y2);
 int IsolateRowTwins(int y, int x1, int x2);
 int IsolateQuadrantTwins(int q, int y1, int x1, int y2, int x2);
 int forbidNumber(int y, int x, int n);
@@ -57,6 +57,7 @@ FILE *logfile;
 int main(int argc, char **argv) {
 	int result;
 	int c;
+	char s[200];
 
 	// read command line arguments
 	opterr = 0;
@@ -78,7 +79,7 @@ int main(int argc, char **argv) {
 				break;
 			case '?':
 				if (optopt == 'l' || optopt == 's')
-					fprintf (stderr, "Option -%l requires an argument.\n", optopt);
+					fprintf (stderr, "Option -%d requires an argument.\n", optopt);
 				else if (isprint (optopt))
 					fprintf (stderr, "Unknown option `-%c'.\n", optopt);
 				else
@@ -122,12 +123,14 @@ int main(int argc, char **argv) {
 		
 		printlog("-----------------------------------------------");
 		printlog("      Sudoku konnte nicht geloest werden!");
-		printlog(sprintf("      %d von 81 Zellen wurden gefunden.", numbersFound));
+		sprintf(s, "      %d von 81 Zellen wurden gefunden.", numbersFound);
+		printlog(s);
 		printlog("-----------------------------------------------");
 	}
 
 	if (errors) {
-		printlog(sprintf("Es sind %d FEHLER aufgetreten!\n", errors));
+		sprintf(s, "Es sind %d FEHLER aufgetreten!\n", errors);
+		printlog(s);
 	}
 
 	
@@ -140,7 +143,7 @@ void printlog(char *text) {
 	// printlog a message to printlog file or to stdout
 
 	if (printlog) {
-		fputs(f, text);
+		fputs(text, logfile);
 	} else {
 		// no printlog file => write to stdout
 		puts(text);
@@ -167,25 +170,29 @@ void printUsage() {
 //-------------------------------------------------------------------
 void show() {
 	// display sudoku
-	int x, y
-	char row[50] = "";
+	int x, y;
+	char row[50];
+  int index;
 	
 	for (y = 0; y < 9; y++) {
 		if (!(y % 3))
 			printlog("+-----+-----+-----+");
 		
+		index = 0;
 		for (x = 0; x < 9; x++) {
 			if (x % 3)
-				sprintf(" ");
+				row[index++] = ' ';
 			else
-				printf("|");
+				row[index++] = '|';
 			if (fields[y][x])
 				printf("%d", fields[y][x]);
 			else
 				// leeres Feld
-				printf(" ");
+				row[index++] = ' ';
 		}
-		printlog(sprintf("%s|", row));
+		row[index++] = '|';
+		row[index++] = '\n';
+		printlog(row);
 	}
 	printlog("+-----+-----+-----+");
 }
@@ -1119,6 +1126,7 @@ int readSudoku() {
 	char c;
 	int ok;
 	int x, y;
+	char s[200];
 
 	// Sudoku initialisieren
 	for (y = 0; y < 9; y++) {
@@ -1153,7 +1161,8 @@ int readSudoku() {
 				} else if ((c == ' ') || (c == '.')) {
 					fields[y][x] = 0;
 				} else {
-					printlog(sprintf("Fehler beim Einlesen des Sudokus: illegales Zeichen ('%c') in Zeile %d an Position %d.\n", c, x+1, linecount));
+					sprintf(s, "Fehler beim Einlesen des Sudokus: illegales Zeichen ('%c') in Zeile %d an Position %d.\n", c, x+1, linecount);
+					printlog(s);
 					ok = 0; // oje, das war keine Ziffer!
 					break;
 				}
