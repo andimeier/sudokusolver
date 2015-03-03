@@ -24,7 +24,7 @@ in das hier erwartete:
 void printUsage();
 int readSudoku();
 void printlog(char *text);
-void show();
+void show(int showInit);
 void printSvg(int index);
 int solve();
 int getQuadrantNr(int x, int y);
@@ -43,6 +43,7 @@ int forbidNumber(int y, int x, int n);
 			
 // globale Variablen
 // das Sudoku-Feld selbst
+int initfields[9][9];
 int fields[9][9];
 char possibilities[10][10][10]; // pro Feld die moeglichen Zahlen, als C-String, zB "123000080"
 int nrOfPossibilities[9][9]; // Anzahl der verbleibenden Moeglichkeiten pro Zelle
@@ -101,12 +102,12 @@ int main(int argc, char **argv) {
 	
 	if (verboseLogging) {
 		printlog("Initial Sudoku:");
-		show();
+		show(0);
 	}
 
 	result = solve();
 
-	show();
+	show(1);
 	printSvg(0);
 
 	if (result) {
@@ -176,16 +177,44 @@ void printUsage() {
 
 
 //-------------------------------------------------------------------
-void show() {
+// @param showInit {integer} if falsey, only print current grid. If truish,
+//   print original (init) grid and current grid
+void show(int showInit) {
 	// display sudoku
 	int x, y;
 	int index;
 	
 	for (y = 0; y < 9; y++) {
-		if (!(y % 3))
-			printlog("+-----+-----+-----+");
 		
+		if (!(y % 3)) {
+			// intermediate header row
+			printlog(showInit ? "+-----+-----+-----+      +-----+-----+-----+" : "+-----+-----+-----+");
+
+		}
+		// normal data row
 		index = 0;
+		if (showInit) {
+			
+			// show starting grid's data row
+			for (x = 0; x < 9; x++) {
+				if (x % 3)
+					buffer[index++] = ' ';
+				else
+					buffer[index++] = '|';
+				if (initfields[y][x])
+					buffer[index++] = (char)(initfields[y][x] + 48);
+				else
+					// leeres Feld
+					buffer[index++] = ' ';
+			}
+			buffer[index++] = '|';
+			buffer[index++] = '\0';
+
+			strcat(buffer, (y == 4) ? "  ->  " : "      ");
+			index = strlen(buffer);
+		}
+		
+		// show current grid's data row
 		for (x = 0; x < 9; x++) {
 			if (x % 3)
 				buffer[index++] = ' ';
@@ -201,7 +230,71 @@ void show() {
 		buffer[index++] = '\0';
 		printlog(buffer);
 	}
-	printlog("+-----+-----+-----+");
+	
+	// intermediate header row
+	printlog(showInit ? "+-----+-----+-----+      +-----+-----+-----+" : "+-----+-----+-----+");
+
+
+
+		
+//		if (showInit) {
+//			// first show original grid
+//			if (!(y % 3)) {
+//				strcpy(buffer, "+-----+-----+-----+      ");
+//				index = strlen(buffer);
+//			}
+//
+//			for (x = 0; x < 9; x++) {
+//				if (x % 3)
+//					buffer[index++] = ' ';
+//				else
+//					buffer[index++] = '|';
+//				if (initfields[y][x])
+//					buffer[index++] = (char)(initfields[y][x] + 48);
+//				else
+//					// leeres Feld
+//					buffer[index++] = ' ';
+//			}
+//			buffer[index++] = '|';
+//			
+//			if (y == 4) {
+//				buffer[index++] = ' ';
+//				buffer[index++] = ' ';
+//				buffer[index++] = '-';
+//				buffer[index++] = '>';
+//				buffer[index++] = ' ';
+//				buffer[index++] = ' ';
+//			} else {
+//				buffer[index++] = ' ';
+//				buffer[index++] = ' ';
+//				buffer[index++] = ' ';
+//				buffer[index++] = ' ';
+//				buffer[index++] = ' ';
+//				buffer[index++] = ' ';
+//			}
+//		} else {
+//		}
+//		
+//		if (!(y % 3)) {
+//			printlog("+-----+-----+-----+");
+//		}
+//		
+//		for (x = 0; x < 9; x++) {
+//			if (x % 3)
+//				buffer[index++] = ' ';
+//			else
+//				buffer[index++] = '|';
+//			if (fields[y][x])
+//				buffer[index++] = (char)(fields[y][x] + 48);
+//			else
+//				// leeres Feld
+//				buffer[index++] = ' ';
+//		}
+//		buffer[index++] = '|';
+//		buffer[index++] = '\0';
+//		printlog(buffer);
+//	}
+//	printlog("+-----+-----+-----+");
 }
 
 //-------------------------------------------------------------------
@@ -801,7 +894,7 @@ int solve() {
 		printSvg(gridVersion++);
 
 		// nach der Iteration den Sudoku-Zwischenstand anzeigen
-		if (verboseLogging) show(fields);
+		if (verboseLogging) show(0);
 
 	} while(progress);
 	
@@ -1383,6 +1476,13 @@ int readSudoku() {
 		printlog("Fehler beim Einlesen des Sudokus: es muessen genau 9 Datenzeilen sein.");
 		ok = 0;
 	}
-		
+
+	// copy original grid
+	for (y = 0; y < 9; y++) {
+		for (x = 0; x < 9; x++) {
+			initfields[y][x] = fields[y][x];
+		}
+	}
+	
 	return ok;
 }
