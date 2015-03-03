@@ -36,3 +36,16 @@ Usage
   -v          verbose logging
   
   -h          this help screen
+
+  
+### Format of Sudoku input file
+
+7....56.4
+6.8...5.7
+..12..9..
+...5...4.
+...391...
+.1...2...
+..7..94..
+9.4...3.8
+2.56....1
