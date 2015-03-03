@@ -53,11 +53,12 @@ char *svgFilename; // filename of SVG file
 
 // file handles
 FILE *logfile;
+char buffer[1000]; // buffer for string operations
+
 	
 int main(int argc, char **argv) {
 	int result;
 	int c;
-	char s[200];
 
 	// read command line arguments
 	opterr = 0;
@@ -93,20 +94,22 @@ int main(int argc, char **argv) {
 	if (outputFilename) {
 		logfile = fopen(outputFilename, "w");
 	}
-		
-	
+
 	if (!readSudoku()) {
 		return 1; // Oje ... stopp!
 	}
 	
-	printlog("Initial Sudoku:");
-	show();
-	showSvg();
+	if (verboseLogging) {
+		printlog("Initial Sudoku:");
+		show();
+		showSvg();
+	}
 
 	result = solve();
 
-	showSvg();
+	//showSvg();
 	show();
+
 
 	if (result) {
 		printlog("-----------------------------------------------");
@@ -123,14 +126,14 @@ int main(int argc, char **argv) {
 		
 		printlog("-----------------------------------------------");
 		printlog("      Sudoku konnte nicht geloest werden!");
-		sprintf(s, "      %d von 81 Zellen wurden gefunden.", numbersFound);
-		printlog(s);
+		sprintf(buffer, "      %d von 81 Zellen wurden gefunden.", numbersFound);
+		printlog(buffer);
 		printlog("-----------------------------------------------");
 	}
 
 	if (errors) {
-		sprintf(s, "Es sind %d FEHLER aufgetreten!\n", errors);
-		printlog(s);
+		sprintf(buffer, "Es sind %d FEHLER aufgetreten!\n", errors);
+		printlog(buffer);
 	}
 
 	
@@ -142,7 +145,7 @@ int main(int argc, char **argv) {
 void printlog(char *text) {
 	// printlog a message to printlog file or to stdout
 
-	if (printlog) {
+	if (logfile) {
 		fputs(text, logfile);
 	} else {
 		// no printlog file => write to stdout
@@ -171,8 +174,7 @@ void printUsage() {
 void show() {
 	// display sudoku
 	int x, y;
-	char row[50];
-  int index;
+	int index;
 	
 	for (y = 0; y < 9; y++) {
 		if (!(y % 3))
@@ -181,18 +183,18 @@ void show() {
 		index = 0;
 		for (x = 0; x < 9; x++) {
 			if (x % 3)
-				row[index++] = ' ';
+				buffer[index++] = ' ';
 			else
-				row[index++] = '|';
+				buffer[index++] = '|';
 			if (fields[y][x])
-				printf("%d", fields[y][x]);
+				buffer[index++] = (char)(fields[y][x] + 48);
 			else
 				// leeres Feld
-				row[index++] = ' ';
+				buffer[index++] = ' ';
 		}
-		row[index++] = '|';
-		row[index++] = '\n';
-		printlog(row);
+		buffer[index++] = '|';
+		buffer[index++] = '\0';
+		printlog(buffer);
 	}
 	printlog("+-----+-----+-----+");
 }
@@ -202,8 +204,8 @@ void showSvg() {
 	// display sudoku in SVG format
 	int x, y;
 	
-	printf("--- START SVG representation ---\n");
-	printf("<?xml version='1.0'?>"
+	printlog("--- START SVG representation ---");
+	printlog("<?xml version='1.0'?>"
 "<?xml-stylesheet href='sudoku_style.css' type='text/css'?>"
 "<!DOCTYPE svg PUBLIC '-//W3C//DTD SVG 1.1//EN'"
 "  'http://www.w3.org/Graphics/SVG/1.1/DTD/svg11.dtd'>"
@@ -237,7 +239,8 @@ void showSvg() {
 			if (fields[y][x]) {
 				float xPos = x * 9 + 4.5;
 				float yPos = y * 9 + 7.65;
-				printf("<text class=\"final\" x=\"%f\"  y=\"%f\" text-anchor=\"middle\">%d</text>\n", xPos, yPos, fields[y][x]);
+				sprintf(buffer, "<text class=\"final\" x=\"%f\"  y=\"%f\" text-anchor=\"middle\">%d</text>", xPos, yPos, fields[y][x]);
+				printlog(buffer);
 			} else {
 			    // alle noch moeglichen Zahlen ausgeben
 			    int n1;
@@ -245,7 +248,8 @@ void showSvg() {
            		    if (possibilities[y][x][n1-1] == (char)(n1 + 48)) {
            		        float xPos = x * 9 + ((n1 - 1) % 3) * 3 + 1;
            		        float yPos = y * 9 + ((int)((n1 - 1) / 3) * 3 + 2.4);
-        				printf("<text class=\"possibilities\" x=\"%f\"  y=\"%f\" text-anchor=\"middle\">%d</text>\n", xPos, yPos, n1);
+        				sprintf(buffer, "<text class=\"possibilities\" x=\"%f\"  y=\"%f\" text-anchor=\"middle\">%d</text>", xPos, yPos, n1);
+						printlog(buffer);
            		        
            		    }
             	}
@@ -256,7 +260,7 @@ void showSvg() {
 	printlog("  </g>"
 ""
 "</svg>");
-	printf("--- END SVG representation ---\n");
+	printlog("--- END SVG representation ---");
 }
 
 //-------------------------------------------------------------------
@@ -271,9 +275,7 @@ int solve() {
 	int progress; // Flag: in einer Iteration wurde zumindest eine Erkenntnis gewonnen
 	int x1, x2, y1, y2, qx1, qx2, qy1, qy2, qx, qy;
 	
-	printf("Fehler vor Reset: %d\n", errors); //?DEBUG
 	errors = 0; // noch keine Fehler aufgetreten
-	printf("Fehler nach Reset: %d\n", errors); //?DEBUG
 	iteration = 0;
 
 	// Initialisierung:
@@ -286,23 +288,30 @@ int solve() {
 	}
 	
 	do {
-		printf("Fehler: %d\n", errors);
 		iteration++;
 		progress = 0; // noch kein neuen Erkenntnis in dieser Runde (hat ja erst begonnen)
-		printf("----- Beginne Iteration %d -----\n", iteration);
+		if (verboseLogging) {
+			sprintf(buffer, "----- Beginne Iteration %d -----\n", iteration);
+			printlog(buffer);
+		}
 		
-		for (y = 0; y < 9; y++) {
-			for (x = 0; x < 9; x++) {
-				if (fields[y][x])
-					printf("  Feld (%d/%d): %d\n", y+1, x+1, fields[y][x]);
-				else
-					printf("  Feld (%d/%d): %s\n", y+1, x+1, possibilities[y][x]);
+		if (verboseLogging) {
+			for (y = 0; y < 9; y++) {
+				for (x = 0; x < 9; x++) {
+					if (fields[y][x]) {
+						sprintf(buffer, "  Feld (%d/%d): %d\n", y+1, x+1, fields[y][x]);
+						printlog(buffer);
+					} else {
+						sprintf(buffer, "  Feld (%d/%d): %s\n", y+1, x+1, possibilities[y][x]);
+						printlog(buffer);
+					}
+				}
 			}
 		}
 
 		// alle Felder durchgehen und vorkommende Zahlen in der selben
 		// Reihe, in der selben Spalte und im selben Quadranten verbieten
-		printf("??? Searching for: unique numbers ... \n");
+		if (verboseLogging) printlog("??? Searching for: unique numbers ... \n");
 
 		for (y = 0; y < 9; y++) {
 			for (x = 0; x < 9; x++) {
@@ -315,7 +324,10 @@ int solve() {
 						// alle "zweifelhaften" Zellen durchgehen
 						if (!fields[y][i]) {
 							if (forbidNumber(y, i, n)) {
-								printf("!! Neue Moeglichkeiten-Erkenntnis 1a: (Nummer %d verboten wegen %d in (%d/%d))\n", n, n, y+1, x+1);
+								if (verboseLogging) {
+									sprintf(buffer, "!! Neue Moeglichkeiten-Erkenntnis 1a: (Nummer %d verboten wegen %d in (%d/%d))\n", n, n, y+1, x+1);
+									printlog(buffer);
+								}
 								progress = 1; // Flag "neue Erkenntnis" setzen
 							}
 						}
@@ -325,7 +337,10 @@ int solve() {
 						// alle "zweifelhaften" Zellen durchgehen
 						if (!fields[i][x]) {
 							if (forbidNumber(i, x, n)) {
-								printf("!! Neue Moeglichkeiten-Erkenntnis 1b: (Nummer %d verboten wegen %d in (%d/%d))\n", n, n, y+1, x+1);
+								if (verboseLogging) {
+									sprintf(buffer, "!! Neue Moeglichkeiten-Erkenntnis 1b: (Nummer %d verboten wegen %d in (%d/%d))\n", n, n, y+1, x+1);
+									printlog(buffer);
+								}
 								progress = 1; // Flag "neue Erkenntnis" setzen
 							}
 						}
@@ -344,7 +359,10 @@ int solve() {
 							// alle "zweifelhaften" Zellen durchgehen
 							if (!fields[y0 + y1][x0 + x1]) {
 								if (forbidNumber(y0 + y1, x0 + x1, n)) {
-									printf("!! Neue Moeglichkeiten-Erkenntnis 1c: (Nummer %d verboten wegen %d in (%d/%d))\n", n, n, y+1, x+1);
+									if (verboseLogging) {
+										sprintf(buffer, "!! Neue Moeglichkeiten-Erkenntnis 1c: (Nummer %d verboten wegen %d in (%d/%d))\n", n, n, y+1, x+1);
+										printlog(buffer);
+									}
 									progress = 1; // Flag "neue Erkenntnis" setzen
 								}
 							}
@@ -353,41 +371,53 @@ int solve() {
 				}
 			}
 		}
-		showSvg();
+		if (verboseLogging) showSvg();
 
 		// suche in allen Zeilen nach Zahlen, die nur an einer Position
 		// moeglich sind (auch wenn in dieser Zelle mehrere Zahlen moeglich
 		// waeren, aber die anderen Moeglichkeiten kann man dann verwerfen)
-		printf("??? Searching for: unique places in rows ... \n");
+		if (verboseLogging) {
+			sprintf(buffer, "??? Searching for: unique places in rows ... \n");
+			printlog(buffer);
+		}
 		for (y = 0; y < 9; y++) {
 			for (n = 1; n <= 9; n++) {
 				x = getUniquePositionInRow(n, y);
 				if (!fields[y][x] && x) {
 					// Zahl n kann nur an der Position x vorkommen in der Zeile y
-                    printf("!!! Neue Erkenntnis 2a: In Zeile %d kann %d nur an Position %d vorkommen => (%d/%d) = %d!\n", y+1, n, x+1, y+1, x+1, n);
+					if (verboseLogging) {
+						sprintf(buffer, "!!! Neue Erkenntnis 2a: In Zeile %d kann %d nur an Position %d vorkommen => (%d/%d) = %d!\n", y+1, n, x+1, y+1, x+1, n);
+						printlog(buffer);
+					}
 					fields[y][x] = n;
 					progress = 1; // Flag "neue Erkenntnis" setzen
 				}
 			}
 		}
-		showSvg();
+		if (verboseLogging) showSvg();
 
 		// suche in allen Spalten nach Zahlen, die nur an einer Position
 		// moeglich sind (auch wenn in dieser Zelle mehrere Zahlen moeglich
 		// waeren, aber die anderen Moeglichkeiten kann man dann verwerfen)
-		printf("??? Searching for: unique places in cols ... \n");
+		if (verboseLogging) {
+			sprintf(buffer, "??? Searching for: unique places in cols ... \n");
+			printlog(buffer);
+		}
 		for (x = 0; x < 9; x++) {
 			for (n = 1; n <= 9; n++) {
 				y = getUniquePositionInColumn(n, x);
 				if (!fields[y][x] && y) {
 					// Zahl n kann nur an der Position y vorkommen in der Spalte x
-                    printf("!!! Neue Erkenntnis 2b: In Spalte %d kann %d nur an Position %d vorkommen => (%d/%d) = %d!\n", x+1, n, y+1, y+1, x+1, n);
+					if (verboseLogging) {
+						sprintf(buffer, "!!! Neue Erkenntnis 2b: In Spalte %d kann %d nur an Position %d vorkommen => (%d/%d) = %d!\n", x+1, n, y+1, y+1, x+1, n);
+						printlog(buffer);
+					}
 					fields[y][x] = n;
 					progress = 1; // Flag "neue Erkenntnis" setzen
 				}
 			}
 		}
-		showSvg();
+		if (verboseLogging) showSvg();
 
 		// suche in allen Quadranten nach Zahlen, die nur an einer Position
 		// moeglich sind (auch wenn in diesem Quadrant mehrere Zahlen moeglich
@@ -395,7 +425,10 @@ int solve() {
 		{
 			int position;
 			
-			printf("??? Searching for: unique places in quadrants ... \n");
+			if (verboseLogging) {
+				sprintf(buffer, "??? Searching for: unique places in quadrants ... \n");
+				printlog(buffer);
+			}
 			for (q = 0; q < 9; q++) {
 				for (n = 1; n <= 9; n++) {
 					position = getUniquePositionInQuadrant(n, q);
@@ -403,7 +436,10 @@ int solve() {
 						getQuadrantField(q, position, &x, &y);
 						if (!fields[y][x]) {
 							// Zahl n kann nur an der Position y vorkommen in der Spalte x
-							printf("!!! Neue Erkenntnis 2c: In Quadrant %d kann %d nur an Position %d vorkommen => (%d/%d) = %d!\n", q+1, n, 		position+1, y+1, x+1, n);
+							if (verboseLogging) {
+								sprintf(buffer, "!!! Neue Erkenntnis 2c: In Quadrant %d kann %d nur an Position %d vorkommen => (%d/%d) = %d!\n", q+1, n, 		position+1, y+1, x+1, n);
+								printlog(buffer);
+							}
 							fields[y][x] = n;
 							progress = 1; // Flag "neue Erkenntnis" setzen
 						}
@@ -411,7 +447,7 @@ int solve() {
 				}
 			}
 		}
-		showSvg();
+		if (verboseLogging) showSvg();
 
 		//? FIXME FEHLT hier nicht, das nicht nur fuer Spalten und Zeile, sondern auch fuer Quadranten anzuwenden?
 		
@@ -438,10 +474,13 @@ int solve() {
 		// Wenn die beiden auch noch in der selben Zeile sind, kann auch 
 		// in der restlichen Zeile keine dieser Zahlen mehr vorkommen.
 		// Analog fuer Spalten.
-		printf("??? Searching for: twins ... \n");
+		if (verboseLogging) printlog("??? Searching for: twins ... \n");
 		
 		for (q = 0; q < 9; q++) {
-			printf("Untersuche Quadrant %d auf Zwillinge ...\n", q+1);
+			if (verboseLogging) {
+				sprintf(buffer, "Untersuche Quadrant %d auf Zwillinge ...\n", q+1);
+				printlog(buffer);
+			}
 			getQuadrantStart(q, &qx, &qy);
 			// Vergleiche jedes Feld im Quadranten mit jedem anderen im selben Quadranten
 			for (i = 0; i < 9; i++) {
@@ -457,14 +496,17 @@ int solve() {
 							&& !strcmp(possibilities[y1][x1], possibilities[y2][x2])) {
 						// ja, wird haben Quadranten-Zwillinge => im restlichen Quadranten 
 						// koennen diese 2 Zahlen nicht mehr vorkommen!
-						printf("!! Neue Moeglichkeiten-Erkenntnis 3a: Zwillinge! Feld (%d/%d) und Feld (%d/%d) sind im gleichen Quadranten und haben beide: %s\n", y1+1, x1+1, y2+1, x2+1, possibilities[y1][x1]);
+						if (verboseLogging) {
+							sprintf(buffer, "!! Neue Moeglichkeiten-Erkenntnis 3a: Zwillinge! Feld (%d/%d) und Feld (%d/%d) sind im gleichen Quadranten und haben beide: %s\n", y1+1, x1+1, y2+1, x2+1, possibilities[y1][x1]);
+							printlog(buffer);
+						}
    						if (IsolateQuadrantTwins(q, y1, x1, y2, x2))
 							progress = 1;
 					}
 				}
 			}
 		}
-		showSvg();
+		if (verboseLogging) showSvg();
 		
 
 		// Suche nach Zwillingen in einer Zeile oder einer Spalte (nicht unbedingt in einem Quadranten):
@@ -476,7 +518,10 @@ int solve() {
 		
 		// alle Zeilen durchgehen
 		for (y = 0; y < 9; y++) {
-			printf("Untersuche Reihe %d auf Zwillinge ...\n", y+1);
+			if (verboseLogging) {
+				sprintf(buffer, "Untersuche Reihe %d auf Zwillinge ...\n", y+1);
+				printlog(buffer);
+			}
 			// suche Zwillinge in dieser Reihe
 			for (x1 = 0; x1 < 9; x1++) {
 				for (x2 = x1 + 1; x2 < 9; x2++) {
@@ -485,18 +530,24 @@ int solve() {
 							&& !strcmp(possibilities[y][x1], possibilities[y][x2])) {
 						// ja, x1, x2 sind Zwillinge => in der restlichen Zeile
 						// koennen diese 2 Zahlen nicht mehr vorkommen!
-						printf("!! Neue Moeglichkeiten-Erkenntnis 3b: Zwillinge! Feld (%d/%d) und Feld (%d/%d) haben beide: %s\n", y+1, x1+1, y+1, x2+1, possibilities[y][x1]);
+						if (verboseLogging) {
+							sprintf(buffer, "!! Neue Moeglichkeiten-Erkenntnis 3b: Zwillinge! Feld (%d/%d) und Feld (%d/%d) haben beide: %s\n", y+1, x1+1, y+1, x2+1, possibilities[y][x1]);
+							printlog(buffer);
+						}
 						if (IsolateRowTwins(y, x1, x2))
 							progress = 1;
 					}
 				}
 			}
 		}
-		showSvg();
+		if (verboseLogging) showSvg();
 
 		// alle Spalten durchgehen
 		for (x = 0; x < 9; x++) {
-			printf("Untersuche Spalte %d auf Zwillinge ...\n", x+1);
+			if (verboseLogging) {
+				sprintf(buffer, "Untersuche Spalte %d auf Zwillinge ...\n", x+1);
+				printlog(buffer);
+			}
 			// suche Zwillinge in dieser Spalte
 			for (y1 = 0; y1 < 9; y1++) {
 				for (y2 = y1 + 1; y2 < 9; y2++) {
@@ -505,14 +556,17 @@ int solve() {
 							&& !strcmp(possibilities[y1][x], possibilities[y2][x])) {
 						// ja, y1, y2 sind Zwillinge => in der restlichen Spalte
 						// koennen diese 2 Zahlen nicht mehr vorkommen!
-						printf("!! Neue Moeglichkeiten-Erkenntnis 3c: Zwillinge! Feld (%d/%d) und Feld (%d/%d) haben beide: %s\n", y1+1, x+1, y2+1, x+1, possibilities[y1][x]);
+						if (verboseLogging) {
+							sprintf(buffer, "!! Neue Moeglichkeiten-Erkenntnis 3c: Zwillinge! Feld (%d/%d) und Feld (%d/%d) haben beide: %s\n", y1+1, x+1, y2+1, x+1, possibilities[y1][x]);
+							printlog(buffer);
+						}
 						if (IsolateColumnTwins(x, y1, y2))
 							progress = 1;
 					}
 				}
 			}
 		}
-		showSvg();
+		if (verboseLogging) showSvg();
 
 
 		// Suche nach lokaler Eingrenzung einer Zahl in einem Quadranten:
@@ -526,20 +580,32 @@ int solve() {
 		// gehe alle Quadranten durch
 		int yFound;
 		for (q = 0; q < 9; q++) {
-			printf("??? Untersuche Quadrant %d auf Zahlen, die auf eine Zeile eingrenzbar sind ...\n", q+1);
+			if (verboseLogging) {
+				sprintf(buffer, "??? Untersuche Quadrant %d auf Zahlen, die auf eine Zeile eingrenzbar sind ...\n", q+1);
+				printlog(buffer);
+			}
 			getQuadrantStart(q, &qx, &qy);
 			// alle Zahlen durchgehen
 			for (n = 1; n <= 9; n++) {
-				printf(" Untersuche Quadrant %d auf die Zahl %d ...\n", q+1, n);
+				if (verboseLogging) {
+					sprintf(buffer, " Untersuche Quadrant %d auf die Zahl %d ...\n", q+1, n);
+					printlog(buffer);
+				}
 				yFound = -1; // noch haben wir fuer diese Zahl keine Zeile gefunden
 				for (y = qy; y < qy + 3; y++) {
 					for (x = qx; x < qx + 3; x++) {
-						printf("  yFound=%d Feld (%d/%d) %d %s\n", yFound+1, y+1, x+1, fields[y][x], (fields[y][x] ? "" : possibilities[y][x]));
+						if (verboseLogging) {
+							sprintf(buffer, "  yFound=%d Feld (%d/%d) %d %s\n", yFound+1, y+1, x+1, fields[y][x], (fields[y][x] ? "" : possibilities[y][x]));
+							printlog(buffer);
+						}
 						// kommt die Zahl in diesem Feld als Moeglichkeit vor?
 						if (fields[y][x] == n) {
 							// diese Zahl ist bereits fixiert im Quadranten =>
 							// nach dieser brauche ich nicht weitersuchen
-							printf("    Zahl %d ist bereits in (%d/%d) identifiziert!\n", n, y+1, x+1);
+							if (verboseLogging) {
+								sprintf(buffer, "    Zahl %d ist bereits in (%d/%d) identifiziert!\n", n, y+1, x+1);
+								printlog(buffer);
+							}
 							yFound = -1; // nix Tolles gefunden
 							y = 99; // auch die aeussere Schleife beenden
 							break; // raus aus der Schleife
@@ -551,23 +617,35 @@ int solve() {
 								// Vorkommen auch in dieser Zeile sind, haben wir
 								// eine wertvolle Information gewonnen!
 								yFound = y;
-								printf("    Zahl %d koennte in Zeile %d vorkommen (%d/%d), merke mir die Zeile ...\n", n, y+1, y+1, x+1);
+								if (verboseLogging) {
+									sprintf(buffer, "    Zahl %d koennte in Zeile %d vorkommen (%d/%d), merke mir die Zeile ...\n", n, y+1, y+1, x+1);
+									printlog(buffer);
+								}
 							} else if (yFound != y) {
 								// oje, das zweite Vorkommen ist in einer
 								// anderen Zeile als der gemerkten => Ziel
 								// nicht erreicht, das bringt uns nix
-								printf("    Oje, Zahl %d koennte auch in Zeile %d vorkommen (%d/%d), ein Reinfaller.\n", n, y+1, y+1, x+1);
+								if (verboseLogging) {
+									sprintf(buffer, "    Oje, Zahl %d koennte auch in Zeile %d vorkommen (%d/%d), ein Reinfaller.\n", n, y+1, y+1, x+1);
+									printlog(buffer);
+								}
 								yFound = -1; // nix Tolles gefunden
 								y = 99;
 								break; // diese Zahl war ein Reinfaller
 							} else {
-								printf("    Zahl %d koennte auch hier vorkommen, ebenfalls in Zeile %d ...\n", n, y+1);
+								if (verboseLogging) {
+									sprintf(buffer, "    Zahl %d koennte auch hier vorkommen, ebenfalls in Zeile %d ...\n", n, y+1);
+									printlog(buffer);
+								}
 							}
 						}
 					}
 				}
 				if (yFound != -1) {
-					printf("  Hurra! Zahl %d kann im Quadranten %d nur in Zeile %d vorkommen.\n", n, q+1, yFound+1);
+					if (verboseLogging) {
+						sprintf(buffer, "  Hurra! Zahl %d kann im Quadranten %d nur in Zeile %d vorkommen.\n", n, q+1, yFound+1);
+						printlog(buffer);
+					}
 					for (x = 0; x < 9; x++) {
 						// wenn ausserhalb unseren Quadranten: alle Vorkommen der
 						// Zahl n verbieten, die muss naemlich im Quadranten q
@@ -575,7 +653,10 @@ int solve() {
 						if ((x < qx) || (x >= qx + 3)) {
 							if (!fields[yFound][x])
 								if (forbidNumber(yFound, x, n)) {
-									printf("!! Neue Moeglichkeiten-Erkenntnis 4a: (Nummer %d in (%d/%d) verboten weil in Zeile %d diese Zahl im Quadranten %d sein muss.\n", n, yFound+1, x+1, yFound+1, q+1);
+									if (verboseLogging) {
+										sprintf(buffer, "!! Neue Moeglichkeiten-Erkenntnis 4a: (Nummer %d in (%d/%d) verboten weil in Zeile %d diese Zahl im Quadranten %d sein muss.\n", n, yFound+1, x+1, yFound+1, q+1);
+										printlog(buffer);
+									}
 									progress = 1;
 								}
 						}
@@ -583,25 +664,37 @@ int solve() {
 				}
 			}
 		}
-		showSvg();
+		if (verboseLogging) showSvg();
 		
 		// ... analog in Spalten eines Quadranten suchen
 		int xFound;
 		for (q = 0; q < 9; q++) {
-			printf("Untersuche Quadrant %d auf Zahlen, die auf eine Spalte eingrenzbar sind ...\n", q+1);
+			if (verboseLogging) {
+				sprintf(buffer, "Untersuche Quadrant %d auf Zahlen, die auf eine Spalte eingrenzbar sind ...\n", q+1);
+				printlog(buffer);
+			}
 			getQuadrantStart(q, &qx, &qy);
 			// alle Zahlen durchgehen
 			for (n = 1; n <= 9; n++) {
-				printf(" Untersuche Quadrant %d auf die Zahl %d ...\n", q+1, n);
+				if (verboseLogging) {
+					sprintf(buffer, " Untersuche Quadrant %d auf die Zahl %d ...\n", q+1, n);
+					printlog(buffer);
+				}
 				xFound = -1; // noch haben wir fuer diese Zahl keine Spalte gefunden
 				for (y = qy; y < qy + 3; y++) {
 					for (x = qx; x < qx + 3; x++) {
-						printf("  xFound=%d Feld (%d/%d) %d %s\n", xFound+1, y+1, x+1, fields[y][x], (fields[y][x] ? "" : possibilities[y][x]));
+						if (verboseLogging) {
+							sprintf(buffer, "  xFound=%d Feld (%d/%d) %d %s\n", xFound+1, y+1, x+1, fields[y][x], (fields[y][x] ? "" : possibilities[y][x]));
+							printlog(buffer);
+						}
 						// kommt die Zahl in diesem Feld als Moeglichkeit vor?
 						if (fields[y][x] == n) {
 							// diese Zahl ist bereits fixiert im Quadranten =>
 							// nach dieser brauche ich nicht weitersuchen
-							printf("    Zahl %d ist bereits in (%d/%d) identifiziert!\n", n, y+1, x+1);
+							if (verboseLogging) {
+								sprintf(buffer, "    Zahl %d ist bereits in (%d/%d) identifiziert!\n", n, y+1, x+1);
+								printlog(buffer);
+							}
 							xFound = -1; // nix Tolles gefunden
 							y = 99; // auch die aeussere Schleife beenden
 							break; // raus aus der Schleife
@@ -613,23 +706,35 @@ int solve() {
 								// Vorkommen auch in dieser Zeile sind, haben wir
 								// eine wertvolle Information gewonnen!
 								xFound = x;
-								printf("    Zahl %d koennte in Spalte %d vorkommen (%d/%d), merke mir die Spalte ...\n", n, x+1, y+1, x+1);
+								if (verboseLogging) {
+									sprintf(buffer, "    Zahl %d koennte in Spalte %d vorkommen (%d/%d), merke mir die Spalte ...\n", n, x+1, y+1, x+1);
+									printlog(buffer);
+								}
 							} else if (xFound != x) {
 								// oje, das zweite Vorkommen ist in einer
 								// anderen Spalte als der gemerkten => Ziel
 								// nicht erreicht, das bringt uns nix
-								printf("    Oje, Zahl %d koennte auch in Spalte %d vorkommen (%d/%d), ein Reinfaller.\n", n, x+1, y+1, x+1);
+								if (verboseLogging) {
+									sprintf(buffer, "    Oje, Zahl %d koennte auch in Spalte %d vorkommen (%d/%d), ein Reinfaller.\n", n, x+1, y+1, x+1);
+									printlog(buffer);
+								}
 								xFound = -1; // nix Tolles gefunden
 								y = 99;
 								break; // diese Zahl war ein Reinfaller
 							} else {
-								printf("    Zahl %d koennte auch hier vorkommen, ebenfalls in Spalte %d ...\n", n, x+1);
+								if (verboseLogging) {
+									sprintf(buffer, "    Zahl %d koennte auch hier vorkommen, ebenfalls in Spalte %d ...\n", n, x+1);
+									printlog(buffer);
+								}
 							}
 						}
 					}
 				}
 				if (xFound != -1) {
-					printf("!! Neue Moeglichkeiten-Erkenntnis 5a: Hurra! Zahl %d kann im Quadranten %d nur in Spalte %d vorkommen.\n", n, q+1, xFound+1);
+					if (verboseLogging) {
+						sprintf(buffer, "!! Neue Moeglichkeiten-Erkenntnis 5a: Hurra! Zahl %d kann im Quadranten %d nur in Spalte %d vorkommen.\n", n, q+1, xFound+1);
+						printlog(buffer);
+					}
 					for (y = 0; y < 9; y++) {
 						// wenn ausserhalb unseren Quadranten: alle Vorkommen der
 						// Zahl n verbieten, die muss naemlich im Quadranten q
@@ -637,7 +742,10 @@ int solve() {
 						if ((y < qy) || (y >= qy + 3)) {
 							if (!fields[y][xFound])
 								if (forbidNumber(y, xFound, n)) {
-									printf("!! Neue Moeglichkeiten-Erkenntnis 5b:  (Nummer %d in (%d/%d) verboten weil in Spalte %d diese Zahl im Quadranten %d sein muss.\n", n, y+1, xFound+1, xFound+1, q+1);
+									if (verboseLogging) {
+										sprintf(buffer, "!! Neue Moeglichkeiten-Erkenntnis 5b:  (Nummer %d in (%d/%d) verboten weil in Spalte %d diese Zahl im Quadranten %d sein muss.\n", n, y+1, xFound+1, xFound+1, q+1);
+										printlog(buffer);
+									}
 									progress = 1;
 								}
 						}
@@ -645,11 +753,11 @@ int solve() {
 				}
 			}
 		}
-		showSvg();
+		if (verboseLogging) showSvg();
 		
 
 		// nach der Iteration den Sudoku-Zwischenstand anzeigen
-		show(fields);
+		if (verboseLogging) show(fields);
 
 	} while(progress);
 	
@@ -689,29 +797,18 @@ int setUniqueNumbers() {
 	int found;
 
 	found = 0; // pessimistische Grundannahme: keine unique number gefunden
-	int debug = 0;
 	for (y = 0; y < 9; y++) {
 		for (x = 0; x < 9; x++) {
-			if ((x+1) == 17 && (y+1) == 7) {
-				debug = 1;
-				printf ("in Feld (%d/%d)\n", y+1, x+1);
-			} else {
-				debug = 0;
-			}
 				
 			// wenn Feld nicht schon ausgefuellt ist
 			if (!fields[y][x]) {
 				unique = 0;
 				for (n = 1; n <= 9; n++) {
 					if (possibilities[y][x][n-1] != '0') {
-						if (debug)
-							printf("moegliche Zahl: %d (unique=%d)\n", n, unique);
 						// eine moegliche Zahl gefunden, haben wir eigentlich schon eine andere moegliche?
 						if (unique == 1) {
 							// ups, schon die zweite Moeglichkeit fuer dieses Feld
 							unique = 2;
-							if (debug)
-								printf("Leider nicht unique\n");
 							break; // ok, dieses Feld ist nicht eindeutig => ab zum naechsten
 						} else {
 							unique = 1;
@@ -721,7 +818,10 @@ int setUniqueNumbers() {
 				}
 				// war dieses Feld eindeutig?
 				if (unique == 1) {
-					printf("!!! Neue Erkenntnis 6a: Juhu, Feld (%d/%d) gefunden (ist eindeutig): %d\n", y+1, x+1, possibility);
+					if (verboseLogging) {
+						sprintf(buffer, "!!! Neue Erkenntnis 6a: Juhu, Feld (%d/%d) gefunden (ist eindeutig): %d\n", y+1, x+1, possibility);
+						printlog(buffer);
+					}
 					fields[y][x] = possibility;
 					found = 1;
 				}
@@ -745,15 +845,25 @@ int setUniqueNumber(int x, int y) {
 	assert (y >= 0 && y < 9);
 
 	if (fields[y][x]) {
-		printf("FEHLER! HUCH! Obwohl schon ausgefuellt, wird das aufgerufen! (%d/%d) soll gesetzt werden, ist aber bereits %d!\n", y+1, x+1, fields[y][x]);
-		printf("Fehler vor inc: %d\n", errors); //?DEBUG
+		if (verboseLogging) {
+			sprintf(buffer, "FEHLER! HUCH! Obwohl schon ausgefuellt, wird das aufgerufen! (%d/%d) soll gesetzt werden, ist aber bereits %d!\n", y+1, x+1, fields[y][x]);
+			printlog(buffer);
+			sprintf(buffer, "Fehler vor inc: %d\n", errors); //?DEBUG
+			printlog(buffer);
+		}
 		errors++;
-		printf("Fehler nach inc: %d\n", errors); //?DEBUG
+		if (verboseLogging) {
+			sprintf(buffer, "Fehler nach inc: %d\n", errors); //?DEBUG
+			printlog(buffer);
+		}
 	}
 
 	for (n = 1; n <= 9; n++)
 		if (possibilities[y][x][n-1] != '0') {
-			printf("Aha, nur mehr eine Moeglichkeit in Feld (%d/%d) (possibilities: %s): %d\n", y+1, x+1, possibilities[y][x], n);
+			if (verboseLogging) {
+				sprintf(buffer, "Aha, nur mehr eine Moeglichkeit in Feld (%d/%d) (possibilities: %s): %d\n", y+1, x+1, possibilities[y][x], n);
+				printlog(buffer);
+			}
 			fields[y][x] = n;
 			break;
 		}
@@ -808,12 +918,18 @@ int getUniquePositionInColumn(int n, int x) {
 	assert (x >= 0 && x < 9);
 	assert (n >= 1 && n <= 9);
 
-	printf("Suche nach Moeglichkeiten fuer %d in Spalte %d\n", n, x+1);
+	if (verboseLogging) {
+		sprintf(buffer, "Suche nach Moeglichkeiten fuer %d in Spalte %d\n", n, x+1);
+		printlog(buffer);
+	}
 	unique = 0;
 	yPosition = 0;
 	for (y = 0; y < 9; y++) {
 		if ((fields[y][x] == n) || (!fields[y][x] && (possibilities[y][x][n-1] == (char)(n + 48)))) {
-			printf("  %d kann in Zeile %d (%d/%d) vorkommen [%s].\n", n, y+1, y+1, x+1, possibilities[y][x]);
+			if (verboseLogging) {
+				sprintf(buffer, "  %d kann in Zeile %d (%d/%d) vorkommen [%s].\n", n, y+1, y+1, x+1, possibilities[y][x]);
+				printlog(buffer);
+			}
 			if (!unique) {
 				unique = 1; // erstes gefundenes Vorkommen in der Spalte
 				yPosition = y; // Position merken, falls sie eindeutig ist
@@ -825,8 +941,12 @@ int getUniquePositionInColumn(int n, int x) {
 	}
 	if (unique)
 		return yPosition;
-	else
-		printf("3: Nanu, Zahl %d kann nie vorkommen in der Spalte %d??\n", n, x);
+	else {
+		if (verboseLogging) {
+			sprintf(buffer, "3: Nanu, Zahl %d kann nie vorkommen in der Spalte %d??\n", n, x);
+			printlog(buffer);
+		}
+	}
 }
 
 //-------------------------------------------------------------------
@@ -845,13 +965,19 @@ int getUniquePositionInQuadrant(int n, int q) {
 	assert (q >= 0 && q < 9);
 	assert (n >= 1 && n <= 9);
 
-	printf("Suche nach Moeglichkeiten fuer %d in Quadrant %d\n", n, q+1);
+	if (verboseLogging) {
+		sprintf(buffer, "Suche nach Moeglichkeiten fuer %d in Quadrant %d\n", n, q+1);
+		printlog(buffer);
+	}
 	unique = 0;
 	position = 0;
 	for (i = 0; i < 9; i++) {
 		getQuadrantField(q, i, &x, &y);
 		if ((fields[y][x] == n) || (!fields[y][x] && (possibilities[y][x][n-1] == (char)(n + 48)))) {
-			printf("  %d kann in Quadrant %d (%d/%d) vorkommen [%s].\n", n, q+1, y+1, x+1, possibilities[y][x]);
+			if (verboseLogging) {
+				sprintf(buffer, "  %d kann in Quadrant %d (%d/%d) vorkommen [%s].\n", n, q+1, y+1, x+1, possibilities[y][x]);
+				printlog(buffer);
+			}
 			if (!unique) {
 				unique = 1; // erstes gefundenes Vorkommen im Quadranten
 				position = i; // Position merken, falls sie eindeutig ist
@@ -863,8 +989,12 @@ int getUniquePositionInQuadrant(int n, int q) {
 	}
 	if (unique)
 		return position;
-	else
-		printf("3: Nanu, Zahl %d kann nie vorkommen im Quadranten %d??\n", n, x);
+	else {
+		if (verboseLogging) {
+			sprintf(buffer, "3: Nanu, Zahl %d kann nie vorkommen im Quadranten %d??\n", n, x);
+			printlog(buffer);
+		}
+	}
 }
 
 //-------------------------------------------------------------------
@@ -979,7 +1109,10 @@ int IsolateColumnTwins(int x, int y1, int y2) {
 	assert (y2 >= 0 && y2 < 9);
 
 	progress = 0; // noch hat sich nichts veraendert
-	printf("Isoliere Zwillinge (%d/%d) und (%d/%d): %s/%s\n", y1+1, x+1, y2+1, x+1, possibilities[y1][x], possibilities[y2][x]);
+	if (verboseLogging) {
+		sprintf(buffer, "Isoliere Zwillinge (%d/%d) und (%d/%d): %s/%s\n", y1+1, x+1, y2+1, x+1, possibilities[y1][x], possibilities[y2][x]);
+		printlog(buffer);
+	}
 	
 	// die 2 Zahlen herausfinden
 	for (c = 0; c < 9; c++) {
@@ -988,10 +1121,16 @@ int IsolateColumnTwins(int x, int y1, int y2) {
 			// diese Zahl n ueberall sonst verbieten im Quadranten und in der Spalte
 			
 			// in der restlichen Spalte verbieten
-			printf("Gehe Spalte %d durch und verbiete %d ...\n", x, n);
+			if (verboseLogging) {
+				sprintf(buffer, "Gehe Spalte %d durch und verbiete %d ...\n", x, n);
+				printlog(buffer);
+			}
 			for (row = 0; row < 9; row++) {
 				if ((row != y1) && (row != y2) && !fields[row][x] && forbidNumber(row, x, n)) {
-					printf(" (Nummer %d in der gleichen Spalte %d wie Zwilling (%d/%d) und (%d/%d) verboten)\n", n, x+1, y1+1, x+1, y2+1, x+1);
+					if (verboseLogging) {
+						sprintf(buffer, " (Nummer %d in der gleichen Spalte %d wie Zwilling (%d/%d) und (%d/%d) verboten)\n", n, x+1, y1+1, x+1, y2+1, x+1);
+						printlog(buffer);
+					}
 					progress = 1;
 				}
 			}
@@ -1020,7 +1159,10 @@ int IsolateRowTwins(int y, int x1, int x2) {
 	assert (x2 >= 0 && x2 < 9);
 	
 	progress = 0; // noch hat sich nichts veraendert
-	printf("Isoliere Zwillinge (%d/%d) und (%d/%d): %s/%s\n", y+1, x1+1, y+1, x1+1, possibilities[y][x1], possibilities[y][x2]);
+	if (verboseLogging) {
+		sprintf(buffer, "Isoliere Zwillinge (%d/%d) und (%d/%d): %s/%s\n", y+1, x1+1, y+1, x1+1, possibilities[y][x1], possibilities[y][x2]);
+		printlog(buffer);
+	}
 	
 	// die 2 Zahlen herausfinden
 	for (c = 0; c < 9; c++) {
@@ -1029,10 +1171,16 @@ int IsolateRowTwins(int y, int x1, int x2) {
 			// diese Zahl n ueberall sonst verbieten im Quadranten und in der Zeile
 			
 			// in der restlichen Zeile verbieten
-			printf("Gehe Zeile %d durch und verbiete %d ...\n", y, n);
+			if (verboseLogging) {
+				sprintf(buffer, "Gehe Zeile %d durch und verbiete %d ...\n", y, n);
+				printlog(buffer);
+			}
 			for (col = 0; col < 9; col++) {
 				if ((col != x1) && (col != x2) && !fields[y][col] && forbidNumber(y, col, n)) {
-					printf(" (Nummer %d in der gleichen Zeile %d wie Zwilling (%d/%d) und (%d/%d) verboten)\n", n, y+1, y+1, x1+1, y+1, x2+1);
+					if (verboseLogging) {
+						sprintf(buffer, " (Nummer %d in der gleichen Zeile %d wie Zwilling (%d/%d) und (%d/%d) verboten)\n", n, y+1, y+1, x1+1, y+1, x2+1);
+						printlog(buffer);
+					}
 					progress = 1;
 				}
 			}
@@ -1063,7 +1211,10 @@ int IsolateQuadrantTwins(int q, int y1, int x1, int y2, int x2) {
 	assert (y2 >= 0 && y2 < 9);
 
 	progress = 0; // noch hat sich nichts veraendert
-	printf("Isoliere Zwillinge (%d/%d) und (%d/%d): %s/%s\n", y1+1, x1+1, y2+1, x1+1, possibilities[y1][x1], possibilities[y2][x2]);
+	if (verboseLogging) {
+		sprintf(buffer ,"Isoliere Zwillinge (%d/%d) und (%d/%d): %s/%s\n", y1+1, x1+1, y2+1, x1+1, possibilities[y1][x1], possibilities[y2][x2]);
+		printlog(buffer);
+	}
 	
 	// die 2 Zahlen herausfinden
 	for (c = 0; c < 9; c++) {
@@ -1072,12 +1223,18 @@ int IsolateQuadrantTwins(int q, int y1, int x1, int y2, int x2) {
 			// diese Zahl n ueberall sonst verbieten im restlichen Quadranten
 			
 			// im restlichen Quadranten verbieten
-			printf("Gehe Quadrant %d durch und verbiete %d ...\n", q+1, n);
+			if (verboseLogging) {
+				sprintf(buffer, "Gehe Quadrant %d durch und verbiete %d ...\n", q+1, n);
+				printlog(buffer);
+			}
 			getQuadrantStart(q, &qx, &qy);
 			for (row = qy; row < qy + 3; row++) {
 				for (col = qx; col < qx + 3; col++) {
 					if (!(row == y1 && col == x1) && !(row == y2 && col == x2) && !fields[row][col] && forbidNumber(row, col, n)) {
-						printf("!! Neue Moeglichkeiten-Erkenntnis 7c:  (Nummer %d im gleichen Quadranten %d wie Zwilling (%d/%d) und (%d/%d) verboten)\n", n, q+1, y1+1, x1+1, y2+1, x2+1);
+						if (verboseLogging) {
+							sprintf(buffer, "!! Neue Moeglichkeiten-Erkenntnis 7c:  (Nummer %d im gleichen Quadranten %d wie Zwilling (%d/%d) und (%d/%d) verboten)\n", n, q+1, y1+1, x1+1, y2+1, x2+1);
+							printlog(buffer);
+						}
 						progress = 1;
 					}
 				}
@@ -1099,9 +1256,15 @@ int forbidNumber(int y, int x, int n) {
 	assert (n >= 1 && n <= 9);
 
 	if (possibilities[y][x][n-1] != '0') {
-		printf("Vorher: (%d/%d) possibilities=%s\n", y+1, x+1, possibilities[y][x]);
+		if (verboseLogging) {
+			sprintf(buffer, "Vorher: (%d/%d) possibilities=%s\n", y+1, x+1, possibilities[y][x]);
+			printlog(buffer);
+		}
 		possibilities[y][x][n-1] = '0';
-		printf("Nachher: (%d/%d) possibilities=%s)\n", y+1, x+1, possibilities[y][x]);
+		if (verboseLogging) {
+			sprintf(buffer, "Nachher: (%d/%d) possibilities=%s)\n", y+1, x+1, possibilities[y][x]);
+			printlog(buffer);
+		}
 		nrOfPossibilities[y][x]--;
 		if (nrOfPossibilities[y][x] == 1) {
 			// nur noch eine einzige Zahl ist moeglich => ausfuellen!
@@ -1126,7 +1289,6 @@ int readSudoku() {
 	char c;
 	int ok;
 	int x, y;
-	char s[200];
 
 	// Sudoku initialisieren
 	for (y = 0; y < 9; y++) {
@@ -1161,8 +1323,8 @@ int readSudoku() {
 				} else if ((c == ' ') || (c == '.')) {
 					fields[y][x] = 0;
 				} else {
-					sprintf(s, "Fehler beim Einlesen des Sudokus: illegales Zeichen ('%c') in Zeile %d an Position %d.\n", c, x+1, linecount);
-					printlog(s);
+					//sprintf(buffer, "Fehler beim Einlesen des Sudokus: illegales Zeichen ('%c') in Zeile %d an Position %d.\n", c, x+1, linecount);
+					//printlog(buffer);
 					ok = 0; // oje, das war keine Ziffer!
 					break;
 				}
