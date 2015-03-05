@@ -335,8 +335,10 @@ void printSvg(int index) {
 		strcat(filename, suffix);
 	}
 	
-	sprintf(buffer, "Writing SVG file [%s]", filename);
-	printlog(buffer);
+	if (verboseLogging) {
+		sprintf(buffer, "Writing SVG file [%s]", filename);
+		printlog(buffer);
+	}
 
 	svgfile = fopen(filename, "w");
 
@@ -408,7 +410,7 @@ int solve() {
 	
 	errors = 0; // noch keine Fehler aufgetreten
 	iteration = 0;
-	gridVersion = 0;
+	gridVersion = 1;
 
 	printSvg(gridVersion++);
 	
@@ -506,7 +508,9 @@ int solve() {
 			}
 		}
 
-		printSvg(gridVersion++);
+		if (verboseLogging) {
+			printSvg(gridVersion++);
+		}
 
 		// suche in allen Zeilen nach Zahlen, die nur an einer Position
 		// moeglich sind (auch wenn in dieser Zelle mehrere Zahlen moeglich
@@ -530,7 +534,9 @@ int solve() {
 			}
 		}
 
-		printSvg(gridVersion++);
+		if (verboseLogging) {
+			printSvg(gridVersion++);
+		}
 
 		// suche in allen Spalten nach Zahlen, die nur an einer Position
 		// moeglich sind (auch wenn in dieser Zelle mehrere Zahlen moeglich
@@ -554,7 +560,9 @@ int solve() {
 			}
 		}
 
-		printSvg(gridVersion++);
+		if (verboseLogging) {
+			printSvg(gridVersion++);
+		}
 
 		// suche in allen Quadranten nach Zahlen, die nur an einer Position
 		// moeglich sind (auch wenn in diesem Quadrant mehrere Zahlen moeglich
@@ -585,7 +593,9 @@ int solve() {
 			}
 		}
 
-		printSvg(gridVersion++);
+		if (verboseLogging) {
+			printSvg(gridVersion++);
+		}
 
 		//? FIXME FEHLT hier nicht, das nicht nur fuer Spalten und Zeile, sondern auch fuer Quadranten anzuwenden?
 		
@@ -645,7 +655,9 @@ int solve() {
 			}
 		}
 
-		printSvg(gridVersion++);
+		if (verboseLogging) {
+			printSvg(gridVersion++);
+		}
 		
 
 		// Suche nach Zwillingen in einer Zeile oder einer Spalte (nicht unbedingt in einem Quadranten):
@@ -680,7 +692,9 @@ int solve() {
 			}
 		}
 
-		printSvg(gridVersion++);
+		if (verboseLogging) {
+			printSvg(gridVersion++);
+		}
 
 		// alle Spalten durchgehen
 		for (x = 0; x < 9; x++) {
@@ -707,7 +721,9 @@ int solve() {
 			}
 		}
 
-		printSvg(gridVersion++);
+		if (verboseLogging) {
+			printSvg(gridVersion++);
+		}
 
 		// Suche nach lokaler Eingrenzung einer Zahl in einem Quadranten:
 		// --------------------------------------------------------------
@@ -805,7 +821,9 @@ int solve() {
 			}
 		}
 		
-		printSvg(gridVersion++);
+		if (verboseLogging) {
+			printSvg(gridVersion++);
+		}
 
 		// ... analog in Spalten eines Quadranten suchen
 		int xFound;
@@ -895,7 +913,9 @@ int solve() {
 			}
 		}
 
-		printSvg(gridVersion++);
+		if (verboseLogging) {
+			printSvg(gridVersion++);
+		}
 
 		// nach der Iteration den Sudoku-Zwischenstand anzeigen
 		if (verboseLogging) show(0);
