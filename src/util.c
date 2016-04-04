@@ -5,8 +5,12 @@
  * Created on 04. April 2016, 21:01
  */
 #include <assert.h>
+#include <stdio.h>
 #include "global.h"
 #include "util.h"
+
+
+FILE *logfile;
 
 
 //-------------------------------------------------------------------
@@ -50,7 +54,7 @@ int getAbsoluteX(int q, int qx) {
 //   x ... absolute X-Koordinate (0..8), wird zurueckgeliefert
 //   y ... absolute Y-Koordinate (0..8), wird zurueckgeliefert
 
-int getQuadrantField(int q, int position, int *x, int *y) {
+void getQuadrantField(int q, int position, int *x, int *y) {
   int qx, qy;
 
   assert(q >= 0 && q < 9);
@@ -104,4 +108,26 @@ int getQuadrantNr(int x, int y) {
   return (y / 3) * 3 + (x / 3);
 }
 
+void openLogFile(char *outputFilename) {
+  logfile = fopen(outputFilename, "w");
+}
 
+//-------------------------------------------------------------------
+
+void printlog(char *text) {
+  // printlog a message to printlog file or to stdout
+
+  if (logfile) {
+    fputs(text, logfile);
+  } else {
+    // no printlog file => write to stdout
+    puts(text);
+  }
+}
+
+//-------------------------------------------------------------------
+
+void closeLogFile() {
+  if (logfile) 
+    fclose(logfile);
+}

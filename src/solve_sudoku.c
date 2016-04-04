@@ -3,6 +3,7 @@
 #include <string.h>
 #include <assert.h>
 #include <unistd.h>
+#include <ctype.h>
 #include "solve.h"
 #include "global.h"
 #include "util.h"
@@ -26,25 +27,23 @@ in das hier erwartete:
 
 void printUsage();
 int readSudoku();
-void printlog(char *text);
 void show(int showInit);
 void printSvg(int index);
 int solve();
 
 // globale Variablen
 // das Sudoku-Feld selbst
-char *outputFilename; // filename of printlog file
 char *svgFilename; // filename of SVG file
 
 char buffer[1000]; // buffer for string operations
 
 // file handles
-FILE *logfile;
 int svgIndex;
 
 int main(int argc, char **argv) {
   int result;
   int c;
+  char *outputFilename; // filename of printlog file
 
   // read command line arguments
   opterr = 0;
@@ -81,7 +80,7 @@ int main(int argc, char **argv) {
 
 
   if (outputFilename) {
-    logfile = fopen(outputFilename, "w");
+    openLogFile(outputFilename);
   }
 
   if (!readSudoku()) {
@@ -124,24 +123,12 @@ int main(int argc, char **argv) {
   }
 
 
-  if (logfile) fclose(logfile);
+  closeLogFile();
 
   exit(EXIT_SUCCESS);
 }
 
 
-//-------------------------------------------------------------------
-
-void printlog(char *text) {
-  // printlog a message to printlog file or to stdout
-
-  if (logfile) {
-    fputs(text, logfile);
-  } else {
-    // no printlog file => write to stdout
-    puts(text);
-  }
-}
 
 
 //-------------------------------------------------------------------
@@ -395,7 +382,7 @@ int solve() {
   int q;
   int iteration;
   int progress; // Flag: in einer Iteration wurde zumindest eine Erkenntnis gewonnen
-  int x1, x2, y1, y2, qx1, qx2, qy1, qy2, qx, qy;
+  int x1, x2, y1, y2, qx, qy;
   int gridVersion;
 
   errors = 0; // noch keine Fehler aufgetreten
@@ -928,8 +915,6 @@ int solve() {
 //   0 ... Fehler beim Lesen
 
 int readSudoku() {
-  int i, j;
-  FILE *fp;
   char line[201];
   int linecount;
   char c;

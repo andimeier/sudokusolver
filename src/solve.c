@@ -161,6 +161,8 @@ int getUniquePositionInRow(int n, int y) {
   }
   if (unique)
     return xPosition;
+  
+  return 0;
 }
 
 //-------------------------------------------------------------------
@@ -208,6 +210,7 @@ int getUniquePositionInColumn(int n, int x) {
       printlog(buffer);
     }
   }
+  return 0;
 }
 
 //-------------------------------------------------------------------
@@ -257,6 +260,7 @@ int getUniquePositionInQuadrant(int n, int q) {
       printlog(buffer);
     }
   }
+  return 0;
 }
 
 //-------------------------------------------------------------------
@@ -271,8 +275,7 @@ int getUniquePositionInQuadrant(int n, int q) {
 int IsolateColumnTwins(int x, int y1, int y2) {
   int n;
   int progress;
-  int qx, qy;
-  int col, row;
+  int row;
   int c;
 
   assert(x >= 0 && x < 9);
@@ -322,8 +325,7 @@ int IsolateColumnTwins(int x, int y1, int y2) {
 int IsolateRowTwins(int y, int x1, int x2) {
   int n;
   int progress;
-  int qx, qy;
-  int col, row;
+  int col;
   int c;
 
   assert(y >= 0 && y < 9);
