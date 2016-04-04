@@ -1,9 +1,8 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
-#include <assert.h>
-#include <unistd.h>
 #include <ctype.h>
+#include <unistd.h>
 #include "solve.h"
 #include "global.h"
 #include "util.h"
@@ -137,7 +136,7 @@ void printUsage() {
   // print program usage
 
   puts("Usage: ");
-  puts(" solve_sudoku -l LOGFILE -s SVGFILE -v -h");
+  puts(" sudoku-solver -l LOGFILE -s SVGFILE -v -h");
   puts("");
   puts("Parameters:");
   puts("");

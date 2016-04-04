@@ -2,8 +2,8 @@
 <configurationDescriptor version="95">
   <logicalFolder name="root" displayName="root" projectFiles="true" kind="ROOT">
     <df root="src" name="0">
+      <in>main.c</in>
       <in>solve.c</in>
-      <in>solve_sudoku.c</in>
       <in>util.c</in>
     </df>
     <logicalFolder name="ExternalFiles"
@@ -35,9 +35,9 @@
           <executablePath></executablePath>
         </makeTool>
       </makefileType>
-      <item path="src/solve.c" ex="false" tool="0" flavor2="2">
+      <item path="src/main.c" ex="false" tool="0" flavor2="2">
       </item>
-      <item path="src/solve_sudoku.c" ex="false" tool="0" flavor2="2">
+      <item path="src/solve.c" ex="false" tool="0" flavor2="2">
       </item>
       <item path="src/util.c" ex="false" tool="0" flavor2="2">
       </item>

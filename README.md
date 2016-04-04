@@ -11,16 +11,16 @@ No intermediate/advanced techniques like X-Wing, Swordfish etc. are used
 
 Compile:
 
-    gcc solve_sudoku.c
+    make clean all
 
 Call:
 
-    solve_sudoku.c < examples/sudoku1.sudoku
+    out/sudoku-solver < examples/sudoku1.sudoku
 
 Usage
 ----
 
-    solve_sudoku -l LOGFILE -s SVGFILE -v -h
+    sudoku-solver -l LOGFILE -s SVGFILE -v -h
 
 ### Parameters
 

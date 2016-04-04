@@ -50,75 +50,6 @@ CP=cp
 CCADMIN=CCadmin
 
 
-# build
-build: .build-post
-
-.build-pre:
-# Add your pre 'build' code here...
-
-.build-post: .build-impl
-# Add your post 'build' code here...
-
-
-# clean
-#clean: .clean-post
-
-.clean-pre:
-# Add your pre 'clean' code here...
-
-#.clean-post: .clean-impl
-# Add your post 'clean' code here...
-
-
-# clobber
-clobber: .clobber-post
-
-.clobber-pre:
-# Add your pre 'clobber' code here...
-
-.clobber-post: .clobber-impl
-# Add your post 'clobber' code here...
-
-
-# all
-all: .all-post
-
-.all-pre:
-# Add your pre 'all' code here...
-
-.all-post: .all-impl
-# Add your post 'all' code here...
-
-
-# build tests
-build-tests: .build-tests-post
-
-.build-tests-pre:
-# Add your pre 'build-tests' code here...
-
-.build-tests-post: .build-tests-impl
-# Add your post 'build-tests' code here...
-
-
-# run tests
-test: .test-post
-
-.test-pre: build-tests
-# Add your pre 'test' code here...
-
-.test-post: .test-impl
-# Add your post 'test' code here...
-
-
-# help
-help: .help-post
-
-.help-pre:
-# Add your pre 'help' code here...
-
-.help-post: .help-impl
-# Add your post 'help' code here...
-
 
 
 # include project implementation makefile
@@ -134,22 +65,31 @@ LIBS = -lm
 CC = gcc
 CFLAGS = -g -Wall
 
-.PHONY: default all clean
+# directory containing the source files
+SRC = src
 
-default: $(TARGET)
+# output directory
+OUT = out
+
+.PHONY: clean default all .init
+
+.init:
+	mkdir -p $(OUT)
+
+default: .init $(TARGET)
 all: default
 
-OBJECTS = $(patsubst %.c, %.o, $(wildcard *.c))
-HEADERS = $(wildcard *.h)
+OBJECTS = $(patsubst $(SRC)/%.c, $(OUT)/%.o, $(wildcard $(SRC)/*.c))
+HEADERS = $(wildcard $(SRC)/*.h)
 
-%.o: %.c $(HEADERS)
-  $(CC) $(CFLAGS) -c $< -o $@
+$(OUT)/%.o: $(SRC)/%.c $(HEADERS)
+	$(CC) $(CFLAGS) -c $< -o $@
 
 .PRECIOUS: $(TARGET) $(OBJECTS)
 
 $(TARGET): $(OBJECTS)
-  $(CC) $(OBJECTS) -Wall $(LIBS) -o $@
+	$(CC) $(OBJECTS) -Wall $(LIBS) -o $(OUT)/$@
 
 clean:
-  -rm -f *.o
-  -rm -f $(TARGET)
+	-rm -f $(OUT)/*.o
+	-rm -f $(OUT)/$(TARGET)
