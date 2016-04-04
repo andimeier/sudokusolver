@@ -22,6 +22,8 @@ extern "C" {
   extern int errors; // number of errors in the algorithm
   extern int verboseLogging; // 0 ... no verbose logging, 1 ... log changes, 2 ... log even considerations
 
+  extern char *svgFilename; // filename of SVG file
+
 
 #ifdef	__cplusplus
 }
