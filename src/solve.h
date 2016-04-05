@@ -14,6 +14,10 @@ extern "C" {
 
   int isFinished();
   int forbidNumber(int y, int x, int n);
+  
+  int checkForSolvedCells();
+  int findHiddenSingles();
+  
   int setUniqueNumbers();
   int setUniqueNumber(int x, int y);
 

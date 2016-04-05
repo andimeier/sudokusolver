@@ -203,149 +203,15 @@ int solve() {
     // Reihe, in der selben Spalte und im selben Quadranten verbieten
     if (verboseLogging == 2) printlog("??? Searching for: unique numbers ... \n");
 
-    for (y = 0; y < 9; y++) {
-      for (x = 0; x < 9; x++) {
-        n = fields[y][x];
-        if (n) {
-          // hier steht bereits eine Zahl n drin => diese Zahl darf
-          // sonst nicht mehr vorkommen ...
-          // ... in der selben Zeile:
-          for (i = 0; i < 9; i++) {
-            // alle "zweifelhaften" Zellen durchgehen
-            if (!fields[y][i]) {
-              if (forbidNumber(y, i, n)) {
-                if (verboseLogging == 2) {
-                  sprintf(buffer, "!! Neue Moeglichkeiten-Erkenntnis 1a: (Nummer %d verboten wegen %d in (%d/%d))\n", n, n, y + 1, x + 1);
-                  printlog(buffer);
-                }
-                progress = 1; // Flag "neue Erkenntnis" setzen
-              }
-            }
-          }
-          // ... in der selben Spalte:
-          for (i = 0; i < 9; i++) {
-            // alle "zweifelhaften" Zellen durchgehen
-            if (!fields[i][x]) {
-              if (forbidNumber(i, x, n)) {
-                if (verboseLogging == 2) {
-                  sprintf(buffer, "!! Neue Moeglichkeiten-Erkenntnis 1b: (Nummer %d verboten wegen %d in (%d/%d))\n", n, n, y + 1, x + 1);
-                  printlog(buffer);
-                }
-                progress = 1; // Flag "neue Erkenntnis" setzen
-              }
-            }
-          }
-          // ... im selben Quadranten:
-          q = getQuadrantNr(x, y);
-          // x0 ... x-Koordinate des linken oberen Feldes des Quadranten
-          // y0 ... y-Koordinate des linken oberen Feldes des Quadranten
-          // x1 ... x innerhalb des Quadranten
-          // y1 ... y innerhalb des Quadranten
-          int x0 = (q % 3) * 3;
-          int y0 = (q / 3) * 3;
-          int x1, y1;
-          for (y1 = 0; y1 < 3; y1++) {
-            for (x1 = 0; x1 < 3; x1++) {
-              // alle "zweifelhaften" Zellen durchgehen
-              if (!fields[y0 + y1][x0 + x1]) {
-                if (forbidNumber(y0 + y1, x0 + x1, n)) {
-                  if (verboseLogging == 2) {
-                    sprintf(buffer, "!! Neue Moeglichkeiten-Erkenntnis 1c: (Nummer %d verboten wegen %d in (%d/%d))\n", n, n, y + 1, x + 1);
-                    printlog(buffer);
-                  }
-                  progress = 1; // Flag "neue Erkenntnis" setzen
-                }
-              }
-            }
-          }
-        }
-      }
-    }
+    progress |= checkForSolvedCells();
+    
 
     if (verboseLogging) {
       printSvg(gridVersion++);
     }
 
-    // suche in allen Zeilen nach Zahlen, die nur an einer Position
-    // moeglich sind (auch wenn in dieser Zelle mehrere Zahlen moeglich
-    // waeren, aber die anderen Moeglichkeiten kann man dann verwerfen)
-    if (verboseLogging == 2) {
-      sprintf(buffer, "??? Searching for: unique places in rows ... \n");
-      printlog(buffer);
-    }
-    for (y = 0; y < 9; y++) {
-      for (n = 1; n <= 9; n++) {
-        x = getUniquePositionInRow(n, y);
-        if (!fields[y][x] && x) {
-          // Zahl n kann nur an der Position x vorkommen in der Zeile y
-          if (verboseLogging) {
-            sprintf(buffer, "!!! Neue Erkenntnis 2a: In Zeile %d kann %d nur an Position %d vorkommen => (%d/%d) = %d!\n", y + 1, n, x + 1, y + 1, x + 1, n);
-            printlog(buffer);
-          }
-          fields[y][x] = n;
-          progress = 1; // Flag "neue Erkenntnis" setzen
-        }
-      }
-    }
-
-    if (verboseLogging) {
-      printSvg(gridVersion++);
-    }
-
-    // suche in allen Spalten nach Zahlen, die nur an einer Position
-    // moeglich sind (auch wenn in dieser Zelle mehrere Zahlen moeglich
-    // waeren, aber die anderen Moeglichkeiten kann man dann verwerfen)
-    if (verboseLogging == 2) {
-      sprintf(buffer, "??? Searching for: unique places in cols ... \n");
-      printlog(buffer);
-    }
-    for (x = 0; x < 9; x++) {
-      for (n = 1; n <= 9; n++) {
-        y = getUniquePositionInColumn(n, x);
-        if (!fields[y][x] && y) {
-          // Zahl n kann nur an der Position y vorkommen in der Spalte x
-          if (verboseLogging) {
-            sprintf(buffer, "!!! Neue Erkenntnis 2b: In Spalte %d kann %d nur an Position %d vorkommen => (%d/%d) = %d!\n", x + 1, n, y + 1, y + 1, x + 1, n);
-            printlog(buffer);
-          }
-          fields[y][x] = n;
-          progress = 1; // Flag "neue Erkenntnis" setzen
-        }
-      }
-    }
-
-    if (verboseLogging) {
-      printSvg(gridVersion++);
-    }
-
-    // suche in allen Quadranten nach Zahlen, die nur an einer Position
-    // moeglich sind (auch wenn in diesem Quadrant mehrere Zahlen moeglich
-    // waeren, aber die anderen Moeglichkeiten kann man dann verwerfen)
-    {
-      int position;
-
-      if (verboseLogging == 2) {
-        sprintf(buffer, "??? Searching for: unique places in quadrants ... \n");
-        printlog(buffer);
-      }
-      for (q = 0; q < 9; q++) {
-        for (n = 1; n <= 9; n++) {
-          position = getUniquePositionInQuadrant(n, q);
-          if (position) {
-            getQuadrantField(q, position, &x, &y);
-            if (!fields[y][x]) {
-              // Zahl n kann nur an der Position y vorkommen in der Spalte x
-              if (verboseLogging) {
-                sprintf(buffer, "!!! Neue Erkenntnis 2c: In Quadrant %d kann %d nur an Position %d vorkommen => (%d/%d) = %d!\n", q + 1, n, position + 1, y + 1, x + 1, n);
-                printlog(buffer);
-              }
-              fields[y][x] = n;
-              progress = 1; // Flag "neue Erkenntnis" setzen
-            }
-          }
-        }
-      }
-    }
+    progress |= findHiddenSingles();
+    
 
     if (verboseLogging) {
       printSvg(gridVersion++);
