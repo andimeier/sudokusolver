@@ -57,3 +57,7 @@ A valid Sudoku input file may look like this:
 9.4...3.8
 2.56....1
 ```
+
+### Bugs
+
+getUniquePositionInRow unterscheidet nicht zwischen "Unique auf 1. Zelle" (Return-Value 0) und "keine unique Zahl gefunden" (Return-Value 0). Dto. für getUniquePositionInColumn, ev. auch in getUniquePositionInBox?

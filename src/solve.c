@@ -222,7 +222,7 @@ int getUniquePositionInColumn(int n, int x) {
 //         des ganzen Quadranten vorkommen koennte oder [0..8]
 //   0 ... Zahl koennte im Quadranten an mehreren Positionen vorkommen
 
-int getUniquePositionInQuadrant(int n, int q) {
+int getUniquePositionInBox(int n, int q) {
   int x, y;
   int unique;
   int position;
@@ -530,7 +530,7 @@ int findHiddenSingles() {
   int x, y;
   int n;
   int q;
-  int progress; // Flag: in einer Iteration wurde zumindest eine Erkenntnis gewonnen
+  int progress; // flag: something has changed
 
   progress = 0;
 

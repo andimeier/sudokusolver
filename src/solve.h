@@ -24,13 +24,14 @@ extern "C" {
   int findHiddenQuads(); // not implemented yet
   int findPointingPairsAndTriples(); // not implemented yet
   int boxLineReduction(); // not implemented yet
-  
+
+  // auxiliary functions
   int setUniqueNumbers();
   int setUniqueNumber(int x, int y);
 
   int getUniquePositionInRow(int n, int y);
   int getUniquePositionInColumn(int n, int x);
-  int getUniquePositionInQuadrant(int n, int q);
+  int getUniquePositionInBox(int n, int q);
 
   int IsolateColumnTwins(int x, int y3, int y2);
   int IsolateRowTwins(int y, int x1, int x2);
