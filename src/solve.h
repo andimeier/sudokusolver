@@ -15,8 +15,15 @@ extern "C" {
   int isFinished();
   int forbidNumber(int y, int x, int n);
   
+  // strategies
   int checkForSolvedCells();
   int findHiddenSingles();
+  int findNakedPairsAndTriples(); // not implemented yet
+  int findHiddenPairsAndTriples(); // not implemented yet
+  int findNakedQuads(); // not implemented yet
+  int findHiddenQuads(); // not implemented yet
+  int findPointingPairsAndTriples(); // not implemented yet
+  int boxLineReduction(); // not implemented yet
   
   int setUniqueNumbers();
   int setUniqueNumber(int x, int y);
