@@ -268,7 +268,7 @@ int solve() {
               sprintf(buffer, "!! Neue Moeglichkeiten-Erkenntnis 3a: Zwillinge! Feld (%d/%d) und Feld (%d/%d) sind im gleichen Quadranten und haben beide: %s\n", y1 + 1, x1 + 1, y2 + 1, x2 + 1, possibilities[y1][x1]);
               printlog(buffer);
             }
-            if (IsolateQuadrantTwins(q, y1, x1, y2, x2))
+            if (IsolateBoxTwins(q, y1, x1, y2, x2))
               progress = 1;
           }
         }

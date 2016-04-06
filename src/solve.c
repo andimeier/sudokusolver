@@ -137,7 +137,7 @@ int setUniqueNumber(int x, int y) {
 // Liefert:
 //   x ... x-Position des Feldes, in dem die Zahl n als einziges Feld
 //         der ganzen Reihe vorkommen koennte oder
-//   0 ... Zahl koennte in der Zeile an mehreren Positionen vorkommen
+//   -1 ... Zahl koennte in der Zeile an mehreren Positionen vorkommen
 
 int getUniquePositionInRow(int n, int y) {
   int x;
@@ -156,14 +156,14 @@ int getUniquePositionInRow(int n, int y) {
         xPosition = x; // Position merken, falls sie eindeutig ist
       } else {
         // oje, das waere schon das 2. Vorkommen der Zahl in dieser Reihe
-        return 0; // war wohl nix
+        return -1; // war wohl nix
       }
     }
   }
   if (unique)
     return xPosition;
 
-  return 0;
+  return -1;
 }
 
 //-------------------------------------------------------------------
@@ -172,7 +172,7 @@ int getUniquePositionInRow(int n, int y) {
 // Liefert:
 //   y ... y-Position des Feldes, in dem die Zahl n als einziges Feld
 //         der ganzen Spalte vorkommen koennte oder
-//   0 ... Zahl koennte in der Spalte an mehreren Positionen vorkommen
+//   -1 ... Zahl koennte in der Spalte an mehreren Positionen vorkommen
 
 int getUniquePositionInColumn(int n, int x) {
   int y;
@@ -199,7 +199,7 @@ int getUniquePositionInColumn(int n, int x) {
         yPosition = y; // Position merken, falls sie eindeutig ist
       } else {
         // oje, das waere schon das 2. Vorkommen der Zahl in dieser Spalte
-        return 0; // war wohl nix
+        return -1; // war wohl nix
       }
     }
   }
@@ -211,7 +211,7 @@ int getUniquePositionInColumn(int n, int x) {
       printlog(buffer);
     }
   }
-  return 0;
+  return -1;
 }
 
 //-------------------------------------------------------------------
@@ -220,7 +220,7 @@ int getUniquePositionInColumn(int n, int x) {
 // Liefert:
 //   position ... Position des Feldes, in dem die Zahl n als einziges Feld
 //         des ganzen Quadranten vorkommen koennte oder [0..8]
-//   0 ... Zahl koennte im Quadranten an mehreren Positionen vorkommen
+//   -1 ... Zahl koennte im Quadranten an mehreren Positionen vorkommen
 
 int getUniquePositionInBox(int n, int q) {
   int x, y;
@@ -249,7 +249,7 @@ int getUniquePositionInBox(int n, int q) {
         position = i; // Position merken, falls sie eindeutig ist
       } else {
         // oje, das waere schon das 2. Vorkommen der Zahl in diesem Quadranten
-        return 0; // war wohl nix
+        return -1; // war wohl nix
       }
     }
   }
@@ -261,7 +261,7 @@ int getUniquePositionInBox(int n, int q) {
       printlog(buffer);
     }
   }
-  return 0;
+  return -1;
 }
 
 //-------------------------------------------------------------------
@@ -373,7 +373,7 @@ int IsolateRowTwins(int y, int x1, int x2) {
 //         Quadranten wurde verboten, wir "sind weitergekommen"
 //   0 ... Isolieren der Zwillinge hat keine Aenderung im Sudoku bewirkt
 
-int IsolateQuadrantTwins(int q, int y1, int x1, int y2, int x2) {
+int IsolateBoxTwins(int q, int y1, int x1, int y2, int x2) {
   int n;
   int progress;
   int qx, qy;
@@ -544,7 +544,7 @@ int findHiddenSingles() {
   for (y = 0; y < 9; y++) {
     for (n = 1; n <= 9; n++) {
       x = getUniquePositionInRow(n, y);
-      if (!fields[y][x] && x) {
+      if (x != -1 && !fields[y][x]) {
         // Zahl n kann nur an der Position x vorkommen in der Zeile y
         if (verboseLogging) {
           sprintf(buffer, "!!! Neue Erkenntnis 2a: In Zeile %d kann %d nur an Position %d vorkommen => (%d/%d) = %d!\n", y + 1, n, x + 1, y + 1, x + 1, n);
@@ -566,7 +566,7 @@ int findHiddenSingles() {
   for (x = 0; x < 9; x++) {
     for (n = 1; n <= 9; n++) {
       y = getUniquePositionInColumn(n, x);
-      if (!fields[y][x] && y) {
+      if (y != -1 && !fields[y][x]) {
         // Zahl n kann nur an der Position y vorkommen in der Spalte x
         if (verboseLogging) {
           sprintf(buffer, "!!! Neue Erkenntnis 2b: In Spalte %d kann %d nur an Position %d vorkommen => (%d/%d) = %d!\n", x + 1, n, y + 1, y + 1, x + 1, n);
@@ -590,8 +590,8 @@ int findHiddenSingles() {
     }
     for (q = 0; q < 9; q++) {
       for (n = 1; n <= 9; n++) {
-        position = getUniquePositionInQuadrant(n, q);
-        if (position) {
+        position = getUniquePositionInBox(n, q);
+        if (position != -1) {
           getQuadrantField(q, position, &x, &y);
           if (!fields[y][x]) {
             // Zahl n kann nur an der Position y vorkommen in der Spalte x

@@ -35,7 +35,7 @@ extern "C" {
 
   int IsolateColumnTwins(int x, int y3, int y2);
   int IsolateRowTwins(int y, int x1, int x2);
-  int IsolateQuadrantTwins(int q, int y1, int x1, int y2, int x2);
+  int IsolateBoxTwins(int q, int y1, int x1, int y2, int x2);
 
 #ifdef	__cplusplus
 }
