@@ -273,7 +273,7 @@ int getUniquePositionInBox(int n, int q) {
 //         Quadranten wurde verboten, wir "sind weitergekommen"
 //   0 ... Isolieren der Zwillinge hat keine Aenderung im Sudoku bewirkt
 
-int IsolateColumnTwins(int x, int y1, int y2) {
+int isolateColumnTwins(int x, int y1, int y2) {
   int n;
   int progress;
   int row;
@@ -323,7 +323,7 @@ int IsolateColumnTwins(int x, int y1, int y2) {
 //         Quadranten wurde verboten, wir "sind weitergekommen"
 //   0 ... Isolieren der Zwillinge hat keine Aenderung im Sudoku bewirkt
 
-int IsolateRowTwins(int y, int x1, int x2) {
+int isolateRowTwins(int y, int x1, int x2) {
   int n;
   int progress;
   int col;
@@ -373,7 +373,7 @@ int IsolateRowTwins(int y, int x1, int x2) {
 //         Quadranten wurde verboten, wir "sind weitergekommen"
 //   0 ... Isolieren der Zwillinge hat keine Aenderung im Sudoku bewirkt
 
-int IsolateBoxTwins(int q, int y1, int x1, int y2, int x2) {
+int isolateBoxTwins(int q, int y1, int x1, int y2, int x2) {
   int n;
   int progress;
   int qx, qy;

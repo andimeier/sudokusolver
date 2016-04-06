@@ -33,9 +33,9 @@ extern "C" {
   int getUniquePositionInColumn(int n, int x);
   int getUniquePositionInBox(int n, int q);
 
-  int IsolateColumnTwins(int x, int y3, int y2);
-  int IsolateRowTwins(int y, int x1, int x2);
-  int IsolateBoxTwins(int q, int y1, int x1, int y2, int x2);
+  int isolateColumnTwins(int x, int y3, int y2);
+  int isolateRowTwins(int y, int x1, int x2);
+  int isolateBoxTwins(int q, int y1, int x1, int y2, int x2);
 
 #ifdef	__cplusplus
 }

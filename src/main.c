@@ -268,7 +268,7 @@ int solve() {
               sprintf(buffer, "!! Neue Moeglichkeiten-Erkenntnis 3a: Zwillinge! Feld (%d/%d) und Feld (%d/%d) sind im gleichen Quadranten und haben beide: %s\n", y1 + 1, x1 + 1, y2 + 1, x2 + 1, possibilities[y1][x1]);
               printlog(buffer);
             }
-            if (IsolateBoxTwins(q, y1, x1, y2, x2))
+            if (isolateBoxTwins(q, y1, x1, y2, x2))
               progress = 1;
           }
         }
@@ -305,7 +305,7 @@ int solve() {
               sprintf(buffer, "!! Neue Moeglichkeiten-Erkenntnis 3b: Zwillinge! Feld (%d/%d) und Feld (%d/%d) haben beide: %s\n", y + 1, x1 + 1, y + 1, x2 + 1, possibilities[y][x1]);
               printlog(buffer);
             }
-            if (IsolateRowTwins(y, x1, x2))
+            if (isolateRowTwins(y, x1, x2))
               progress = 1;
           }
         }
@@ -334,7 +334,7 @@ int solve() {
               sprintf(buffer, "!! Neue Moeglichkeiten-Erkenntnis 3c: Zwillinge! Feld (%d/%d) und Feld (%d/%d) haben beide: %s\n", y1 + 1, x + 1, y2 + 1, x + 1, possibilities[y1][x]);
               printlog(buffer);
             }
-            if (IsolateColumnTwins(x, y1, y2))
+            if (isolateColumnTwins(x, y1, y2))
               progress = 1;
           }
         }
