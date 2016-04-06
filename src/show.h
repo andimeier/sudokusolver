@@ -13,7 +13,7 @@ extern "C" {
 #endif
 
 void show(int showInit);
-void printSvg(int index);
+void printSvg(int finalVersion);
 
 #ifdef	__cplusplus
 }

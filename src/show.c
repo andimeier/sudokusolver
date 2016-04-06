@@ -16,6 +16,7 @@
 char *svgFilename; // filename of SVG file
 
 
+
 //-------------------------------------------------------------------
 // @param showInit {integer} if falsey, only print current grid. If truish,
 //   print original (init) grid and current grid
@@ -140,28 +141,30 @@ void show(int showInit) {
 
 
 //-------------------------------------------------------------------
+// FIXME description is wrong/obsolete:
 // if parameter final is truish, the specified svg filename will be used,
 // otherwise an indexed file name will be used to store intermediate
 // versions of the grid. This will only happen if verboseLogging is turned
 // on.
-// @param index integer ... 
-// The parameter index specifies the suffix to be used in the filename
+// @param final integer ... 
+// If 1, The parameter index specifies the suffix to be used in the filename
 // so that the log file can reference to a specific SVG intermediate file
 // using this suffix. If index is 0, then no suffix will be appended. This
 // indicates that this SVG depicts the final, solved version - not some 
 // intermediate version
 
-void printSvg(int index) {
+void printSvg(int finalVersion) {
   // display sudoku in SVG format
   int x, y;
   FILE *svgfile;
   char *filename;
   char suffix[20];
+  static int index = 1;
 
   if (!svgFilename) return;
 
   // build filename
-  if (!index) {
+  if (finalVersion) {
     filename = svgFilename;
   } else {
     sprintf(suffix, ".%d", index);
@@ -233,5 +236,3 @@ void printSvg(int index) {
   fclose(svgfile);
   if (filename != svgFilename) free(filename);
 }
-
-

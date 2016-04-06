@@ -18,24 +18,14 @@ extern "C" {
   // strategies
   int checkForSolvedCells();
   int findHiddenSingles();
-  int findNakedPairsAndTriples(); // not implemented yet
+  int findNakedPairs(); // not implemented yet
+  int findNakedTriples(); // not implemented yet
   int findHiddenPairsAndTriples(); // not implemented yet
   int findNakedQuads(); // not implemented yet
   int findHiddenQuads(); // not implemented yet
   int findPointingPairsAndTriples(); // not implemented yet
   int boxLineReduction(); // not implemented yet
 
-  // auxiliary functions
-  int setUniqueNumbers();
-  int setUniqueNumber(int x, int y);
-
-  int getUniquePositionInRow(int n, int y);
-  int getUniquePositionInColumn(int n, int x);
-  int getUniquePositionInBox(int n, int q);
-
-  int isolateColumnTwins(int x, int y3, int y2);
-  int isolateRowTwins(int y, int x1, int x2);
-  int isolateBoxTwins(int q, int y1, int x1, int y2, int x2);
 
 #ifdef	__cplusplus
 }

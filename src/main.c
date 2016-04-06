@@ -31,8 +31,6 @@ int solve();
 
 char buffer[1000]; // buffer for string operations
 
-// file handles
-int svgIndex;
 
 int main(int argc, char **argv) {
   int result;
@@ -89,7 +87,7 @@ int main(int argc, char **argv) {
   result = solve();
 
   show(1);
-  printSvg(0);
+  printSvg(1);
 
   if (result) {
     printlog("-----------------------------------------------");
@@ -154,19 +152,17 @@ void printUsage() {
 //   0 ... Algorithmus bleibt stecken, Endlositeration abgebrochen
 
 int solve() {
-  int x, y, i, j;
+  int x, y;
   int n;
   int q;
   int iteration;
   int progress; // Flag: in einer Iteration wurde zumindest eine Erkenntnis gewonnen
-  int x1, x2, y1, y2, qx, qy;
-  int gridVersion;
+  int qx, qy;
 
   errors = 0; // noch keine Fehler aufgetreten
   iteration = 0;
-  gridVersion = 1;
 
-  printSvg(gridVersion++);
+  printSvg(0);
 
   // Initialisierung:
   // zunaechst sind ueberall alle Zahlen moeglich
@@ -204,17 +200,17 @@ int solve() {
     if (verboseLogging == 2) printlog("??? Searching for: unique numbers ... \n");
 
     progress |= checkForSolvedCells();
-    
+
 
     if (verboseLogging) {
-      printSvg(gridVersion++);
+      printSvg(0);
     }
 
     progress |= findHiddenSingles();
-    
+
 
     if (verboseLogging) {
-      printSvg(gridVersion++);
+      printSvg(0);
     }
 
     //? FIXME FEHLT hier nicht, das nicht nur fuer Spalten und Zeile, sondern auch fuer Quadranten anzuwenden?
@@ -222,127 +218,15 @@ int solve() {
 
 
 
-    /* nicht mehr noetig
-                    if (setUniqueNumbers(fields, possibilities)) {
-                            progress = 1; // Flag "neue Erkenntnis" setzen
-                            printf("Neue Erkenntnis 6\n");
-                    }
-     */
-
     // wenn alle Felder ausgefuellt sind, sind wir wohl fertig!
     if (isFinished())
       return 1;
 
-    // Suche nach Zwillingen in einem Quadranten (nicht unbedingt in der gleichen Zeile oder Spalte):
-    // ----------------------------------------------------------------------------------------------
-    // wenn zwei Felder in der gleichen Zeile die gleichen 2 moeglichen 
-    // Zahlen haben, muessen jeweils eine dieser beiden Zahlen in 
-    // jeweils einer dieser 2 Zellen stehen => damit koennen beide 
-    // Zahlen im restlichen Quadranten nicht mehr vorkommen.
-    // Wenn die beiden auch noch in der selben Zeile sind, kann auch 
-    // in der restlichen Zeile keine dieser Zahlen mehr vorkommen.
-    // Analog fuer Spalten.
-    if (verboseLogging == 2) printlog("??? Searching for: twins ... \n");
+    progress |= findNakedPairs();
 
-    for (q = 0; q < 9; q++) {
-      if (verboseLogging == 2) {
-        sprintf(buffer, "Untersuche Quadrant %d auf Zwillinge ...\n", q + 1);
-        printlog(buffer);
-      }
-      getQuadrantStart(q, &qx, &qy);
-      // Vergleiche jedes Feld im Quadranten mit jedem anderen im selben Quadranten
-      for (i = 0; i < 9; i++) {
-        for (j = i + 1; j < 9; j++) {
-          getQuadrantCell(i, &x1, &y1);
-          x1 += qx;
-          y1 += qy;
-          getQuadrantCell(j, &x2, &y2);
-          x2 += qx;
-          y2 += qy;
-
-          if ((nrOfPossibilities[y1][x1] == 2 && nrOfPossibilities[y2][x2] == 2)
-                  && !strcmp(possibilities[y1][x1], possibilities[y2][x2])) {
-            // ja, wird haben Quadranten-Zwillinge => im restlichen Quadranten 
-            // koennen diese 2 Zahlen nicht mehr vorkommen!
-            if (verboseLogging == 2) {
-              sprintf(buffer, "!! Neue Moeglichkeiten-Erkenntnis 3a: Zwillinge! Feld (%d/%d) und Feld (%d/%d) sind im gleichen Quadranten und haben beide: %s\n", y1 + 1, x1 + 1, y2 + 1, x2 + 1, possibilities[y1][x1]);
-              printlog(buffer);
-            }
-            if (isolateBoxTwins(q, y1, x1, y2, x2))
-              progress = 1;
-          }
-        }
-      }
-    }
 
     if (verboseLogging) {
-      printSvg(gridVersion++);
-    }
-
-
-    // Suche nach Zwillingen in einer Zeile oder einer Spalte (nicht unbedingt in einem Quadranten):
-    // ---------------------------------------------------------------------------------------------
-    // wenn zwei Felder in der gleichen Zeile die gleichen 2 moeglichen 
-    // Zahlen haben, muessen jeweils eine dieser beiden Zahlen in 
-    // jeweils einer dieser 2 Zellen stehen => damit koennen beide 
-    // Zahlen in der restlichen Zeile nicht mehr vorkommen
-
-    // alle Zeilen durchgehen
-    for (y = 0; y < 9; y++) {
-      if (verboseLogging == 2) {
-        sprintf(buffer, "Untersuche Reihe %d auf Zwillinge ...\n", y + 1);
-        printlog(buffer);
-      }
-      // suche Zwillinge in dieser Reihe
-      for (x1 = 0; x1 < 9; x1++) {
-        for (x2 = x1 + 1; x2 < 9; x2++) {
-          // vergleiche die beiden Zellen: sind es Zwillinge?
-          if ((nrOfPossibilities[y][x1] == 2 && nrOfPossibilities[y][x2] == 2)
-                  && !strcmp(possibilities[y][x1], possibilities[y][x2])) {
-            // ja, x1, x2 sind Zwillinge => in der restlichen Zeile
-            // koennen diese 2 Zahlen nicht mehr vorkommen!
-            if (verboseLogging == 2) {
-              sprintf(buffer, "!! Neue Moeglichkeiten-Erkenntnis 3b: Zwillinge! Feld (%d/%d) und Feld (%d/%d) haben beide: %s\n", y + 1, x1 + 1, y + 1, x2 + 1, possibilities[y][x1]);
-              printlog(buffer);
-            }
-            if (isolateRowTwins(y, x1, x2))
-              progress = 1;
-          }
-        }
-      }
-    }
-
-    if (verboseLogging) {
-      printSvg(gridVersion++);
-    }
-
-    // alle Spalten durchgehen
-    for (x = 0; x < 9; x++) {
-      if (verboseLogging == 2) {
-        sprintf(buffer, "Untersuche Spalte %d auf Zwillinge ...\n", x + 1);
-        printlog(buffer);
-      }
-      // suche Zwillinge in dieser Spalte
-      for (y1 = 0; y1 < 9; y1++) {
-        for (y2 = y1 + 1; y2 < 9; y2++) {
-          // vergleiche die beiden Zellen: sind es Zwillinge?
-          if ((nrOfPossibilities[y1][x] == 2 && nrOfPossibilities[y2][x] == 2)
-                  && !strcmp(possibilities[y1][x], possibilities[y2][x])) {
-            // ja, y1, y2 sind Zwillinge => in der restlichen Spalte
-            // koennen diese 2 Zahlen nicht mehr vorkommen!
-            if (verboseLogging == 2) {
-              sprintf(buffer, "!! Neue Moeglichkeiten-Erkenntnis 3c: Zwillinge! Feld (%d/%d) und Feld (%d/%d) haben beide: %s\n", y1 + 1, x + 1, y2 + 1, x + 1, possibilities[y1][x]);
-              printlog(buffer);
-            }
-            if (isolateColumnTwins(x, y1, y2))
-              progress = 1;
-          }
-        }
-      }
-    }
-
-    if (verboseLogging) {
-      printSvg(gridVersion++);
+      printSvg(0);
     }
 
     // Suche nach lokaler Eingrenzung einer Zahl in einem Quadranten:
@@ -442,7 +326,7 @@ int solve() {
     }
 
     if (verboseLogging) {
-      printSvg(gridVersion++);
+      printSvg(0);
     }
 
     // ... analog in Spalten eines Quadranten suchen
@@ -534,7 +418,7 @@ int solve() {
     }
 
     if (verboseLogging) {
-      printSvg(gridVersion++);
+      printSvg(0);
     }
 
     // nach der Iteration den Sudoku-Zwischenstand anzeigen
