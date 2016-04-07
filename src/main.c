@@ -164,15 +164,8 @@ int solve() {
 
   printSvg(0);
 
-  // Initialisierung:
-  // zunaechst sind ueberall alle Zahlen moeglich
-  for (y = 0; y < 9; y++) {
-    for (x = 0; x < 9; x++) {
-      strcpy(possibilities[y][x], "123456789");
-      nrOfPossibilities[y][x] = 9;
-    }
-  }
-
+  initGrid();
+  
   do {
     iteration++;
     progress = 0; // noch kein neuen Erkenntnis in dieser Runde (hat ja erst begonnen)

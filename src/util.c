@@ -27,8 +27,8 @@ FILE *logfile;
 //   absolute X-Koordinate (0..8) der Zelle
 
 void getQuadrantCell(int n, int *qx, int *qy) {
-  *qx = n % 3;
-  *qy = n / 3;
+    *qx = n % 3;
+    *qy = n / 3;
 }
 
 //-------------------------------------------------------------------
@@ -40,7 +40,7 @@ void getQuadrantCell(int n, int *qx, int *qy) {
 //   absolute X-Koordinate (0..8) der Zelle
 
 int getAbsoluteX(int q, int qx) {
-  return (q % 3) * 3 + qx;
+    return (q % 3) * 3 + qx;
 }
 
 
@@ -55,15 +55,15 @@ int getAbsoluteX(int q, int qx) {
 //   y ... absolute Y-Koordinate (0..8), wird zurueckgeliefert
 
 void getQuadrantField(int q, int position, int *x, int *y) {
-  int qx, qy;
+    int qx, qy;
 
-  assert(q >= 0 && q < 9);
-  assert(position >= 0 && position < 9);
+    assert(q >= 0 && q < 9);
+    assert(position >= 0 && position < 9);
 
-  getQuadrantStart(q, &qx, &qy);
+    getQuadrantStart(q, &qx, &qy);
 
-  *x = qx + (position % 3);
-  *y = qy + (position / 3);
+    *x = qx + (position % 3);
+    *y = qy + (position / 3);
 }
 
 
@@ -76,7 +76,7 @@ void getQuadrantField(int q, int position, int *x, int *y) {
 //   absolute Y-Koordinate (0..8) der Zelle
 
 int getAbsoluteY(int q, int qy) {
-  return (q / 3) * 3 + qy;
+    return (q / 3) * 3 + qy;
 }
 
 //-------------------------------------------------------------------
@@ -87,8 +87,8 @@ int getAbsoluteY(int q, int qy) {
 //   qx ... Y-Koordinate des linken oberen Ecks des Quadranten
 
 void getQuadrantStart(int q, int *qx, int *qy) {
-  *qx = (q % 3) * 3;
-  *qy = (q / 3) * 3;
+    *qx = (q % 3) * 3;
+    *qy = (q / 3) * 3;
 }
 
 //-------------------------------------------------------------------
@@ -102,32 +102,32 @@ void getQuadrantStart(int q, int *qx, int *qy) {
 
 int getQuadrantNr(int x, int y) {
 
-  assert(x >= 0 && x < 9);
-  assert(y >= 0 && y < 9);
+    assert(x >= 0 && x < 9);
+    assert(y >= 0 && y < 9);
 
-  return (y / 3) * 3 + (x / 3);
+    return (y / 3) * 3 + (x / 3);
 }
 
 void openLogFile(char *outputFilename) {
-  logfile = fopen(outputFilename, "w");
+    logfile = fopen(outputFilename, "w");
 }
 
 //-------------------------------------------------------------------
 
 void printlog(char *text) {
-  // printlog a message to printlog file or to stdout
+    // printlog a message to printlog file or to stdout
 
-  if (logfile) {
-    fputs(text, logfile);
-  } else {
-    // no printlog file => write to stdout
-    puts(text);
-  }
+    if (logfile) {
+        fputs(text, logfile);
+    } else {
+        // no printlog file => write to stdout
+        puts(text);
+    }
 }
 
 //-------------------------------------------------------------------
 
 void closeLogFile() {
-  if (logfile) 
-    fclose(logfile);
+    if (logfile)
+        fclose(logfile);
 }

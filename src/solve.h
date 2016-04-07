@@ -12,19 +12,20 @@
 extern "C" {
 #endif
 
-  int isFinished();
-  int forbidNumber(int y, int x, int n);
-  
-  // strategies
-  int checkForSolvedCells();
-  int findHiddenSingles();
-  int findNakedPairs(); // not implemented yet
-  int findNakedTriples(); // not implemented yet
-  int findHiddenPairsAndTriples(); // not implemented yet
-  int findNakedQuads(); // not implemented yet
-  int findHiddenQuads(); // not implemented yet
-  int findPointingPairsAndTriples(); // not implemented yet
-  int boxLineReduction(); // not implemented yet
+    void initGrid();
+    int isFinished();
+    int forbidNumber(int y, int x, int n);
+
+    // strategies
+    int checkForSolvedCells();
+    int findHiddenSingles();
+    int findNakedPairs(); // not implemented yet
+    int findNakedTriples(); // not implemented yet
+    int findHiddenPairsAndTriples(); // not implemented yet
+    int findNakedQuads(); // not implemented yet
+    int findHiddenQuads(); // not implemented yet
+    int findPointingPairsAndTriples(); // not implemented yet
+    int boxLineReduction(); // not implemented yet
 
 
 #ifdef	__cplusplus
