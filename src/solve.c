@@ -453,13 +453,10 @@ int isolateBoxTuples(int q, int y1, int x1, int y2, int x2) {
 //   1 ... Nummer wurde verboten
 //   0 ... keine Aenderung, Nummer war bereits verboten
 
-int forbidNumber(int f, unsigned n) {
-    Field field;
+int forbidNumber(Field field, unsigned n) {
 
-    assert(f >= 0 && f < 81);
     assert(n >= 1 && n <= 9);
 
-    field = fields[f];
     if (field.candidates[n - 1]) {
         if (verboseLogging == 2) {
             // TODO sprintf(buffer, "Vorher: (%d/%d) possibilities=%s\n", y + 1, x + 1, possibilities[y][x]);
@@ -485,19 +482,18 @@ int forbidNumber(int f, unsigned n) {
 // @return 1 ... something has changed, 0 ... nothing changed
 
 int checkForSolvedCells() {
-    int x, y, i;
     int f;
+    int i;
     Field *unit;
-    int n;
-    int q;
+    Field field;
+    int value;
     int progress; // Flag: in einer Iteration wurde zumindest eine Erkenntnis gewonnen
 
     progress = 0;
 
-
     for (f = 0; f < 81; f++) {
-        n = fields[f].value;
-        if (n) {
+        value = fields[f].value;
+        if (value) {
             // field contains a number => this number must not appear in
             // any other "neighboring" fields (fields within the same unit)
 
@@ -505,95 +501,17 @@ int checkForSolvedCells() {
             for (i = 0; i < 3; i++) {
                 unit = units[i];
 
-                if (!fields[f].value) {
-                    if (forbidNumber(y, i, n)) {
-                        if (verboseLogging == 2) {
-                            // TODO sprintf(buffer, "!! Neue Moeglichkeiten-Erkenntnis 1a: (Nummer %d verboten wegen %d in (%d/%d))\n", n, n, y + 1, x + 1);
-                            printlog(buffer);
-                        }
-                        progress = 1; // Flag "neue Erkenntnis" setzen
-                    }
-                }
-            }
-        }
+                // go through all positions (numbers) of the unit and forbid
+                // this number in all other fields
+                for (int pos = 0; pos < 9; pos++) {
+                    field = unit[pos];
 
-        return progress;
-    }
-
-    int findHiddenSingles() {
-        int x, y;
-        int n;
-        int q;
-        int progress; // flag: something has changed
-
-        progress = 0;
-
-        // suche in allen Zeilen nach Zahlen, die nur an einer Position
-        // moeglich sind (auch wenn in dieser Zelle mehrere Zahlen moeglich
-        // waeren, aber die anderen Moeglichkeiten kann man dann verwerfen)
-        if (verboseLogging == 2) {
-            sprintf(buffer, "??? Searching for: unique places in rows ... \n");
-            printlog(buffer);
-        }
-        for (y = 0; y < 9; y++) {
-            for (n = 1; n <= 9; n++) {
-                x = getUniquePositionInRow(n, y);
-                if (x != -1 && !fields[y][x]) {
-                    // Zahl n kann nur an der Position x vorkommen in der Zeile y
-                    if (verboseLogging) {
-                        sprintf(buffer, "!!! Neue Erkenntnis 2a: In Zeile %d kann %d nur an Position %d vorkommen => (%d/%d) = %d!\n", y + 1, n, x + 1, y + 1, x + 1, n);
-                        printlog(buffer);
-                    }
-                    fields[y][x] = n;
-                    progress = 1; // Flag "neue Erkenntnis" setzen
-                }
-            }
-        }
-
-        // suche in allen Spalten nach Zahlen, die nur an einer Position
-        // moeglich sind (auch wenn in dieser Zelle mehrere Zahlen moeglich
-        // waeren, aber die anderen Moeglichkeiten kann man dann verwerfen)
-        if (verboseLogging == 2) {
-            sprintf(buffer, "??? Searching for: unique places in cols ... \n");
-            printlog(buffer);
-        }
-        for (x = 0; x < 9; x++) {
-            for (n = 1; n <= 9; n++) {
-                y = getUniquePositionInColumn(n, x);
-                if (y != -1 && !fields[y][x]) {
-                    // Zahl n kann nur an der Position y vorkommen in der Spalte x
-                    if (verboseLogging) {
-                        sprintf(buffer, "!!! Neue Erkenntnis 2b: In Spalte %d kann %d nur an Position %d vorkommen => (%d/%d) = %d!\n", x + 1, n, y + 1, y + 1, x + 1, n);
-                        printlog(buffer);
-                    }
-                    fields[y][x] = n;
-                    progress = 1; // Flag "neue Erkenntnis" setzen
-                }
-            }
-        }
-
-        // suche in allen Quadranten nach Zahlen, die nur an einer Position
-        // moeglich sind (auch wenn in diesem Quadrant mehrere Zahlen moeglich
-        // waeren, aber die anderen Moeglichkeiten kann man dann verwerfen)
-        {
-            int position;
-
-            if (verboseLogging == 2) {
-                sprintf(buffer, "??? Searching for: unique places in quadrants ... \n");
-                printlog(buffer);
-            }
-            for (q = 0; q < 9; q++) {
-                for (n = 1; n <= 9; n++) {
-                    position = getUniquePositionInBox(n, q);
-                    if (position != -1) {
-                        getQuadrantField(q, position, &x, &y);
-                        if (!fields[y][x]) {
-                            // Zahl n kann nur an der Position y vorkommen in der Spalte x
-                            if (verboseLogging) {
-                                sprintf(buffer, "!!! Neue Erkenntnis 2c: In Quadrant %d kann %d nur an Position %d vorkommen => (%d/%d) = %d!\n", q + 1, n, position + 1, y + 1, x + 1, n);
+                    if (!field.value) {
+                        if (forbidNumber(field, value)) {
+                            if (verboseLogging == 2) {
+                                // TODO sprintf(buffer, "!! Neue Moeglichkeiten-Erkenntnis 1a: (Nummer %d verboten wegen %d in (%d/%d))\n", n, n, y + 1, x + 1);
                                 printlog(buffer);
                             }
-                            fields[y][x] = n;
                             progress = 1; // Flag "neue Erkenntnis" setzen
                         }
                     }
@@ -603,142 +521,227 @@ int checkForSolvedCells() {
 
         return progress;
     }
+}
 
-    int findNakedPairs() {
-        int x, y, i, j;
-        int q;
-        int x1, x2, y1, y2, qx, qy;
-        int progress; // Flag: in einer Iteration wurde zumindest eine Erkenntnis gewonnen
+int findHiddenSingles() {
+    int x, y;
+    int n;
+    int q;
+    int progress; // flag: something has changed
 
-        progress = 0;
+    progress = 0;
 
-        // Suche nach Zwillingen in einem Quadranten (nicht unbedingt in der gleichen Zeile oder Spalte):
-        // ----------------------------------------------------------------------------------------------
-        // wenn zwei Felder in der gleichen Zeile die gleichen 2 moeglichen 
-        // Zahlen haben, muessen jeweils eine dieser beiden Zahlen in 
-        // jeweils einer dieser 2 Zellen stehen => damit koennen beide 
-        // Zahlen im restlichen Quadranten nicht mehr vorkommen.
-        // Wenn die beiden auch noch in der selben Zeile sind, kann auch 
-        // in der restlichen Zeile keine dieser Zahlen mehr vorkommen.
-        // Analog fuer Spalten.
-        if (verboseLogging == 2) printlog("??? Searching for: twins ... \n");
+    // suche in allen Zeilen nach Zahlen, die nur an einer Position
+    // moeglich sind (auch wenn in dieser Zelle mehrere Zahlen moeglich
+    // waeren, aber die anderen Moeglichkeiten kann man dann verwerfen)
+    if (verboseLogging == 2) {
+        sprintf(buffer, "??? Searching for: unique places in rows ... \n");
+        printlog(buffer);
+    }
+    for (y = 0; y < 9; y++) {
+        for (n = 1; n <= 9; n++) {
+            x = getUniquePositionInRow(n, y);
+            if (x != -1 && !fields[y][x]) {
+                // Zahl n kann nur an der Position x vorkommen in der Zeile y
+                if (verboseLogging) {
+                    sprintf(buffer, "!!! Neue Erkenntnis 2a: In Zeile %d kann %d nur an Position %d vorkommen => (%d/%d) = %d!\n", y + 1, n, x + 1, y + 1, x + 1, n);
+                    printlog(buffer);
+                }
+                fields[y][x] = n;
+                progress = 1; // Flag "neue Erkenntnis" setzen
+            }
+        }
+    }
 
+    // suche in allen Spalten nach Zahlen, die nur an einer Position
+    // moeglich sind (auch wenn in dieser Zelle mehrere Zahlen moeglich
+    // waeren, aber die anderen Moeglichkeiten kann man dann verwerfen)
+    if (verboseLogging == 2) {
+        sprintf(buffer, "??? Searching for: unique places in cols ... \n");
+        printlog(buffer);
+    }
+    for (x = 0; x < 9; x++) {
+        for (n = 1; n <= 9; n++) {
+            y = getUniquePositionInColumn(n, x);
+            if (y != -1 && !fields[y][x]) {
+                // Zahl n kann nur an der Position y vorkommen in der Spalte x
+                if (verboseLogging) {
+                    sprintf(buffer, "!!! Neue Erkenntnis 2b: In Spalte %d kann %d nur an Position %d vorkommen => (%d/%d) = %d!\n", x + 1, n, y + 1, y + 1, x + 1, n);
+                    printlog(buffer);
+                }
+                fields[y][x] = n;
+                progress = 1; // Flag "neue Erkenntnis" setzen
+            }
+        }
+    }
+
+    // suche in allen Quadranten nach Zahlen, die nur an einer Position
+    // moeglich sind (auch wenn in diesem Quadrant mehrere Zahlen moeglich
+    // waeren, aber die anderen Moeglichkeiten kann man dann verwerfen)
+    {
+        int position;
+
+        if (verboseLogging == 2) {
+            sprintf(buffer, "??? Searching for: unique places in quadrants ... \n");
+            printlog(buffer);
+        }
         for (q = 0; q < 9; q++) {
-            if (verboseLogging == 2) {
-                sprintf(buffer, "Untersuche Quadrant %d auf Zwillinge ...\n", q + 1);
-                printlog(buffer);
-            }
-            getQuadrantStart(q, &qx, &qy);
-            // Vergleiche jedes Feld im Quadranten mit jedem anderen im selben Quadranten
-            for (i = 0; i < 9; i++) {
-                getQuadrantCell(i, &x1, &y1);
-                x1 += qx;
-                y1 += qy;
-                for (j = i + 1; j < 9; j++) {
-                    getQuadrantCell(j, &x2, &y2);
-                    x2 += qx;
-                    y2 += qy;
-
-                    if ((nrOfPossibilities[y1][x1] == 2 && nrOfPossibilities[y2][x2] == 2)
-                            && !strcmp(possibilities[y1][x1], possibilities[y2][x2])) {
-                        // ja, wird haben Quadranten-Zwillinge => im restlichen Quadranten 
-                        // koennen diese 2 Zahlen nicht mehr vorkommen!
-                        if (verboseLogging == 2) {
-                            sprintf(buffer, "!! Neue Moeglichkeiten-Erkenntnis 3a: Zwillinge! Feld (%d/%d) und Feld (%d/%d) sind im gleichen Quadranten und haben beide: %s\n", y1 + 1, x1 + 1, y2 + 1, x2 + 1, possibilities[y1][x1]);
+            for (n = 1; n <= 9; n++) {
+                position = getUniquePositionInBox(n, q);
+                if (position != -1) {
+                    getQuadrantField(q, position, &x, &y);
+                    if (!fields[y][x]) {
+                        // Zahl n kann nur an der Position y vorkommen in der Spalte x
+                        if (verboseLogging) {
+                            sprintf(buffer, "!!! Neue Erkenntnis 2c: In Quadrant %d kann %d nur an Position %d vorkommen => (%d/%d) = %d!\n", q + 1, n, position + 1, y + 1, x + 1, n);
                             printlog(buffer);
                         }
-                        if (isolateBoxTuples(q, y1, x1, y2, x2))
-                            progress = 1;
+                        fields[y][x] = n;
+                        progress = 1; // Flag "neue Erkenntnis" setzen
                     }
                 }
             }
         }
-
-        if (verboseLogging) {
-            printSvg(0);
-        }
-
-
-        // Suche nach Zwillingen in einer Zeile oder einer Spalte (nicht unbedingt in einem Quadranten):
-        // ---------------------------------------------------------------------------------------------
-        // wenn zwei Felder in der gleichen Zeile die gleichen 2 moeglichen 
-        // Zahlen haben, muessen jeweils eine dieser beiden Zahlen in 
-        // jeweils einer dieser 2 Zellen stehen => damit koennen beide 
-        // Zahlen in der restlichen Zeile nicht mehr vorkommen
-
-        // alle Zeilen durchgehen
-        for (y = 0; y < 9; y++) {
-            if (verboseLogging == 2) {
-                sprintf(buffer, "Untersuche Reihe %d auf Zwillinge ...\n", y + 1);
-                printlog(buffer);
-            }
-            // suche Zwillinge in dieser Reihe
-            for (x1 = 0; x1 < 9; x1++) {
-                for (x2 = x1 + 1; x2 < 9; x2++) {
-                    // vergleiche die beiden Zellen: sind es Zwillinge?
-                    if ((nrOfPossibilities[y][x1] == 2 && nrOfPossibilities[y][x2] == 2)
-                            && !strcmp(possibilities[y][x1], possibilities[y][x2])) {
-                        // ja, x1, x2 sind Zwillinge => in der restlichen Zeile
-                        // koennen diese 2 Zahlen nicht mehr vorkommen!
-                        if (verboseLogging == 2) {
-                            sprintf(buffer, "!! Neue Moeglichkeiten-Erkenntnis 3b: Zwillinge! Feld (%d/%d) und Feld (%d/%d) haben beide: %s\n", y + 1, x1 + 1, y + 1, x2 + 1, possibilities[y][x1]);
-                            printlog(buffer);
-                        }
-                        if (isolateRowTwins(y, x1, x2))
-                            progress = 1;
-                    }
-                }
-            }
-        }
-
-        if (verboseLogging) {
-            printSvg(0);
-        }
-
-        // alle Spalten durchgehen
-        for (x = 0; x < 9; x++) {
-            if (verboseLogging == 2) {
-                sprintf(buffer, "Untersuche Spalte %d auf Zwillinge ...\n", x + 1);
-                printlog(buffer);
-            }
-            // suche Zwillinge in dieser Spalte
-            for (y1 = 0; y1 < 9; y1++) {
-                for (y2 = y1 + 1; y2 < 9; y2++) {
-                    // vergleiche die beiden Zellen: sind es Zwillinge?
-                    if ((nrOfPossibilities[y1][x] == 2 && nrOfPossibilities[y2][x] == 2)
-                            && !strcmp(possibilities[y1][x], possibilities[y2][x])) {
-                        // ja, y1, y2 sind Zwillinge => in der restlichen Spalte
-                        // koennen diese 2 Zahlen nicht mehr vorkommen!
-                        if (verboseLogging == 2) {
-                            sprintf(buffer, "!! Neue Moeglichkeiten-Erkenntnis 3c: Zwillinge! Feld (%d/%d) und Feld (%d/%d) haben beide: %s\n", y1 + 1, x + 1, y2 + 1, x + 1, possibilities[y1][x]);
-                            printlog(buffer);
-                        }
-                        if (isolateColumnTwins(x, y1, y2))
-                            progress = 1;
-                    }
-                }
-            }
-        }
-
-        return progress;
     }
 
-    int findHiddenPairs() {
-        int y;
-        int cand;
-        int progress;
+    return progress;
+}
 
-        // http://programmers.stackexchange.com/questions/270930/sudoku-hidden-sets-algorithm
+int findNakedPairs() {
+    int x, y, i, j;
+    int q;
+    int x1, x2, y1, y2, qx, qy;
+    int progress; // Flag: in einer Iteration wurde zumindest eine Erkenntnis gewonnen
 
-        progress = 0;
+    progress = 0;
 
-        // hidden pairs in rows
-        for (y = 0; y < 9; y++) {
-            for (cand = 1; cand <= 9; cand++) {
-                // countCandidateInRow(cand, y);
+    // Suche nach Zwillingen in einem Quadranten (nicht unbedingt in der gleichen Zeile oder Spalte):
+    // ----------------------------------------------------------------------------------------------
+    // wenn zwei Felder in der gleichen Zeile die gleichen 2 moeglichen 
+    // Zahlen haben, muessen jeweils eine dieser beiden Zahlen in 
+    // jeweils einer dieser 2 Zellen stehen => damit koennen beide 
+    // Zahlen im restlichen Quadranten nicht mehr vorkommen.
+    // Wenn die beiden auch noch in der selben Zeile sind, kann auch 
+    // in der restlichen Zeile keine dieser Zahlen mehr vorkommen.
+    // Analog fuer Spalten.
+    if (verboseLogging == 2) printlog("??? Searching for: twins ... \n");
+
+    for (q = 0; q < 9; q++) {
+        if (verboseLogging == 2) {
+            sprintf(buffer, "Untersuche Quadrant %d auf Zwillinge ...\n", q + 1);
+            printlog(buffer);
+        }
+        getQuadrantStart(q, &qx, &qy);
+        // Vergleiche jedes Feld im Quadranten mit jedem anderen im selben Quadranten
+        for (i = 0; i < 9; i++) {
+            getQuadrantCell(i, &x1, &y1);
+            x1 += qx;
+            y1 += qy;
+            for (j = i + 1; j < 9; j++) {
+                getQuadrantCell(j, &x2, &y2);
+                x2 += qx;
+                y2 += qy;
+
+                if ((nrOfPossibilities[y1][x1] == 2 && nrOfPossibilities[y2][x2] == 2)
+                        && !strcmp(possibilities[y1][x1], possibilities[y2][x2])) {
+                    // ja, wird haben Quadranten-Zwillinge => im restlichen Quadranten 
+                    // koennen diese 2 Zahlen nicht mehr vorkommen!
+                    if (verboseLogging == 2) {
+                        sprintf(buffer, "!! Neue Moeglichkeiten-Erkenntnis 3a: Zwillinge! Feld (%d/%d) und Feld (%d/%d) sind im gleichen Quadranten und haben beide: %s\n", y1 + 1, x1 + 1, y2 + 1, x2 + 1, possibilities[y1][x1]);
+                        printlog(buffer);
+                    }
+                    if (isolateBoxTuples(q, y1, x1, y2, x2))
+                        progress = 1;
+                }
             }
+        }
+    }
 
+    if (verboseLogging) {
+        printSvg(0);
+    }
+
+
+    // Suche nach Zwillingen in einer Zeile oder einer Spalte (nicht unbedingt in einem Quadranten):
+    // ---------------------------------------------------------------------------------------------
+    // wenn zwei Felder in der gleichen Zeile die gleichen 2 moeglichen 
+    // Zahlen haben, muessen jeweils eine dieser beiden Zahlen in 
+    // jeweils einer dieser 2 Zellen stehen => damit koennen beide 
+    // Zahlen in der restlichen Zeile nicht mehr vorkommen
+
+    // alle Zeilen durchgehen
+    for (y = 0; y < 9; y++) {
+        if (verboseLogging == 2) {
+            sprintf(buffer, "Untersuche Reihe %d auf Zwillinge ...\n", y + 1);
+            printlog(buffer);
+        }
+        // suche Zwillinge in dieser Reihe
+        for (x1 = 0; x1 < 9; x1++) {
+            for (x2 = x1 + 1; x2 < 9; x2++) {
+                // vergleiche die beiden Zellen: sind es Zwillinge?
+                if ((nrOfPossibilities[y][x1] == 2 && nrOfPossibilities[y][x2] == 2)
+                        && !strcmp(possibilities[y][x1], possibilities[y][x2])) {
+                    // ja, x1, x2 sind Zwillinge => in der restlichen Zeile
+                    // koennen diese 2 Zahlen nicht mehr vorkommen!
+                    if (verboseLogging == 2) {
+                        sprintf(buffer, "!! Neue Moeglichkeiten-Erkenntnis 3b: Zwillinge! Feld (%d/%d) und Feld (%d/%d) haben beide: %s\n", y + 1, x1 + 1, y + 1, x2 + 1, possibilities[y][x1]);
+                        printlog(buffer);
+                    }
+                    if (isolateRowTwins(y, x1, x2))
+                        progress = 1;
+                }
+            }
+        }
+    }
+
+    if (verboseLogging) {
+        printSvg(0);
+    }
+
+    // alle Spalten durchgehen
+    for (x = 0; x < 9; x++) {
+        if (verboseLogging == 2) {
+            sprintf(buffer, "Untersuche Spalte %d auf Zwillinge ...\n", x + 1);
+            printlog(buffer);
+        }
+        // suche Zwillinge in dieser Spalte
+        for (y1 = 0; y1 < 9; y1++) {
+            for (y2 = y1 + 1; y2 < 9; y2++) {
+                // vergleiche die beiden Zellen: sind es Zwillinge?
+                if ((nrOfPossibilities[y1][x] == 2 && nrOfPossibilities[y2][x] == 2)
+                        && !strcmp(possibilities[y1][x], possibilities[y2][x])) {
+                    // ja, y1, y2 sind Zwillinge => in der restlichen Spalte
+                    // koennen diese 2 Zahlen nicht mehr vorkommen!
+                    if (verboseLogging == 2) {
+                        sprintf(buffer, "!! Neue Moeglichkeiten-Erkenntnis 3c: Zwillinge! Feld (%d/%d) und Feld (%d/%d) haben beide: %s\n", y1 + 1, x + 1, y2 + 1, x + 1, possibilities[y1][x]);
+                        printlog(buffer);
+                    }
+                    if (isolateColumnTwins(x, y1, y2))
+                        progress = 1;
+                }
+            }
+        }
+    }
+
+    return progress;
+}
+
+int findHiddenPairs() {
+    int y;
+    int cand;
+    int progress;
+
+    // http://programmers.stackexchange.com/questions/270930/sudoku-hidden-sets-algorithm
+
+    progress = 0;
+
+    // hidden pairs in rows
+    for (y = 0; y < 9; y++) {
+        for (cand = 1; cand <= 9; cand++) {
+            // countCandidateInRow(cand, y);
         }
 
-        return progress;
     }
+
+    return progress;
+}
