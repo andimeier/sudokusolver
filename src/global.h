@@ -8,37 +8,24 @@
 #ifndef GLOBAL_H
 #define	GLOBAL_H
 
+#include "typedefs.h"
+
 #ifdef	__cplusplus
 extern "C" {
 #endif
 
-    // index number of the unit types, used in *units
-    #define ROWS 0
-    #define COLS 1
-    #define BOXES 2
 
-    typedef struct Field {
-        unsigned *unitPosition;
-        unsigned candidates[9];
-        unsigned initialValue;
-        unsigned candidatesLeft;
-        unsigned value;
-    };
-    
-    typedef struct Unit {
-        char *name; // the name of the unit used for log output in singular 
-          // form, e.g. 'row'
-        unsigned instances; // number of units. Will normally be 9, but can
-          // also be something else, e.g. 2 for "diagonal"
-        Field *field; // the fields in this unit, in "order of appearance"
-    };
-    
+    // index number of the unit types, used in *units
+#define ROWS 0
+#define COLS 1
+#define BOXES 2
+
     extern Field fields[81]; // the fields of the game board
     // units are: rows, cols, boxes. Within one unit, the numbers 1...9 must
     // appear. For a standard Sudoku, there are 3 units (rows, cols, boxes).
     // More exotic Sudokus may use more unit, e.g. color units.
-    extern Unit *units;
-    
+    extern struct UnitDefs unitDefs;
+
     extern char buffer[1000]; // general buffer for string operations
 
     extern int errors; // number of errors in the algorithm
@@ -46,7 +33,7 @@ extern "C" {
 
     extern char *svgFilename; // filename of SVG file
 
-    
+
 
 #ifdef	__cplusplus
 }

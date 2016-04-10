@@ -14,6 +14,8 @@ extern "C" {
 
     void initUnits();
     void initGrid();
+    void freeUnits();
+    void freeGrid();
     int isFinished();
     int forbidNumber(int y, int x, int n);
 

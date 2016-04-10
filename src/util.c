@@ -131,3 +131,18 @@ void closeLogFile() {
     if (logfile)
         fclose(logfile);
 }
+
+/**
+ * copies all numbers from one array to another
+ * @param src
+ * @param len
+ * @return 
+ */
+int *unsigneddup(unsigned const *src, size_t len) {
+    int *p = malloc(len * sizeof (unsigned));
+    if (p == NULL) {
+        exit(EXIT_FAILURE);
+    }
+    memcpy(p, src, len * sizeof (unsigned));
+    return p;
+}

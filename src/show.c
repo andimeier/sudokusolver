@@ -7,7 +7,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
-#include <alloc.h>
+#include <memory.h>
 #include "global.h"
 #include "show.h"
 #include "util.h"
@@ -171,6 +171,10 @@ void printSvg(int finalVersion) {
         sprintf(suffix, ".%d", index);
         filename = (char *) malloc(sizeof (char)*(strlen(svgFilename) + strlen(suffix) + 1));
         if (filename == NULL) {
+            exit(EXIT_FAILURE);
+        }
+
+        if (filename == NULL) {
             perror("Not enough memory to allocate memory for SVG filename.");
             exit(EXIT_FAILURE);
         }
@@ -235,6 +239,7 @@ void printSvg(int finalVersion) {
     fputs("  </g>\n</svg>", svgfile);
 
     fclose(svgfile);
+
     if (filename != svgFilename) free(filename);
 }
 
@@ -248,6 +253,9 @@ char *position(Field field) {
     char *position;
 
     position = (char*) malloc(sizeof (char)*3);
+    if (position == NULL) {
+        exit(EXIT_FAILURE);
+    }
     position[0] = (char) (field.unitPosition[ROWS] + 65);
     position[1] = (char) (field.unitPosition[COLS] + 48);
     position[2] = '\0';

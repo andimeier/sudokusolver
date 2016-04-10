@@ -117,6 +117,9 @@ int main(int argc, char **argv) {
 
     closeLogFile();
 
+    freeUnits();
+    freeGrid();
+
     exit(EXIT_SUCCESS);
 }
 
@@ -173,19 +176,19 @@ int solve() {
         }
 
         // TODO:
-//        if (verboseLogging == 2) {
-//            for (y = 0; y < 9; y++) {
-//                for (x = 0; x < 9; x++) {
-//                    if (fields[y][x]) {
-//                        sprintf(buffer, "  Feld (%d/%d): %d\n", y + 1, x + 1, fields[y][x]);
-//                        printlog(buffer);
-//                    } else {
-//                        // TODO sprintf(buffer, "  Feld (%d/%d): %s\n", y + 1, x + 1, possibilities[y][x]);
-//                        printlog(buffer);
-//                    }
-//                }
-//            }
-//        }
+        //        if (verboseLogging == 2) {
+        //            for (y = 0; y < 9; y++) {
+        //                for (x = 0; x < 9; x++) {
+        //                    if (fields[y][x]) {
+        //                        sprintf(buffer, "  Feld (%d/%d): %d\n", y + 1, x + 1, fields[y][x]);
+        //                        printlog(buffer);
+        //                    } else {
+        //                        // TODO sprintf(buffer, "  Feld (%d/%d): %s\n", y + 1, x + 1, possibilities[y][x]);
+        //                        printlog(buffer);
+        //                    }
+        //                }
+        //            }
+        //        }
 
         // alle Felder durchgehen und vorkommende Zahlen in der selben
         // Reihe, in der selben Spalte und im selben Quadranten verbieten
@@ -472,7 +475,7 @@ int readSudoku() {
                 } else if ((c == ' ') || (c == '.')) {
                     fields[y * 9 + x].initialValue = 0;
                 } else {
-                    sprintf(buffer, "Fehler beim Einlesen des Sudokus: illegales Zeichen ('%c') in Zeile %d an Position %d.\n", c, x+1, linecount);
+                    sprintf(buffer, "Fehler beim Einlesen des Sudokus: illegales Zeichen ('%c') in Zeile %d an Position %d.\n", c, x + 1, linecount);
                     printlog(buffer);
                     ok = 0; // oje, das war keine Ziffer!
                     break;

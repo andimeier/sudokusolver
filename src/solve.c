@@ -8,9 +8,11 @@
 #include <string.h>
 #include <stdlib.h>
 #include <assert.h>
+#include <memory.h>
 #include "solve.h"
 #include "show.h"
 #include "global.h"
+#include "typedefs.h"
 #include "util.h"
 
 static int getUniquePositionInRow(int n, int y);
@@ -24,7 +26,7 @@ static int isolateBoxTuples(int q, int y1, int x1, int y2, int x2);
 // auxiliary functions
 static int setUniqueNumber(int x, int y);
 
-unsigned *units;
+UnitDefs unitDefs;
 Field fields[81]; // the fields of the game board
 
 
@@ -35,71 +37,164 @@ int verboseLogging; // 0 ... no verbose logging, 1 ... log changes, 2 ... log ev
  * init the units
  */
 void initUnits() {
-    
-}
+    Unit *unit;
 
+    // assuming a standard Sudoku, 
+    // we have 3 units (row, column, box)
+    unitDefs.units = (Unit *) malloc(sizeof (Unit) * 3);
+    if (unitDefs.units == NULL) {
+        exit(EXIT_FAILURE);
+    }
+    unitDefs.count = 3;
 
-void initGrid() {
-    int x, y;
-    Field field;
-    Field *unit;
-
-    // Initialisierung:
-    // zunaechst sind ueberall alle Zahlen moeglich
-    for (y = 0; y < 9; y++) {
-        for (x = 0; x < 9; x++) {
-            field = fields[y * 9 + x];
-
-            field.candidates = {1, 2, 3, 4, 5, 6, 7, 8, 9};
-            field.candidatesLeft = 9;
-            field.value = 0;
-            field.initialValue = 0;
-
-            unsigned *unitPosition = unsigned[3];
-            unitPosition[ROWS] = y;
-            unitPosition[COLS] = x;
-            unitPosition[BOXES] = getQuadrantNr(x, y);
+    // first unit: row
+    unit = &(unitDefs.units[ROWS]);
+    unit->name = strdup("row");
+    unit->instances = 9;
+    unit->fields = (Field **) malloc(sizeof (Field *) * unit->instances);
+    if (unit->fields == NULL) {
+        exit(EXIT_FAILURE);
+    }
+    for (int i = 0; i < unit->instances; i++) {
+        unit->fields[i] = (Field *) malloc(sizeof (Field) * 9);
+        if (unit->fields[i] == NULL) {
+            exit(EXIT_FAILURE);
         }
     }
 
+    // second unit: column
+    unit = &(unitDefs.units[COLS]);
+    unit->name = strdup("column");
+    unit->instances = 9;
+    unit->fields = (Field **) malloc(sizeof (Field *) * unit->instances);
+    if (unit->fields == NULL) {
+        exit(EXIT_FAILURE);
+    }
+    for (int i = 0; i < unit->instances; i++) {
+        unit->fields[i] = (Field *) malloc(sizeof (Field) * 9);
+        if (unit->fields[i] == NULL) {
+            exit(EXIT_FAILURE);
+        }
+    }
+
+    // third unit: box
+    unit = &(unitDefs.units[BOXES]);
+    unit->name = strdup("box");
+    unit->instances = 9;
+    unit->fields = (Field **) malloc(sizeof (Field *) * unit->instances);
+    if (unit->fields == NULL) {
+        exit(EXIT_FAILURE);
+    }
+    for (int i = 0; i < unit->instances; i++) {
+        unit->fields[i] = (Field *) malloc(sizeof (Field) * 9);
+        if (unit->fields[i] == NULL) {
+            exit(EXIT_FAILURE);
+        }
+    }
+}
+
+/**
+ * free units memory
+ */
+void freeUnits() {
+
+    for (int i = 0; i < unitDefs.count; i++) {
+        free(unitDefs.units[i].name);
+        for (int n = 0; n < unitDefs.units[i].instances; n++) {
+            free(unitDefs.units[i].fields[n]);
+        }
+        free(unitDefs.units[i].fields);
+    }
+    free(unitDefs.units);
+}
+
+void initGrid() {
+    int f, x, y;
+    Field *field;
+    Field *unit;
+
+    assert(unitDefs.count > 0);
+
+    // Initialisierung:
+    // zunaechst sind ueberall alle Zahlen moeglich
+    for (f = 0; f < 81; f++) {
+        field = &(fields[y * 9 + x]);
+
+        x = f % 9;
+        y = f / 9;
+
+        for (int n = 0; n < 9; n++) {
+            field->candidates[n] = n;
+        }
+
+        field->candidatesLeft = 9;
+        field->value = 0;
+        field->initialValue = 0;
+
+        int *unitPositions = (int *) malloc(sizeof (int) * unitDefs.count);
+        if (unitPositions == NULL) {
+            exit(EXIT_FAILURE);
+        }
+
+        unitPositions[ROWS] = y;
+        unitDefs.units[ROWS].fields[y][x] = field;
+
+        unitPositions[COLS] = x;
+        unitDefs.units[COLS].fields[x][y] = field;
+
+        unitPositions[BOXES] = getQuadrantNr(x, y);
+        unitDefs.units[BOXES].fields[unitPositions[BOXES]][y] = field;
+        //            field = fields[y * 9 + x];
+
+        field.unitPositions = unitPositions;
+    }
+
     // fill units with pointers to the corresponding fields
-    units = unsigned[3][9];
 
     // rows
-    unit = units[ROWS];
+    unit = unitDefs[ROWS];
     for (int row = 0; row < 9; row++) {
         for (int ix = 0; ix < 9; ix++) {
-            field = fields[row * 9 + ix];
-            assert(field.unitPosition[ROWS] == row);
+            field = &fields[row * 9 + ix];
+            assert(field->unitPositions[ROWS] == row);
 
             unit[ix] = field;
         }
     }
 
     // cols
-    unit = units[COLS];
+    unit = unitDefs[COLS];
     for (int col = 0; col < 9; col++) {
         for (int ix = 0; ix < 9; ix++) {
             field = fields[ix * 9 + col];
-            assert(field.unitPosition[COLS] == col);
+            assert(field->unitPositions[COLS] == col);
 
             unit[ix] = field;
         }
     }
 
     // boxes
-    unit = units[BOXES];
+    unit = unitDefs[BOXES];
     for (int box = 0; box < 9; box++) {
         for (int ix = 0; ix < 9; ix++) {
 
             getQuadrantField(box, ix, &x, &y);
             field = fields[y * 9 + x];
-            assert(field.unitPosition[BOXES] == box);
-            assert(field.unitPosition[COLS] == x);
-            assert(field.unitPosition[ROWS] == y);
+            assert(field->unitPositions[BOXES] == box);
+            assert(field->unitPositions[COLS] == x);
+            assert(field->unitPositions[ROWS] == y);
 
             unit[ix] = field;
         }
+    }
+}
+
+/**
+ * frees memory allocated for the grid fields
+ */
+void freeGrid() {
+    for (int f = 0; f < 81; f++) {
+        free(fields[f].unitPositions);
     }
 }
 

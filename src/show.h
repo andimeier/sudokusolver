@@ -8,13 +8,17 @@
 #ifndef SHOW_H
 #define	SHOW_H
 
+#include "typedefs.h"
+
 #ifdef	__cplusplus
 extern "C" {
 #endif
 
-void show(int showInit);
-void printSvg(int finalVersion);
-char *position(Field field);
+    struct Field;
+
+    void show(int showInit);
+    void printSvg(int finalVersion);
+    char *position(Field field);
 
 #ifdef	__cplusplus
 }
