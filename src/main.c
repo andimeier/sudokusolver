@@ -74,6 +74,7 @@ int main(int argc, char **argv) {
         openLogFile(outputFilename);
     }
 
+    initUnits();
     initGrid();
 
     if (!readSudoku()) {
@@ -471,8 +472,8 @@ int readSudoku() {
                 } else if ((c == ' ') || (c == '.')) {
                     fields[y * 9 + x].initialValue = 0;
                 } else {
-                    //sprintf(buffer, "Fehler beim Einlesen des Sudokus: illegales Zeichen ('%c') in Zeile %d an Position %d.\n", c, x+1, linecount);
-                    //printlog(buffer);
+                    sprintf(buffer, "Fehler beim Einlesen des Sudokus: illegales Zeichen ('%c') in Zeile %d an Position %d.\n", c, x+1, linecount);
+                    printlog(buffer);
                     ok = 0; // oje, das war keine Ziffer!
                     break;
                 }

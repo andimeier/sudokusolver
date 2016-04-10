@@ -12,6 +12,7 @@
 extern "C" {
 #endif
 
+    void initUnits();
     void initGrid();
     int isFinished();
     int forbidNumber(int y, int x, int n);

@@ -25,11 +25,19 @@ extern "C" {
         unsigned value;
     };
     
+    typedef struct Unit {
+        char *name; // the name of the unit used for log output in singular 
+          // form, e.g. 'row'
+        unsigned instances; // number of units. Will normally be 9, but can
+          // also be something else, e.g. 2 for "diagonal"
+        Field *field; // the fields in this unit, in "order of appearance"
+    };
+    
     extern Field fields[81]; // the fields of the game board
     // units are: rows, cols, boxes. Within one unit, the numbers 1...9 must
     // appear. For a standard Sudoku, there are 3 units (rows, cols, boxes).
     // More exotic Sudokus may use more unit, e.g. color units.
-    extern Field **units;
+    extern Unit *units;
     
     extern char buffer[1000]; // general buffer for string operations
 

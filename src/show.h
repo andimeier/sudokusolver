@@ -14,6 +14,7 @@ extern "C" {
 
 void show(int showInit);
 void printSvg(int finalVersion);
+char *position(Field field);
 
 #ifdef	__cplusplus
 }

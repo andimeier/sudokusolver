@@ -31,6 +31,14 @@ Field fields[81]; // the fields of the game board
 int errors; // number of errors in the algorithm
 int verboseLogging; // 0 ... no verbose logging, 1 ... log changes, 2 ... log even considerations
 
+/**
+ * init the units
+ */
+void initUnits() {
+    
+}
+
+
 void initGrid() {
     int x, y;
     Field field;

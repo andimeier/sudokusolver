@@ -7,6 +7,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
+#include <alloc.h>
 #include "global.h"
 #include "show.h"
 #include "util.h"
@@ -22,121 +23,121 @@ char *svgFilename; // filename of SVG file
 //   print original (init) grid and current grid
 
 void show(int showInit) {
-  // display sudoku
-  int x, y;
-  int index;
+    // display sudoku
+    int x, y;
+    int index;
 
-  for (y = 0; y < 9; y++) {
+    for (y = 0; y < 9; y++) {
 
-    if (!(y % 3)) {
-      // intermediate header row
-      printlog(showInit ? "+-----+-----+-----+      +-----+-----+-----+" : "+-----+-----+-----+");
+        if (!(y % 3)) {
+            // intermediate header row
+            printlog(showInit ? "+-----+-----+-----+      +-----+-----+-----+" : "+-----+-----+-----+");
 
-    }
-    // normal data row
-    index = 0;
-    if (showInit) {
+        }
+        // normal data row
+        index = 0;
+        if (showInit) {
 
-      // show starting grid's data row
-      for (x = 0; x < 9; x++) {
-        if (x % 3)
-          buffer[index++] = ' ';
-        else
-          buffer[index++] = '|';
-        if (initfields[y][x])
-          buffer[index++] = (char) (initfields[y][x] + 48);
-        else
-          // leeres Feld
-          buffer[index++] = ' ';
-      }
-      buffer[index++] = '|';
-      buffer[index++] = '\0';
+            // show starting grid's data row
+            for (x = 0; x < 9; x++) {
+                if (x % 3)
+                    buffer[index++] = ' ';
+                else
+                    buffer[index++] = '|';
+                if (initfields[y][x])
+                    buffer[index++] = (char) (initfields[y][x] + 48);
+                else
+                    // leeres Feld
+                    buffer[index++] = ' ';
+            }
+            buffer[index++] = '|';
+            buffer[index++] = '\0';
 
-      strcat(buffer, (y == 4) ? "  ->  " : "      ");
-      index = strlen(buffer);
-    }
+            strcat(buffer, (y == 4) ? "  ->  " : "      ");
+            index = strlen(buffer);
+        }
 
-    // show current grid's data row
-    for (x = 0; x < 9; x++) {
-      if (x % 3)
-        buffer[index++] = ' ';
-      else
+        // show current grid's data row
+        for (x = 0; x < 9; x++) {
+            if (x % 3)
+                buffer[index++] = ' ';
+            else
+                buffer[index++] = '|';
+            if (fields[y][x])
+                buffer[index++] = (char) (fields[y][x] + 48);
+            else
+                // leeres Feld
+                buffer[index++] = ' ';
+        }
         buffer[index++] = '|';
-      if (fields[y][x])
-        buffer[index++] = (char) (fields[y][x] + 48);
-      else
-        // leeres Feld
-        buffer[index++] = ' ';
+        buffer[index++] = '\0';
+        printlog(buffer);
     }
-    buffer[index++] = '|';
-    buffer[index++] = '\0';
-    printlog(buffer);
-  }
 
-  // intermediate header row
-  printlog(showInit ? "+-----+-----+-----+      +-----+-----+-----+" : "+-----+-----+-----+");
+    // intermediate header row
+    printlog(showInit ? "+-----+-----+-----+      +-----+-----+-----+" : "+-----+-----+-----+");
 
 
 
 
-  //		if (showInit) {
-  //			// first show original grid
-  //			if (!(y % 3)) {
-  //				strcpy(buffer, "+-----+-----+-----+      ");
-  //				index = strlen(buffer);
-  //			}
-  //
-  //			for (x = 0; x < 9; x++) {
-  //				if (x % 3)
-  //					buffer[index++] = ' ';
-  //				else
-  //					buffer[index++] = '|';
-  //				if (initfields[y][x])
-  //					buffer[index++] = (char)(initfields[y][x] + 48);
-  //				else
-  //					// leeres Feld
-  //					buffer[index++] = ' ';
-  //			}
-  //			buffer[index++] = '|';
-  //			
-  //			if (y == 4) {
-  //				buffer[index++] = ' ';
-  //				buffer[index++] = ' ';
-  //				buffer[index++] = '-';
-  //				buffer[index++] = '>';
-  //				buffer[index++] = ' ';
-  //				buffer[index++] = ' ';
-  //			} else {
-  //				buffer[index++] = ' ';
-  //				buffer[index++] = ' ';
-  //				buffer[index++] = ' ';
-  //				buffer[index++] = ' ';
-  //				buffer[index++] = ' ';
-  //				buffer[index++] = ' ';
-  //			}
-  //		} else {
-  //		}
-  //		
-  //		if (!(y % 3)) {
-  //			printlog("+-----+-----+-----+");
-  //		}
-  //		
-  //		for (x = 0; x < 9; x++) {
-  //			if (x % 3)
-  //				buffer[index++] = ' ';
-  //			else
-  //				buffer[index++] = '|';
-  //			if (fields[y][x])
-  //				buffer[index++] = (char)(fields[y][x] + 48);
-  //			else
-  //				// leeres Feld
-  //				buffer[index++] = ' ';
-  //		}
-  //		buffer[index++] = '|';
-  //		buffer[index++] = '\0';
-  //		printlog(buffer);
-  //	}
-  //	printlog("+-----+-----+-----+");
+    //		if (showInit) {
+    //			// first show original grid
+    //			if (!(y % 3)) {
+    //				strcpy(buffer, "+-----+-----+-----+      ");
+    //				index = strlen(buffer);
+    //			}
+    //
+    //			for (x = 0; x < 9; x++) {
+    //				if (x % 3)
+    //					buffer[index++] = ' ';
+    //				else
+    //					buffer[index++] = '|';
+    //				if (initfields[y][x])
+    //					buffer[index++] = (char)(initfields[y][x] + 48);
+    //				else
+    //					// leeres Feld
+    //					buffer[index++] = ' ';
+    //			}
+    //			buffer[index++] = '|';
+    //			
+    //			if (y == 4) {
+    //				buffer[index++] = ' ';
+    //				buffer[index++] = ' ';
+    //				buffer[index++] = '-';
+    //				buffer[index++] = '>';
+    //				buffer[index++] = ' ';
+    //				buffer[index++] = ' ';
+    //			} else {
+    //				buffer[index++] = ' ';
+    //				buffer[index++] = ' ';
+    //				buffer[index++] = ' ';
+    //				buffer[index++] = ' ';
+    //				buffer[index++] = ' ';
+    //				buffer[index++] = ' ';
+    //			}
+    //		} else {
+    //		}
+    //		
+    //		if (!(y % 3)) {
+    //			printlog("+-----+-----+-----+");
+    //		}
+    //		
+    //		for (x = 0; x < 9; x++) {
+    //			if (x % 3)
+    //				buffer[index++] = ' ';
+    //			else
+    //				buffer[index++] = '|';
+    //			if (fields[y][x])
+    //				buffer[index++] = (char)(fields[y][x] + 48);
+    //			else
+    //				// leeres Feld
+    //				buffer[index++] = ' ';
+    //		}
+    //		buffer[index++] = '|';
+    //		buffer[index++] = '\0';
+    //		printlog(buffer);
+    //	}
+    //	printlog("+-----+-----+-----+");
 }
 
 
@@ -154,85 +155,101 @@ void show(int showInit) {
 // intermediate version
 
 void printSvg(int finalVersion) {
-  // display sudoku in SVG format
-  int x, y;
-  FILE *svgfile;
-  char *filename;
-  char suffix[20];
-  static int index = 1;
+    // display sudoku in SVG format
+    int x, y;
+    FILE *svgfile;
+    char *filename;
+    char suffix[20];
+    static int index = 1;
 
-  if (!svgFilename) return;
+    if (!svgFilename) return;
 
-  // build filename
-  if (finalVersion) {
-    filename = svgFilename;
-  } else {
-    sprintf(suffix, ".%d", index);
-    filename = (char *) malloc(sizeof (char)*(strlen(svgFilename) + strlen(suffix) + 1));
-    if (filename == NULL) {
-      perror("Not enough memory to allocate memory for SVG filename.");
-      exit(EXIT_FAILURE);
-    }
-    strcpy(filename, svgFilename);
-    strcat(filename, suffix);
-  }
-
-  if (verboseLogging) {
-    sprintf(buffer, "Writing SVG file [%s]", filename);
-    printlog(buffer);
-  }
-
-  svgfile = fopen(filename, "w");
-
-  fputs("<?xml version='1.0'?>"
-          "<?xml-stylesheet href='sudoku_style.css' type='text/css'?>"
-          "<!DOCTYPE svg PUBLIC '-//W3C//DTD SVG 1.1//EN'"
-          "  'http://www.w3.org/Graphics/SVG/1.1/DTD/svg11.dtd'>"
-          ""
-          "<svg version='1.1' xmlns='http://www.w3.org/2000/svg'>"
-          ""
-          "  <g transform='scale(8)'>"
-          "	  <rect class='outer' x='0' y='0' width='81' height='81' />"
-          ""
-          "	  <line class='thin'  x1='0' y1='9' x2='81' y2='9' />"
-          "	  <line class='thin'  x1='0' y1='18' x2='81' y2='18' />"
-          "	  <line class='thick' x1='0' y1='27' x2='81' y2='27' />"
-          "	  <line class='thin'  x1='0' y1='36' x2='81' y2='36' />"
-          "	  <line class='thin'  x1='0' y1='45' x2='81' y2='45' />"
-          "	  <line class='thick' x1='0' y1='54' x2='81' y2='54' />"
-          "	  <line class='thin'  x1='0' y1='63' x2='81' y2='63' />"
-          "	  <line class='thin'  x1='0' y1='72' x2='81' y2='72' />"
-          ""
-          "	  <line class='thin'  x1='09' y1='0' x2='09' y2='81' />"
-          "	  <line class='thin'  x1='18' y1='0' x2='18' y2='81' />"
-          "	  <line class='thick' x1='27' y1='0' x2='27' y2='81' />"
-          "	  <line class='thin'  x1='36' y1='0' x2='36' y2='81' />"
-          "	  <line class='thin'  x1='45' y1='0' x2='45' y2='81' />"
-          "	  <line class='thick' x1='54' y1='0' x2='54' y2='81' />"
-          "	  <line class='thin'  x1='63' y1='0' x2='63' y2='81' />"
-          "	  <line class='thin'  x1='72' y1='0' x2='72' y2='81' />", svgfile);
-
-  for (y = 0; y < 9; y++) {
-    for (x = 0; x < 9; x++) {
-      if (fields[y][x]) {
-        float xPos = x * 9 + 4.5;
-        float yPos = y * 9 + 7.65;
-        fprintf(svgfile, "<text class=\"final\" x=\"%f\"  y=\"%f\" text-anchor=\"middle\">%d</text>\n", xPos, yPos, fields[y][x]);
-      } else {
-        // alle noch moeglichen Zahlen ausgeben
-        int n1;
-        for (n1 = 1; n1 <= 9; n1++) {
-          if (possibilities[y][x][n1 - 1] == (char) (n1 + 48)) {
-            float xPos = x * 9 + ((n1 - 1) % 3) * 3 + 1;
-            float yPos = y * 9 + ((int) ((n1 - 1) / 3) * 3 + 2.4);
-            fprintf(svgfile, "<text class=\"possibilities\" x=\"%f\"  y=\"%f\" text-anchor=\"middle\">%d</text>\n", xPos, yPos, n1);
-          }
+    // build filename
+    if (finalVersion) {
+        filename = svgFilename;
+    } else {
+        sprintf(suffix, ".%d", index);
+        filename = (char *) malloc(sizeof (char)*(strlen(svgFilename) + strlen(suffix) + 1));
+        if (filename == NULL) {
+            perror("Not enough memory to allocate memory for SVG filename.");
+            exit(EXIT_FAILURE);
         }
-      }
+        strcpy(filename, svgFilename);
+        strcat(filename, suffix);
     }
-  }
-  fputs("  </g>\n</svg>", svgfile);
 
-  fclose(svgfile);
-  if (filename != svgFilename) free(filename);
+    if (verboseLogging) {
+        sprintf(buffer, "Writing SVG file [%s]", filename);
+        printlog(buffer);
+    }
+
+    svgfile = fopen(filename, "w");
+
+    fputs("<?xml version='1.0'?>"
+            "<?xml-stylesheet href='sudoku_style.css' type='text/css'?>"
+            "<!DOCTYPE svg PUBLIC '-//W3C//DTD SVG 1.1//EN'"
+            "  'http://www.w3.org/Graphics/SVG/1.1/DTD/svg11.dtd'>"
+            ""
+            "<svg version='1.1' xmlns='http://www.w3.org/2000/svg'>"
+            ""
+            "  <g transform='scale(8)'>"
+            "	  <rect class='outer' x='0' y='0' width='81' height='81' />"
+            ""
+            "	  <line class='thin'  x1='0' y1='9' x2='81' y2='9' />"
+            "	  <line class='thin'  x1='0' y1='18' x2='81' y2='18' />"
+            "	  <line class='thick' x1='0' y1='27' x2='81' y2='27' />"
+            "	  <line class='thin'  x1='0' y1='36' x2='81' y2='36' />"
+            "	  <line class='thin'  x1='0' y1='45' x2='81' y2='45' />"
+            "	  <line class='thick' x1='0' y1='54' x2='81' y2='54' />"
+            "	  <line class='thin'  x1='0' y1='63' x2='81' y2='63' />"
+            "	  <line class='thin'  x1='0' y1='72' x2='81' y2='72' />"
+            ""
+            "	  <line class='thin'  x1='09' y1='0' x2='09' y2='81' />"
+            "	  <line class='thin'  x1='18' y1='0' x2='18' y2='81' />"
+            "	  <line class='thick' x1='27' y1='0' x2='27' y2='81' />"
+            "	  <line class='thin'  x1='36' y1='0' x2='36' y2='81' />"
+            "	  <line class='thin'  x1='45' y1='0' x2='45' y2='81' />"
+            "	  <line class='thick' x1='54' y1='0' x2='54' y2='81' />"
+            "	  <line class='thin'  x1='63' y1='0' x2='63' y2='81' />"
+            "	  <line class='thin'  x1='72' y1='0' x2='72' y2='81' />", svgfile);
+
+    for (y = 0; y < 9; y++) {
+        for (x = 0; x < 9; x++) {
+            if (fields[y][x]) {
+                float xPos = x * 9 + 4.5;
+                float yPos = y * 9 + 7.65;
+                fprintf(svgfile, "<text class=\"final\" x=\"%f\"  y=\"%f\" text-anchor=\"middle\">%d</text>\n", xPos, yPos, fields[y][x]);
+            } else {
+                // alle noch moeglichen Zahlen ausgeben
+                int n1;
+                for (n1 = 1; n1 <= 9; n1++) {
+                    if (possibilities[y][x][n1 - 1] == (char) (n1 + 48)) {
+                        float xPos = x * 9 + ((n1 - 1) % 3) * 3 + 1;
+                        float yPos = y * 9 + ((int) ((n1 - 1) / 3) * 3 + 2.4);
+                        fprintf(svgfile, "<text class=\"possibilities\" x=\"%f\"  y=\"%f\" text-anchor=\"middle\">%d</text>\n", xPos, yPos, n1);
+                    }
+                }
+            }
+        }
+    }
+    fputs("  </g>\n</svg>", svgfile);
+
+    fclose(svgfile);
+    if (filename != svgFilename) free(filename);
+}
+
+/**
+ * print position of field as e.g. "B1" for 2nd row, 1st column
+ * @param field
+ * @return {char *} the string representing the position of the field in the 
+ *   grid, e.g. "B1" (null-terminated C string)
+ */
+char *position(Field field) {
+    char *position;
+
+    position = (char*) malloc(sizeof (char)*3);
+    position[0] = (char) (field.unitPosition[ROWS] + 65);
+    position[1] = (char) (field.unitPosition[COLS] + 48);
+    position[2] = '\0';
+    return position;
 }
