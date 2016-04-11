@@ -12,10 +12,12 @@
 extern "C" {
 #endif
 
+    void initFields();
     void initUnits();
     void initGrid();
     void freeUnits();
     void freeGrid();
+    void freeFields();
     int isFinished();
     int forbidNumber(int y, int x, int n);
 

@@ -27,7 +27,7 @@ extern "C" {
           // form, e.g. 'row'
         unsigned instances; // number of units. Will normally be 9, but can
           // also be something else, e.g. 2 for "diagonal"
-        struct Field **fields; // the fields in this unit, in "order of 
+        Field ***fields; // the fields in this unit, in "order of 
           // appearance". The two dimensions are [UnitDefs.count][9], 9 standing
           // for 9 possible numbers. So, normally this will be a [9][9] array,
           // but could also be e.g. a [2][9] array (unit "diagonal" having only

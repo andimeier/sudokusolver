@@ -20,18 +20,25 @@ extern "C" {
 #define COLS 1
 #define BOXES 2
 
-    extern Field fields[81]; // the fields of the game board
+    // the fields of the game board
+    extern Field *fields; 
+    
     // units are: rows, cols, boxes. Within one unit, the numbers 1...9 must
     // appear. For a standard Sudoku, there are 3 units (rows, cols, boxes).
     // More exotic Sudokus may use more unit, e.g. color units.
     extern struct UnitDefs unitDefs;
 
-    extern char buffer[1000]; // general buffer for string operations
+    // general buffer for string operations
+    extern char buffer[1000]; 
 
-    extern int errors; // number of errors in the algorithm
-    extern int verboseLogging; // 0 ... no verbose logging, 1 ... log changes, 2 ... log even considerations
+    // number of errors in the algorithm
+    extern int errors; 
+    
+    // 0 ... no verbose logging, 1 ... log changes, 2 ... log even considerations
+    extern int verboseLogging; 
 
-    extern char *svgFilename; // filename of SVG file
+    // filename of SVG file
+    extern char *svgFilename; 
 
 
 

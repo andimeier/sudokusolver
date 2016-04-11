@@ -74,6 +74,7 @@ int main(int argc, char **argv) {
         openLogFile(outputFilename);
     }
 
+    initFields();
     initUnits();
     initGrid();
 
