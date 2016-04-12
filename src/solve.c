@@ -15,9 +15,7 @@
 #include "typedefs.h"
 #include "util.h"
 
-static int getUniquePositionInRow(int n, int y);
-static int getUniquePositionInColumn(int n, int x);
-static int getUniquePositionInBox(int n, int q);
+static int getUniquePositionInContainer(Field **container, unsigned n);
 
 static int isolateColumnTwins(int x, int y3, int y2);
 static int isolateRowTwins(int y, int x1, int x2);
@@ -60,12 +58,12 @@ void initUnits() {
     // first unit: row
     unit = &(unitDefs.units[ROWS]);
     unit->name = strdup("row");
-    unit->instances = 9;
-    unit->fields = (Field ***) malloc(sizeof (Field **) * unit->instances);
+    unit->containers = 9;
+    unit->fields = (Field ***) malloc(sizeof (Field **) * unit->containers);
     if (unit->fields == NULL) {
         exit(EXIT_FAILURE);
     }
-    for (int i = 0; i < unit->instances; i++) {
+    for (int i = 0; i < unit->containers; i++) {
         unit->fields[i] = (Field **) malloc(sizeof (Field *) * 9);
         if (unit->fields[i] == NULL) {
             exit(EXIT_FAILURE);
@@ -75,12 +73,12 @@ void initUnits() {
     // second unit: column
     unit = &(unitDefs.units[COLS]);
     unit->name = strdup("column");
-    unit->instances = 9;
-    unit->fields = (Field ***) malloc(sizeof (Field **) * unit->instances);
+    unit->containers = 9;
+    unit->fields = (Field ***) malloc(sizeof (Field **) * unit->containers);
     if (unit->fields == NULL) {
         exit(EXIT_FAILURE);
     }
-    for (int i = 0; i < unit->instances; i++) {
+    for (int i = 0; i < unit->containers; i++) {
         unit->fields[i] = (Field **) malloc(sizeof (Field *) * 9);
         if (unit->fields[i] == NULL) {
             exit(EXIT_FAILURE);
@@ -90,12 +88,12 @@ void initUnits() {
     // third unit: box
     unit = &(unitDefs.units[BOXES]);
     unit->name = strdup("box");
-    unit->instances = 9;
-    unit->fields = (Field ***) malloc(sizeof (Field **) * unit->instances);
+    unit->containers = 9;
+    unit->fields = (Field ***) malloc(sizeof (Field **) * unit->containers);
     if (unit->fields == NULL) {
         exit(EXIT_FAILURE);
     }
-    for (int i = 0; i < unit->instances; i++) {
+    for (int i = 0; i < unit->containers; i++) {
         unit->fields[i] = (Field **) malloc(sizeof (Field *) * 9);
         if (unit->fields[i] == NULL) {
             exit(EXIT_FAILURE);
@@ -110,7 +108,7 @@ void freeUnits() {
 
     for (int i = 0; i < unitDefs.count; i++) {
         free(unitDefs.units[i].name);
-        for (int n = 0; n < unitDefs.units[i].instances; n++) {
+        for (int n = 0; n < unitDefs.units[i].containers; n++) {
             free(unitDefs.units[i].fields[n]);
         }
         free(unitDefs.units[i].fields);
@@ -118,14 +116,12 @@ void freeUnits() {
     free(unitDefs.units);
 }
 
-
 /**
  * free fields memory
  */
 void freeFields() {
     free(fields);
 }
-
 
 void initGrid() {
     int f, x, y;
@@ -254,7 +250,7 @@ int setUniqueNumber(int f) {
     if (fields[f].value) {
         if (verboseLogging == 2) {
             // TODO sprintf(buffer, "FEHLER! HUCH! Obwohl schon ausgefuellt, wird das aufgerufen! (%d/%d) soll gesetzt werden, ist aber bereits %d!\n", f, fields[f].value);
-            printlog(buffer);
+            // TODO printlog(buffer);
             sprintf(buffer, "Fehler vor inc: %d\n", errors); //?DEBUG
             printlog(buffer);
         }
@@ -269,8 +265,8 @@ int setUniqueNumber(int f) {
     for (n = 1; n <= 9; n++)
         if (candidates[n - 1]) {
             if (verboseLogging == 2) {
-                sprintf(buffer, "Aha, nur mehr eine Moeglichkeit in Feld (%d/%d) (possibilities: %s): %d\n", y + 1, x + 1, possibilities[y][x], n);
-                printlog(buffer);
+                // TODO sprintf(buffer, "Aha, nur mehr eine Moeglichkeit in Feld (%d/%d) (possibilities: %s): %d\n", y + 1, x + 1, possibilities[y][x], n);
+                // TODO printlog(buffer);
             }
             fields[f].value = n;
             break;
@@ -281,29 +277,28 @@ int setUniqueNumber(int f) {
 
 //-------------------------------------------------------------------
 // Checkt die Anzahl der moeglichen Vorkommnisse einer Zahl in der
-// Reihe y.
+// Unit u.
 // Liefert:
 //   x ... x-Position des Feldes, in dem die Zahl n als einziges Feld
 //         der ganzen Reihe vorkommen koennte oder
 //   -1 ... Zahl koennte in der Zeile an mehreren Positionen vorkommen
 
-int getUniquePositionInRow(int n, int y) {
-    int x;
+int getUniquePositionInContainer(Field **container, unsigned n) {
+    int i;
     int unique;
-    int xPosition;
+    int pos;
     Field *field;
 
-    assert(y >= 0 && y < 9);
     assert(n >= 1 && n <= 9);
 
     unique = 0;
-    xPosition = 0;
-    for (x = 0; x < 9; x++) {
-        field = fields[y][x];
-        if ((field->value == n) || (!(fields->value) && (field->candidates[n - 1] == n))) {
+    pos = 0;
+    for (i = 0; i < 9; i++) {
+        field = container[i];
+        if ((field->value == n) || (!(field->value) && (field->candidates[n - 1] == n))) {
             if (!unique) {
                 unique = 1; // erstes gefundenes Vorkommen in der Reihe
-                xPosition = x; // Position merken, falls sie eindeutig ist
+                pos = i; // Position merken, falls sie eindeutig ist
             } else {
                 // oje, das waere schon das 2. Vorkommen der Zahl in dieser Reihe
                 return -1; // war wohl nix
@@ -311,108 +306,11 @@ int getUniquePositionInRow(int n, int y) {
         }
     }
     if (unique)
-        return xPosition;
+        return pos;
 
     return -1;
 }
 
-//-------------------------------------------------------------------
-// Checkt die Anzahl der moeglichen Vorkommnisse einer Zahl in der
-// Spalte x.
-// Liefert:
-//   y ... y-Position des Feldes, in dem die Zahl n als einziges Feld
-//         der ganzen Spalte vorkommen koennte oder
-//   -1 ... Zahl koennte in der Spalte an mehreren Positionen vorkommen
-
-int getUniquePositionInColumn(int n, int x) {
-    int y;
-    int unique;
-    int yPosition;
-
-    assert(x >= 0 && x < 9);
-    assert(n >= 1 && n <= 9);
-
-    if (verboseLogging == 2) {
-        sprintf(buffer, "Suche nach Moeglichkeiten fuer %d in Spalte %d\n", n, x + 1);
-        printlog(buffer);
-    }
-    unique = 0;
-    yPosition = 0;
-    for (y = 0; y < 9; y++) {
-        if ((fields[y][x] == n) || (!fields[y][x] && (possibilities[y][x][n - 1] == (char) (n + 48)))) {
-            if (verboseLogging == 2) {
-                sprintf(buffer, "  %d kann in Zeile %d (%d/%d) vorkommen [%s].\n", n, y + 1, y + 1, x + 1, possibilities[y][x]);
-                printlog(buffer);
-            }
-            if (!unique) {
-                unique = 1; // erstes gefundenes Vorkommen in der Spalte
-                yPosition = y; // Position merken, falls sie eindeutig ist
-            } else {
-                // oje, das waere schon das 2. Vorkommen der Zahl in dieser Spalte
-                return -1; // war wohl nix
-            }
-        }
-    }
-    if (unique)
-        return yPosition;
-    else {
-        if (verboseLogging) {
-            sprintf(buffer, "3: Nanu, Zahl %d kann nie vorkommen in der Spalte %d??\n", n, x);
-            printlog(buffer);
-        }
-    }
-    return -1;
-}
-
-//-------------------------------------------------------------------
-// Checkt die Anzahl der moeglichen Vorkommnisse einer Zahl im 
-// Quadrant q.
-// Liefert:
-//   position ... Position des Feldes, in dem die Zahl n als einziges Feld
-//         des ganzen Quadranten vorkommen koennte oder [0..8]
-//   -1 ... Zahl koennte im Quadranten an mehreren Positionen vorkommen
-
-int getUniquePositionInBox(int n, int q) {
-    int x, y;
-    int unique;
-    int position;
-    int i;
-
-    assert(q >= 0 && q < 9);
-    assert(n >= 1 && n <= 9);
-
-    if (verboseLogging == 2) {
-        sprintf(buffer, "Suche nach Moeglichkeiten fuer %d in Quadrant %d\n", n, q + 1);
-        printlog(buffer);
-    }
-    unique = 0;
-    position = 0;
-    for (i = 0; i < 9; i++) {
-        getQuadrantField(q, i, &x, &y);
-        if ((fields[y][x] == n) || (!fields[y][x] && (possibilities[y][x][n - 1] == (char) (n + 48)))) {
-            if (verboseLogging == 2) {
-                sprintf(buffer, "  %d kann in Quadrant %d (%d/%d) vorkommen [%s].\n", n, q + 1, y + 1, x + 1, possibilities[y][x]);
-                printlog(buffer);
-            }
-            if (!unique) {
-                unique = 1; // erstes gefundenes Vorkommen im Quadranten
-                position = i; // Position merken, falls sie eindeutig ist
-            } else {
-                // oje, das waere schon das 2. Vorkommen der Zahl in diesem Quadranten
-                return -1; // war wohl nix
-            }
-        }
-    }
-    if (unique)
-        return position;
-    else {
-        if (verboseLogging) {
-            sprintf(buffer, "3: Nanu, Zahl %d kann nie vorkommen im Quadranten %d??\n", n, x);
-            printlog(buffer);
-        }
-    }
-    return -1;
-}
 
 //-------------------------------------------------------------------
 // "Isoliert" Zwillinge in einer Spalte: die beiden Zahlenpaare, die
@@ -648,84 +546,39 @@ int checkForSolvedCells() {
 }
 
 int findHiddenSingles() {
-    int x, y;
-    int n;
-    int q;
+    Unit *unit;
     int progress; // flag: something has changed
 
     progress = 0;
 
-    // suche in allen Zeilen nach Zahlen, die nur an einer Position
-    // moeglich sind (auch wenn in dieser Zelle mehrere Zahlen moeglich
-    // waeren, aber die anderen Moeglichkeiten kann man dann verwerfen)
-    if (verboseLogging == 2) {
-        sprintf(buffer, "??? Searching for: unique places in rows ... \n");
-        printlog(buffer);
-    }
-    for (y = 0; y < 9; y++) {
-        for (n = 1; n <= 9; n++) {
-            x = getUniquePositionInRow(n, y);
-            if (x != -1 && !fields[y][x]) {
-                // Zahl n kann nur an der Position x vorkommen in der Zeile y
-                if (verboseLogging) {
-                    sprintf(buffer, "!!! Neue Erkenntnis 2a: In Zeile %d kann %d nur an Position %d vorkommen => (%d/%d) = %d!\n", y + 1, n, x + 1, y + 1, x + 1, n);
-                    printlog(buffer);
-                }
-                fields[y][x] = n;
-                progress = 1; // Flag "neue Erkenntnis" setzen
-            }
-        }
-    }
+    // search in all unit types (rows, cols, boxes, ...) for numbers which can 
+    // only occur on one position within the unit (even if there would be
+    // several candidates for this cell, but the other candidates can be
+    // discarded in this case)
 
-    // suche in allen Spalten nach Zahlen, die nur an einer Position
-    // moeglich sind (auch wenn in dieser Zelle mehrere Zahlen moeglich
-    // waeren, aber die anderen Moeglichkeiten kann man dann verwerfen)
-    if (verboseLogging == 2) {
-        sprintf(buffer, "??? Searching for: unique places in cols ... \n");
-        printlog(buffer);
-    }
-    for (x = 0; x < 9; x++) {
-        for (n = 1; n <= 9; n++) {
-            y = getUniquePositionInColumn(n, x);
-            if (y != -1 && !fields[y][x]) {
-                // Zahl n kann nur an der Position y vorkommen in der Spalte x
-                if (verboseLogging) {
-                    sprintf(buffer, "!!! Neue Erkenntnis 2b: In Spalte %d kann %d nur an Position %d vorkommen => (%d/%d) = %d!\n", x + 1, n, y + 1, y + 1, x + 1, n);
-                    printlog(buffer);
-                }
-                fields[y][x] = n;
-                progress = 1; // Flag "neue Erkenntnis" setzen
-            }
-        }
-    }
-
-    // suche in allen Quadranten nach Zahlen, die nur an einer Position
-    // moeglich sind (auch wenn in diesem Quadrant mehrere Zahlen moeglich
-    // waeren, aber die anderen Moeglichkeiten kann man dann verwerfen)
-    {
-        int position;
-
+    for (int i = 0; i < unitDefs.count; i++) {
+        unit = unitDefs[i];
         if (verboseLogging == 2) {
-            sprintf(buffer, "??? Searching for: unique places in quadrants ... \n");
+            sprintf(buffer, "??? Searching for: hidden singles in units of type %s ... \n", unit->name);
             printlog(buffer);
         }
-        for (q = 0; q < 9; q++) {
-            for (n = 1; n <= 9; n++) {
-                position = getUniquePositionInBox(n, q);
-                if (position != -1) {
-                    getQuadrantField(q, position, &x, &y);
-                    if (!fields[y][x]) {
-                        // Zahl n kann nur an der Position y vorkommen in der Spalte x
-                        if (verboseLogging) {
-                            sprintf(buffer, "!!! Neue Erkenntnis 2c: In Quadrant %d kann %d nur an Position %d vorkommen => (%d/%d) = %d!\n", q + 1, n, position + 1, y + 1, x + 1, n);
-                            printlog(buffer);
-                        }
-                        fields[y][x] = n;
-                        progress = 1; // Flag "neue Erkenntnis" setzen
+
+        for (int container = 0; container < unit->containers; container++) {
+            for (unsigned n = 1; n <= 9; n++) {
+                Fields **container = unit->fields[container];
+                int pos = getUniquePositionInContainer(container, n);
+                if (pos != -1 && !container[pos]->value) {
+                    // number can only occur in the position pos in this container
+                    if (verboseLogging) {
+                        // TODO sprintf(buffer, "!!! Neue Erkenntnis 2a: In Zeile %d kann %d nur an Position %d vorkommen => (%d/%d) = %d!\n", y + 1, n, x + 1, y + 1, x + 1, n);
+                        // TODO printlog(buffer);
                     }
+                    container[pos]->value = n;
+                    progress = 1; // Flag "neue Erkenntnis" setzen
                 }
             }
         }
+
     }
 
     return progress;
