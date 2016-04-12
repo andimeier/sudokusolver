@@ -8,6 +8,8 @@
 #ifndef SOLVE_H
 #define	SOLVE_H
 
+#include "typedefs.h"
+
 #ifdef	__cplusplus
 extern "C" {
 #endif
@@ -19,13 +21,12 @@ extern "C" {
     void freeGrid();
     void freeFields();
     int isFinished();
-    int forbidNumber(int y, int x, int n);
+    int forbidNumber(Field *field, unsigned n);
 
     // strategies
     int checkForSolvedCells();
     int findHiddenSingles();
-    int findNakedPairs(); // not implemented yet
-    int findNakedTriples(); // not implemented yet
+    int findNakedTuples(size_t dimension);
     int findHiddenPairsAndTriples(); // not implemented yet
     int findNakedQuads(); // not implemented yet
     int findHiddenQuads(); // not implemented yet

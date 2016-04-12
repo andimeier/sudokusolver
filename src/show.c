@@ -7,7 +7,6 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
-#include <memory.h>
 #include "global.h"
 #include "show.h"
 #include "util.h"
@@ -26,6 +25,7 @@ void show(int showInit) {
     // display sudoku
     int x, y;
     int index;
+    Field *field;
 
     for (y = 0; y < 9; y++) {
 
@@ -44,8 +44,11 @@ void show(int showInit) {
                     buffer[index++] = ' ';
                 else
                     buffer[index++] = '|';
-                if (initfields[y][x])
-                    buffer[index++] = (char) (initfields[y][x] + 48);
+
+                field = unitDefs.units[ROWS].fields[y][x];
+
+                if (field->initialValue)
+                    buffer[index++] = (char) (field->initialValue + 48);
                 else
                     // leeres Feld
                     buffer[index++] = ' ';
@@ -63,8 +66,11 @@ void show(int showInit) {
                 buffer[index++] = ' ';
             else
                 buffer[index++] = '|';
-            if (fields[y][x])
-                buffer[index++] = (char) (fields[y][x] + 48);
+
+            field = unitDefs.units[ROWS].fields[y][x];
+
+            if (field->value)
+                buffer[index++] = (char) (field->value + 48);
             else
                 // leeres Feld
                 buffer[index++] = ' ';
@@ -161,6 +167,8 @@ void printSvg(int finalVersion) {
     char *filename;
     char suffix[20];
     static int index = 1;
+    Field ***rows;
+    Field *field;
 
     if (!svgFilename) return;
 
@@ -217,17 +225,19 @@ void printSvg(int finalVersion) {
             "	  <line class='thin'  x1='63' y1='0' x2='63' y2='81' />"
             "	  <line class='thin'  x1='72' y1='0' x2='72' y2='81' />", svgfile);
 
+    rows = unitDefs.units[ROWS].fields;
     for (y = 0; y < 9; y++) {
         for (x = 0; x < 9; x++) {
-            if (fields[y][x]) {
+            field = rows[y][x];
+            if (field->value) {
                 float xPos = x * 9 + 4.5;
                 float yPos = y * 9 + 7.65;
-                fprintf(svgfile, "<text class=\"final\" x=\"%f\"  y=\"%f\" text-anchor=\"middle\">%d</text>\n", xPos, yPos, fields[y][x]);
+                fprintf(svgfile, "<text class=\"final\" x=\"%f\"  y=\"%f\" text-anchor=\"middle\">%d</text>\n", xPos, yPos, field->value);
             } else {
                 // alle noch moeglichen Zahlen ausgeben
                 int n1;
                 for (n1 = 1; n1 <= 9; n1++) {
-                    if (possibilities[y][x][n1 - 1] == (char) (n1 + 48)) {
+                    if (field->candidates[n1 - 1] == n1) {
                         float xPos = x * 9 + ((n1 - 1) % 3) * 3 + 1;
                         float yPos = y * 9 + ((int) ((n1 - 1) / 3) * 3 + 2.4);
                         fprintf(svgfile, "<text class=\"possibilities\" x=\"%f\"  y=\"%f\" text-anchor=\"middle\">%d</text>\n", xPos, yPos, n1);
@@ -249,15 +259,15 @@ void printSvg(int finalVersion) {
  * @return {char *} the string representing the position of the field in the 
  *   grid, e.g. "B1" (null-terminated C string)
  */
-char *position(Field field) {
+char *position(Field *field) {
     char *position;
 
     position = (char*) malloc(sizeof (char)*3);
     if (position == NULL) {
         exit(EXIT_FAILURE);
     }
-    position[0] = (char) (field.unitPosition[ROWS] + 65);
-    position[1] = (char) (field.unitPosition[COLS] + 48);
+    position[0] = (char) (field->unitPositions[ROWS] + 65);
+    position[1] = (char) (field->unitPositions[COLS] + 48);
     position[2] = '\0';
     return position;
 }

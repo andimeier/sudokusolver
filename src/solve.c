@@ -1,4 +1,4 @@
-/* 
+/*
  * File:   solve.c
  * Author: aurez
  *
@@ -8,21 +8,19 @@
 #include <string.h>
 #include <stdlib.h>
 #include <assert.h>
-#include <memory.h>
 #include "solve.h"
 #include "show.h"
 #include "global.h"
 #include "typedefs.h"
 #include "util.h"
 
+// search for pairs, triples and quadruples, not more
+#define MAX_TUPLE_DIMENSION 4
+
 static int getUniquePositionInContainer(Field **container, unsigned n);
 
-static int isolateColumnTwins(int x, int y3, int y2);
-static int isolateRowTwins(int y, int x1, int x2);
-static int isolateBoxTuples(int q, int y1, int x1, int y2, int x2);
-
 // auxiliary functions
-static int setUniqueNumber(int f);
+static int setUniqueNumber(Field *field);
 
 UnitDefs unitDefs;
 Field *fields; // the fields of the game board
@@ -242,12 +240,10 @@ int isFinished() {
 // Return-Wert:
 //   die fixierte Zahl
 
-int setUniqueNumber(int f) {
+int setUniqueNumber(Field *field) {
     int n;
 
-    assert(f >= 0 && f < 81);
-
-    if (fields[f].value) {
+    if (field->value) {
         if (verboseLogging == 2) {
             // TODO sprintf(buffer, "FEHLER! HUCH! Obwohl schon ausgefuellt, wird das aufgerufen! (%d/%d) soll gesetzt werden, ist aber bereits %d!\n", f, fields[f].value);
             // TODO printlog(buffer);
@@ -261,14 +257,14 @@ int setUniqueNumber(int f) {
         }
     }
 
-    unsigned *candidates = fields[f].candidates;
+    unsigned *candidates = field->candidates;
     for (n = 1; n <= 9; n++)
         if (candidates[n - 1]) {
             if (verboseLogging == 2) {
                 // TODO sprintf(buffer, "Aha, nur mehr eine Moeglichkeit in Feld (%d/%d) (possibilities: %s): %d\n", y + 1, x + 1, possibilities[y][x], n);
                 // TODO printlog(buffer);
             }
-            fields[f].value = n;
+            field->value = n;
             break;
         }
 
@@ -311,105 +307,16 @@ int getUniquePositionInContainer(Field **container, unsigned n) {
     return -1;
 }
 
+/**
+ * @return 1 if the field is in the field list, 0 if it is not
+ */
+int containsField(Field **list, Field * field) {
+    for (int i = 0; list[i] != NULL; i++) {
+        if (field == list[i])
+            return 1;
 
-//-------------------------------------------------------------------
-// "Isoliert" Zwillinge in einer Spalte: die beiden Zahlenpaare, die
-// in diesen beiden Zellen moeglich sind, koennen im Rest der Spalte 
-// nicht mehr vorkommen
-// Return-Wert:
-//   1 ... mind. 1 Nummer in der restlichen Spalte oder dem restlichen
-//         Quadranten wurde verboten, wir "sind weitergekommen"
-//   0 ... Isolieren der Zwillinge hat keine Aenderung im Sudoku bewirkt
-
-int isolateColumnTwins(int x, int y1, int y2) {
-    int n;
-    int progress;
-    int row;
-    int c;
-
-    assert(x >= 0 && x < 9);
-    assert(y1 >= 0 && y1 < 9);
-    assert(y2 >= 0 && y2 < 9);
-
-    progress = 0; // noch hat sich nichts veraendert
-    if (verboseLogging == 2) {
-        sprintf(buffer, "Isoliere Zwillinge (%d/%d) und (%d/%d): %s/%s\n", y1 + 1, x + 1, y2 + 1, x + 1, possibilities[y1][x], possibilities[y2][x]);
-        printlog(buffer);
     }
-
-    // die 2 Zahlen herausfinden
-    for (c = 0; c < 9; c++) {
-        n = (int) possibilities[y1][x][c] - 48;
-        if (n) {
-            // diese Zahl n ueberall sonst verbieten im Quadranten und in der Spalte
-
-            // in der restlichen Spalte verbieten
-            if (verboseLogging == 2) {
-                sprintf(buffer, "Gehe Spalte %d durch und verbiete %d ...\n", x, n);
-                printlog(buffer);
-            }
-            for (row = 0; row < 9; row++) {
-                if ((row != y1) && (row != y2) && !fields[row][x] && forbidNumber(row, x, n)) {
-                    if (verboseLogging == 2) {
-                        sprintf(buffer, " (Nummer %d in der gleichen Spalte %d wie Zwilling (%d/%d) und (%d/%d) verboten)\n", n, x + 1, y1 + 1, x + 1, y2 + 1, x + 1);
-                        printlog(buffer);
-                    }
-                    progress = 1;
-                }
-            }
-        }
-    }
-    return progress;
-}
-
-//-------------------------------------------------------------------
-// "Isoliert" Zwillinge in einer Zeile: die beiden Zahlenpaare, die
-// in diesen beiden Zellen moeglich sein, koennen im Rest der Zeile 
-// nicht mehr vorkommen
-// Return-Wert:
-//   1 ... mind. 1 Nummer in der restlichen Zeile oder dem restlichen
-//         Quadranten wurde verboten, wir "sind weitergekommen"
-//   0 ... Isolieren der Zwillinge hat keine Aenderung im Sudoku bewirkt
-
-int isolateRowTwins(int y, int x1, int x2) {
-    int n;
-    int progress;
-    int col;
-    int c;
-
-    assert(y >= 0 && y < 9);
-    assert(x1 >= 0 && x1 < 9);
-    assert(x2 >= 0 && x2 < 9);
-
-    progress = 0; // noch hat sich nichts veraendert
-    if (verboseLogging == 2) {
-        sprintf(buffer, "Isoliere Zwillinge (%d/%d) und (%d/%d): %s/%s\n", y + 1, x1 + 1, y + 1, x1 + 1, possibilities[y][x1], possibilities[y][x2]);
-        printlog(buffer);
-    }
-
-    // die 2 Zahlen herausfinden
-    for (c = 0; c < 9; c++) {
-        n = (int) possibilities[y][x1][c] - 48;
-        if (n) {
-            // diese Zahl n ueberall sonst verbieten im Quadranten und in der Zeile
-
-            // in der restlichen Zeile verbieten
-            if (verboseLogging == 2) {
-                sprintf(buffer, "Gehe Zeile %d durch und verbiete %d ...\n", y, n);
-                printlog(buffer);
-            }
-            for (col = 0; col < 9; col++) {
-                if ((col != x1) && (col != x2) && !fields[y][col] && forbidNumber(y, col, n)) {
-                    if (verboseLogging == 2) {
-                        sprintf(buffer, " (Nummer %d in der gleichen Zeile %d wie Zwilling (%d/%d) und (%d/%d) verboten)\n", n, y + 1, y + 1, x1 + 1, y + 1, x2 + 1);
-                        printlog(buffer);
-                    }
-                    progress = 1;
-                }
-            }
-        }
-    }
-    return progress;
+    return 0;
 }
 
 //-------------------------------------------------------------------
@@ -421,51 +328,41 @@ int isolateRowTwins(int y, int x1, int x2) {
 //         Quadranten wurde verboten, wir "sind weitergekommen"
 //   0 ... Isolieren der Zwillinge hat keine Aenderung im Sudoku bewirkt
 // TODO im Moment gehen nur Zwillinge, trotz des Funktionsnamens!
+//
+// @param dontTouch ... NULL terminated list of Field pointers. These fields
+//   will not be touched. In all other fields in the container, the given 
+//   numbers will be removed as candidates
 
-int isolateBoxTuples(int q, int y1, int x1, int y2, int x2) {
-    int n;
+int forbidNumbersInOtherFields(Field **container, unsigned *n, Field **dontTouch) {
     int progress;
-    int qx, qy;
-    int col, row;
-    int c;
+    Field *field;
 
-    assert(q >= 0 && q < 9);
-    assert(x1 >= 0 && x1 < 9);
-    assert(x2 >= 0 && x2 < 9);
-    assert(y1 >= 0 && y1 < 9);
-    assert(y2 >= 0 && y2 < 9);
-
-    progress = 0; // noch hat sich nichts veraendert
+    progress = 0; // nothing has changed yet
     if (verboseLogging == 2) {
-        sprintf(buffer, "Isoliere Tupel (%d/%d) und (%d/%d): %s/%s\n", y1 + 1, x1 + 1, y2 + 1, x1 + 1, possibilities[y1][x1], possibilities[y2][x2]);
-        printlog(buffer);
+        // TODO sprintf(buffer, "Isoliere Tupel (%d/%d) und (%d/%d): %s/%s\n", y1 + 1, x1 + 1, y2 + 1, x1 + 1, possibilities[y1][x1], possibilities[y2][x2]);
+        // TODO printlog(buffer);
     }
 
-    // die 2 Zahlen herausfinden
-    for (c = 0; c < 9; c++) {
-        n = (int) possibilities[y1][x1][c] - 48;
-        if (n) {
-            // diese Zahl n ueberall sonst verbieten im restlichen Quadranten
+    // walk through entire container
+    for (int pos = 0; pos < 9; pos++) {
+        field = container[pos];
 
-            // im restlichen Quadranten verbieten
-            if (verboseLogging == 2) {
-                sprintf(buffer, "Gehe Quadrant %d durch und verbiete %d ...\n", q + 1, n);
-                printlog(buffer);
-            }
-            getQuadrantStart(q, &qx, &qy);
-            for (row = qy; row < qy + 3; row++) {
-                for (col = qx; col < qx + 3; col++) {
-                    if (!(row == y1 && col == x1) && !(row == y2 && col == x2) && !fields[row][col] && forbidNumber(row, col, n)) {
-                        if (verboseLogging == 2) {
-                            sprintf(buffer, "!! Neue Moeglichkeiten-Erkenntnis 7c:  (Nummer %d im gleichen Quadranten %d wie Zwilling (%d/%d) und (%d/%d) verboten)\n", n, q + 1, y1 + 1, x1 + 1, y2 + 1, x2 + 1);
-                            printlog(buffer);
-                        }
+        // don't touch the 'dontTouch' fields
+        if (!containsField(dontTouch, field)) {
+            // forbid the tuple numbers
+            for (int i = 0; i < 9; i++) {
+                if (n[i]) {
+                    // was a candidate until now => remove candidate now
+                    if (field->candidates[i - 1]) {
+                        field->candidates[i - 1] = 0;
+                        field->candidatesLeft--;
                         progress = 1;
                     }
                 }
             }
         }
     }
+
     return progress;
 }
 
@@ -475,24 +372,24 @@ int isolateBoxTuples(int q, int y1, int x1, int y2, int x2) {
 //   1 ... Nummer wurde verboten
 //   0 ... keine Aenderung, Nummer war bereits verboten
 
-int forbidNumber(Field field, unsigned n) {
+int forbidNumber(Field *field, unsigned n) {
 
     assert(n >= 1 && n <= 9);
 
-    if (field.candidates[n - 1]) {
+    if (field->candidates[n - 1]) {
         if (verboseLogging == 2) {
             // TODO sprintf(buffer, "Vorher: (%d/%d) possibilities=%s\n", y + 1, x + 1, possibilities[y][x]);
             printlog(buffer);
         }
-        field.candidates[n - 1] = 0;
+        field->candidates[n - 1] = 0;
         if (verboseLogging == 2) {
             // TODO sprintf(buffer, "Nachher: (%d/%d) possibilities=%s)\n", y + 1, x + 1, possibilities[y][x]);
             printlog(buffer);
         }
-        field.candidatesLeft--;
-        if (field.candidatesLeft == 1) {
+        field->candidatesLeft--;
+        if (field->candidatesLeft == 1) {
             // nur noch eine einzige Zahl ist moeglich => ausfuellen!
-            setUniqueNumber(f);
+            setUniqueNumber(field);
         }
         return 1;
     }
@@ -505,48 +402,49 @@ int forbidNumber(Field field, unsigned n) {
 
 int checkForSolvedCells() {
     int f;
-    int i;
-    Field *unit;
-    Field field;
+    Field **container;
+    Field *field;
     int value;
     int progress; // Flag: in einer Iteration wurde zumindest eine Erkenntnis gewonnen
 
     progress = 0;
 
     for (f = 0; f < 81; f++) {
-        value = fields[f].value;
+        field = &(fields[f]);
+        value = field->value;
         if (value) {
             // field contains a number => this number must not appear in
             // any other "neighboring" fields (fields within the same unit)
 
             // forbid number in other cells of the same unit
-            for (i = 0; i < 3; i++) {
-                unit = units[i];
 
-                // go through all positions (numbers) of the unit and forbid
-                // this number in all other fields
-                for (int pos = 0; pos < 9; pos++) {
-                    field = unit[pos];
+            for (int u = 0; u < unitDefs.count; u++) {
+                Unit *unit = &(unitDefs.units[u]);
+                container = unit->fields[field->unitPositions[u]];
 
-                    if (!field.value) {
-                        if (forbidNumber(field, value)) {
-                            if (verboseLogging == 2) {
-                                // TODO sprintf(buffer, "!! Neue Moeglichkeiten-Erkenntnis 1a: (Nummer %d verboten wegen %d in (%d/%d))\n", n, n, y + 1, x + 1);
-                                printlog(buffer);
-                            }
-                            progress = 1; // Flag "neue Erkenntnis" setzen
-                        }
-                    }
+                // go through all positions (numbers) of the container and 
+                // forbid this number in all other fields of the container
+                unsigned candidates[9];
+
+                // build tuple to search for
+                for (int i = 0; i < 9; i++) {
+                    candidates[i] = 0;
                 }
+                candidates[value - 1] = value;
+
+                Field * preserve[2];
+                preserve[0] = field;
+                preserve[1] = NULL;
+
+                progress |= forbidNumbersInOtherFields(container, candidates, preserve);
             }
         }
 
-        return progress;
     }
+    return progress;
 }
 
 int findHiddenSingles() {
-    Unit *unit;
     int progress; // flag: something has changed
 
     progress = 0;
@@ -556,16 +454,17 @@ int findHiddenSingles() {
     // several candidates for this cell, but the other candidates can be
     // discarded in this case)
 
-    for (int i = 0; i < unitDefs.count; i++) {
-        unit = unitDefs[i];
+    for (int u = 0; u < unitDefs.count; u++) {
+        Unit *unit = &(unitDefs.units[u]);
+
         if (verboseLogging == 2) {
             sprintf(buffer, "??? Searching for: hidden singles in units of type %s ... \n", unit->name);
             printlog(buffer);
         }
 
-        for (int container = 0; container < unit->containers; container++) {
+        for (int c = 0; c < unit->containers; c++) {
             for (unsigned n = 1; n <= 9; n++) {
-                Fields **container = unit->fields[container];
+                Field **container = unit->fields[c];
                 int pos = getUniquePositionInContainer(container, n);
                 if (pos != -1 && !container[pos]->value) {
                     // number can only occur in the position pos in this container
@@ -584,7 +483,99 @@ int findHiddenSingles() {
     return progress;
 }
 
-int findNakedPairs() {
+/**
+ * compare two lists of candidates and check if they are equal
+ */
+int compareCandidates(unsigned *c1, unsigned *c2) {
+    for (int n = 0; n < 9; n++) {
+        if (c1[n] != c2[n])
+            return 0;
+    }
+
+    // both are equal
+    return 1;
+}
+
+/**
+ * find naked tuples (pairs, triples, ...) in the same container
+ * @param dimension 2 for pairs, 3 for triples, etc.
+ * @return 
+ */
+int findNakedTuples(size_t dimension) {
+    Unit *unit;
+    int progress; // flag: something has changed
+    unsigned n1, n2;
+
+    // allow for pairs, triples and quadruples
+    assert(dimension <= MAX_TUPLE_DIMENSION);
+
+    progress = 0;
+
+    // search in all unit types (rows, cols, boxes, ...) for a tuple of numbers 
+    // which can only occur on n = size of tuple positions within the unit.
+    // So, even if there would be  several candidates for these cells, the 
+    // tuple numbers must be distributed among these n fields, so we can discard
+    // these tuple candidates in all other cells of the same container
+
+    for (int u = 0; u < unitDefs.count; u++) {
+        unit = &(unitDefs.units[u]);
+        if (verboseLogging == 2) {
+            sprintf(buffer, "??? Searching for: naked tuples of dimension %d in units of type %s ... \n", (int) dimension, unit->name);
+            printlog(buffer);
+        }
+
+        for (int c = 0; c < unit->containers; c++) {
+            for (unsigned n = 1; n <= 9; n++) {
+                Field **container = unit->fields[c];
+
+                // check for naked tuples in this container
+                for (n1 = 1; n1 < 9; n1++) {
+                    for (n2 = 1; n2 < 9; n2++) {
+                        unsigned tuple[9];
+
+                        // build tuple to search for
+                        for (int i = 0; i < 9; i++) {
+                            tuple[i] = 0;
+                        }
+                        tuple[n1 - 1] = n1;
+                        tuple[n2 - 1] = n2;
+
+
+
+                        // search for cells with exactly this tuple as
+                        // candidates
+                        Field * foundTupleFields[MAX_TUPLE_DIMENSION + 1];
+                        int countTupleFound = 0;
+                        for (int pos = 0; pos < 9; pos++) {
+                            unsigned *candidates = container[pos]->candidates;
+                            // check candidates if they match the tuple
+                            if (compareCandidates(candidates, tuple)) {
+                                foundTupleFields[countTupleFound++] = container[pos];
+                                if (countTupleFound == dimension)
+                                    // terminate list of field pointers
+                                    foundTupleFields[countTupleFound] = NULL;
+                                break;
+                            }
+                        }
+                        if (countTupleFound == dimension) {
+                            // we found "dimension" places in the container
+                            // containing the tuple => these numbers must be
+                            // distributed among these found fields => forbid
+                            // these numbers in all other fields of the container
+                            progress |= forbidNumbersInOtherFields(container, tuple, foundTupleFields);
+                        }
+                    }
+                }
+            }
+        }
+    }
+
+    return progress;
+
+}
+
+/*
+int findNakedPairsOBSOLETE() {
     int x, y, i, j;
     int q;
     int x1, x2, y1, y2, qx, qy;
@@ -702,7 +693,7 @@ int findNakedPairs() {
 
     return progress;
 }
-
+ */
 int findHiddenPairs() {
     int y;
     int cand;

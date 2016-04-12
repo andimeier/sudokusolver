@@ -156,13 +156,9 @@ void printUsage() {
 //   0 ... Algorithmus bleibt stecken, Endlositeration abgebrochen
 
 int solve() {
-    int x, y;
-    int n;
-    int q;
     int iteration;
     int progress; // Flag: in einer Iteration wurde zumindest eine Erkenntnis gewonnen
-    int qx, qy;
-
+  
     errors = 0; // noch keine Fehler aufgetreten
     iteration = 0;
 
@@ -218,7 +214,7 @@ int solve() {
         if (isFinished())
             return 1;
 
-        progress |= findNakedPairs();
+        progress |= findNakedTuples(2); // find naked pairs
 
 
         if (verboseLogging) {
@@ -233,6 +229,7 @@ int solve() {
         // des Quadranten) verboten werden.
         // Analog fuer Spalten.
 
+/*
         // gehe alle Quadranten durch
         int yFound;
         for (q = 0; q < 9; q++) {
@@ -419,7 +416,7 @@ int solve() {
 
         // nach der Iteration den Sudoku-Zwischenstand anzeigen
         if (verboseLogging) show(0);
-
+*/
     } while (progress);
 
     // wir kommen hierher, weil die letzte Iteration keine einzige Aenderung gebracht
