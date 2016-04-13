@@ -63,6 +63,7 @@ CCADMIN=CCadmin
 TARGET = sudoku-solver
 LIBS = -lm
 CC = gcc
+#yypCFLAGS = -g -Wall -std=c99
 CFLAGS = -g -Wall
 
 # directory containing the source files
