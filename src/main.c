@@ -466,6 +466,8 @@ int readSudoku(char *inputFilename) {
     int f;
     FILE *file;
 
+    printf("Reading Sudoku from file %s ...\n", inputFilename);
+
     // open file
     file = fopen(inputFilename, "r");
 
@@ -483,25 +485,31 @@ int readSudoku(char *inputFilename) {
     linecount = 0;
     y = 0;
     while (ok && !feof(file)) {
+
         if (!fgets(line, 200, file)) {
             break;
         }
         linecount++;
 
+        printf("Next line read: %s ...\n", line);
+
         if (line[0] != '#') {
+            printf("... is a data line and contains row %d ...\n", y);
+
             // alle Zeichen der Zeile durchgehen, das sollten nur Ziffern 
             // und Leerzeichen sein
-            if (y > 9) {
+            if (y > MAX_NUMBER) {
                 printlog("Fehler beim Einlesen des Sudokus: zu viele Datenzeilen.");
                 ok = 0; // oje, das war keine Ziffer!
                 break;
             }
-            for (x = 0; x < 9; x++) {
+            printf("Storing line %d ...\n", y);
+            for (x = 0; x < MAX_NUMBER; x++) {
                 c = line[x];
-                if ((c >= '0') && (c <= '9')) {
-                    fields[y * 9 + x].initialValue = (int) (c - '0');
+                if ((c >= '0') && (c <= (char) (MAX_NUMBER + (int) '0'))) {
+                    fields[y * MAX_NUMBER + x].initialValue = (int) (c - '0');
                 } else if ((c == ' ') || (c == '.')) {
-                    fields[y * 9 + x].initialValue = 0;
+                    fields[y * MAX_NUMBER + x].initialValue = 0;
                 } else {
                     sprintf(buffer, "Fehler beim Einlesen des Sudokus: illegales Zeichen ('%c') in Zeile %d an Position %d.\n", c, x + 1, linecount);
                     printlog(buffer);
@@ -514,8 +522,9 @@ int readSudoku(char *inputFilename) {
             // eine Kommentarzeile
         }
     }
+    printf("Sudoku read");
 
-    if (ok && y != 9) {
+    if (ok && y != MAX_NUMBER) {
         printlog("Fehler beim Einlesen des Sudokus: es muessen genau 9 Datenzeilen sein.");
         ok = 0;
     }
