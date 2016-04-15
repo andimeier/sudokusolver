@@ -250,7 +250,7 @@ int solve() {
         if (isFinished())
             return 1;
 
-        progress |= findNakedTuples(2); // find naked pairs
+        //progress |= findNakedTuples(2); // find naked pairs
 
 
         if (verboseLogging) {

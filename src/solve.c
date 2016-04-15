@@ -21,6 +21,8 @@ static int getUniquePositionInContainer(Field **container, unsigned n);
 
 // auxiliary functions
 static int setUniqueNumber(Field *field);
+static void showCandidates(Field *field);
+static void showAllCandidates();
 
 UnitDefs unitDefs;
 Field *fields; // the fields of the game board
@@ -147,7 +149,7 @@ void freeFields() {
 }
 
 void initGrid() {
-    int f, x, y;
+    int x, y;
     Field *field;
     Unit *unit;
 
@@ -155,61 +157,43 @@ void initGrid() {
 
     printf("-----init grid---------\n");
     for (int f = 0; f < NUMBER_OF_FIELDS; f++) // FIXME debugging code
-        printf("starting with ... Field #%d: candidate[0] is %d\n", f, (fields + f)->candidates[0]);
 
-    // Initialisierung:
-    // zunaechst sind ueberall alle Zahlen moeglich
-    for (f = 0; f < NUMBER_OF_FIELDS; f++) {
-        field = fields + f;
+        // Initialisierung:
+        // zunaechst sind ueberall alle Zahlen moeglich
+        for (f = 0; f < NUMBER_OF_FIELDS; f++) {
+            field = fields + f;
 
-        x = f % 9;
-        y = f / 9;
-        printf("Field #%d: row %d, col %d\n", f, y, x);
+            x = f % 9;
+            y = f / 9;
+            printf("Field #%d: row %d, col %d\n", f, y, x);
 
-        // FIXME debugging code
-        for (int f = 0; f < NUMBER_OF_FIELDS; f++) // FIXME debugging code
-            printf("XD starting with ... Field #%d: candidate[0] is %d\n", f, (fields + f)->candidates[0]);
-        printf("1st Field #%d: candidate[0] is %d\n", f, (fields + f)->candidates[0]); //FIXME debugging code
-        printf("2nd Field #%d: candidate[0] is %d\n", f, field->candidates[0]); //FIXME debugging code
+            for (int n = 0; n < MAX_NUMBER; n++) {
+                field->candidates[n] = n + 1;
+            }
 
-        for (int n = 0; n < MAX_NUMBER; n++) {
-            printf("Writing candidates for field #%d, candidate %d ...\n", f, n); // FIXME debugging code
-            field->candidates[n] = n + 1;
+            field->candidatesLeft = MAX_NUMBER;
+            field->value = 0;
+            field->initialValue = 0;
+
+            int *unitPositions = (int *) malloc(sizeof (int) * unitDefs.count);
+            if (unitPositions == NULL) {
+                exit(EXIT_FAILURE);
+            }
+
+            unitPositions[ROWS] = y;
+            unitDefs.units[ROWS].fields[y][x] = field;
+
+            unitPositions[COLS] = x;
+            unitDefs.units[COLS].fields[x][y] = field;
+
+            unitPositions[BOXES] = getQuadrantNr(x, y);
+            unitDefs.units[BOXES].fields[unitPositions[BOXES]][y] = field;
+            //            field = fields[y * 9 + x];
+
+            field->unitPositions = unitPositions;
         }
-
-        field->candidatesLeft = MAX_NUMBER;
-        field->value = 0;
-        field->initialValue = 0;
-
-        int *unitPositions = (int *) malloc(sizeof (int) * unitDefs.count);
-        if (unitPositions == NULL) {
-            exit(EXIT_FAILURE);
-        }
-
-        printf("unitPositions for field %d [ROWS] = %d\n", f, y); // FIXME debugging code
-        unitPositions[ROWS] = y;
-        unitDefs.units[ROWS].fields[y][x] = field;
-
-        unitPositions[COLS] = x;
-        unitDefs.units[COLS].fields[x][y] = field;
-
-        unitPositions[BOXES] = getQuadrantNr(x, y);
-        unitDefs.units[BOXES].fields[unitPositions[BOXES]][y] = field;
-        //            field = fields[y * 9 + x];
-
-        field->unitPositions = unitPositions;
-
-        printf("Field #%d, row: %d, col: %d\n", f, field->unitPositions[ROWS], field->unitPositions[COLS]);
-    }
 
     // fill units with pointers to the corresponding fields
-    printf("--------------\n");
-    for (int ix = 0; ix < 10; ix++) {
-        field = fields + ix;
-        printf("field #%d, row is %d\n", ix, field->unitPositions[ROWS]);
-    }
-    printf("--------------\n");
-
 
     // rows
     unit = &(unitDefs.units[ROWS]);
@@ -313,7 +297,7 @@ int setUniqueNumber(Field *field) {
     }
 
     unsigned *candidates = field->candidates;
-    for (n = 1; n <= 9; n++)
+    for (n = 1; n <= MAX_NUMBER; n++)
         if (candidates[n - 1]) {
             if (verboseLogging == 2) {
                 // TODO sprintf(buffer, "Aha, nur mehr eine Moeglichkeit in Feld (%d/%d) (possibilities: %s): %d\n", y + 1, x + 1, possibilities[y][x], n);
@@ -335,29 +319,39 @@ int setUniqueNumber(Field *field) {
 //   -1 ... Zahl koennte in der Zeile an mehreren Positionen vorkommen
 
 int getUniquePositionInContainer(Field **container, unsigned n) {
-    int i;
-    int unique;
     int pos;
+    int unique;
+    int foundPos;
     Field *field;
 
-    assert(n >= 1 && n <= 9);
+    assert(n >= 1 && n <= MAX_NUMBER);
+    printf("Looking for unique position of %u in container ...\n", n);
+
+    for (pos = 0; pos < MAX_NUMBER; pos++) { // FIXME debugging output
+        showCandidates(container[pos]);
+    }
 
     unique = 0;
-    pos = 0;
-    for (i = 0; i < 9; i++) {
-        field = container[i];
+    foundPos = 0;
+    for (pos = 0; pos < MAX_NUMBER; pos++) {
+        field = container[pos];
+        printf("[665] field %d/%d: candidate for %u is: %u\n", field->unitPositions[ROWS], field->unitPositions[COLS], n, field->candidates[n - 1]);
         if ((field->value == n) || (!(field->value) && (field->candidates[n - 1] == n))) {
+            printf("Field %d/%d can contain candidate %u\n", field->unitPositions[ROWS], field->unitPositions[COLS], n);
             if (!unique) {
+                printf("This is the FIRST occurrence in the container\n");
                 unique = 1; // erstes gefundenes Vorkommen in der Reihe
-                pos = i; // Position merken, falls sie eindeutig ist
+                foundPos = pos; // Position merken, falls sie eindeutig ist
             } else {
                 // oje, das waere schon das 2. Vorkommen der Zahl in dieser Reihe
                 return -1; // war wohl nix
             }
         }
     }
-    if (unique)
-        return pos;
+    if (unique) {
+        printf("Yeah, found only one occurrence of %u in the container\n", n);
+        return foundPos;
+    }
 
     return -1;
 }
@@ -384,6 +378,11 @@ int containsField(Field **list, Field * field) {
 //   0 ... Isolieren der Zwillinge hat keine Aenderung im Sudoku bewirkt
 // TODO im Moment gehen nur Zwillinge, trotz des Funktionsnamens!
 //
+// @param n ... tuple of candidates to be removed from "other fields". This
+//   is a vector of MAX_NUMBER numbers, each position stands for the respective
+//   candidate, e.g. an array of [ 0, 2, 0, 0, 5, 6, 0, 0, 0 ] means that
+//   the candidates 2, 5 and 6 shall be removed from all "other fields" (fields
+//   other than those in parameter dontTouch)
 // @param dontTouch ... NULL terminated list of Field pointers. These fields
 //   will not be touched. In all other fields in the container, the given 
 //   numbers will be removed as candidates
@@ -391,6 +390,8 @@ int containsField(Field **list, Field * field) {
 int forbidNumbersInOtherFields(Field **container, unsigned *n, Field **dontTouch) {
     int progress;
     Field *field;
+
+    printf("forbid number in container\n");
 
     progress = 0; // nothing has changed yet
     if (verboseLogging == 2) {
@@ -405,11 +406,11 @@ int forbidNumbersInOtherFields(Field **container, unsigned *n, Field **dontTouch
         // don't touch the 'dontTouch' fields
         if (!containsField(dontTouch, field)) {
             // forbid the tuple numbers
-            for (int i = 0; i < 9; i++) {
+            for (int i = 0; i < MAX_NUMBER; i++) {
                 if (n[i]) {
                     // was a candidate until now => remove candidate now
-                    if (field->candidates[i - 1]) {
-                        field->candidates[i - 1] = 0;
+                    if (field->candidates[i]) {
+                        field->candidates[i] = 0;
                         field->candidatesLeft--;
                         progress = 1;
                     }
@@ -464,6 +465,9 @@ int checkForSolvedCells() {
 
     progress = 0;
 
+    showAllCandidates();
+
+
     for (f = 0; f < NUMBER_OF_FIELDS; f++) { // FIXME debugging code
         field = fields + f;
         printf("Field #%d: candidate[0] is %d. value: %d\n", f, field->candidates[0], field->value);
@@ -512,8 +516,9 @@ int checkForSolvedCells() {
                 preserve[0] = field;
                 preserve[1] = NULL;
 
-                printf("Forbid other numbers than %d in field #%d\n", value, f);
+                printf("Forbid other numbers than %u in container %s, except field %d/%d\n", value, unit->name, field->unitPositions[ROWS], field->unitPositions[COLS]);
                 progress |= forbidNumbersInOtherFields(container, candidates, preserve);
+                showAllCandidates();
             }
         }
 
@@ -540,7 +545,7 @@ int findHiddenSingles() {
         }
 
         for (int c = 0; c < unit->containers; c++) {
-            for (unsigned n = 1; n <= 9; n++) {
+            for (unsigned n = 1; n <= MAX_NUMBER; n++) {
                 Field **container = unit->fields[c];
                 int pos = getUniquePositionInContainer(container, n);
                 if (pos != -1 && !container[pos]->value) {
@@ -550,6 +555,11 @@ int findHiddenSingles() {
                         // TODO printlog(buffer);
                     }
                     container[pos]->value = n;
+
+                    Field *field = container[pos];
+                    sprintf(buffer, "*** [hidden single] hidden single in unit %s, field %d/%d: %u ... \n", unit->name, field->unitPositions[ROWS], field->unitPositions[COLS], n);
+                    printlog(buffer);
+
                     progress = 1; // Flag "neue Erkenntnis" setzen
                 }
             }
@@ -789,4 +799,31 @@ int findHiddenPairs() {
     }
 
     return progress;
+}
+
+void showCandidates(Field *field) {
+    char candidates[MAX_NUMBER + 1];
+
+    for (int i = 0; i < MAX_NUMBER; i++) {
+        candidates[i] = (char) (field->candidates[i] + '0');
+    }
+    candidates[MAX_NUMBER] = '\0';
+
+    printf("candidates for field %d/%d are: %s\n", field->unitPositions[ROWS], field->unitPositions[COLS], candidates);
+}
+
+void showAllCandidates() {
+    char candidates[MAX_NUMBER + 1];
+    Field *field;
+
+    for (int f = 0; f < NUMBER_OF_FIELDS; f++) {
+        field = fields + f;
+
+        for (int i = 0; i < MAX_NUMBER; i++) {
+            candidates[i] = (char) (field->candidates[i] + '0');
+        }
+        candidates[MAX_NUMBER] = '\0';
+
+        printf("candidates for field %d/%d are: %s\n", field->unitPositions[ROWS], field->unitPositions[COLS], candidates);
+    }
 }
