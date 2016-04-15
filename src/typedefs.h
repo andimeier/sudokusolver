@@ -16,7 +16,7 @@ extern "C" {
         int *unitPositions; // position in the several units. In any unit, a 
           // position of -1 means that this number is not part of any instance
           // of this unit (this can be the case in the unit "diagonal"))
-        unsigned candidates[9];
+        unsigned *candidates;
         unsigned initialValue;
         unsigned candidatesLeft;
         unsigned value;

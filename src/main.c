@@ -98,6 +98,10 @@ int main(int argc, char **argv) {
     initUnits();
     initGrid();
 
+        for (int f = 0; f < NUMBER_OF_FIELDS; f++) {
+        printf("[1234-1] field #%d: in row %d, col %d, box %d\n", f, fields[f].unitPositions[ROWS], fields[f].unitPositions[COLS], fields[f].unitPositions[BOXES]);
+    }
+
     if (inputFilename && !readSudoku(inputFilename)) {
         return 1; // Oje ... stopp!
     }
@@ -105,6 +109,10 @@ int main(int argc, char **argv) {
     if (verboseLogging) {
         printlog("Initial Sudoku:");
         show(0);
+    }
+
+        for (int f = 0; f < NUMBER_OF_FIELDS; f++) {
+        printf("[1234-2] field #%d: in row %d, col %d, box %d\n", f, fields[f].unitPositions[ROWS], fields[f].unitPositions[COLS], fields[f].unitPositions[BOXES]);
     }
 
     result = solve();
@@ -182,10 +190,14 @@ int solve() {
     int iteration;
     int progress; // Flag: in einer Iteration wurde zumindest eine Erkenntnis gewonnen
 
-    errors = 0; // noch keine Fehler aufgetreten
     iteration = 0;
+    errors = 0; // noch keine Fehler aufgetreten
 
+    printf("[4sf]\n");
+    
     printSvg(0);
+
+    printf("[4s65f]\n");
 
     do {
         iteration++;
@@ -212,7 +224,8 @@ int solve() {
 
         // alle Felder durchgehen und vorkommende Zahlen in der selben
         // Reihe, in der selben Spalte und im selben Quadranten verbieten
-        if (verboseLogging == 2) printlog("??? Searching for: unique numbers ... \n");
+        if (verboseLogging == 2) 
+            printlog("??? Searching for: unique numbers ... \n");
 
         progress |= checkForSolvedCells();
 
@@ -498,9 +511,9 @@ int readSudoku(char *inputFilename) {
 
             // alle Zeichen der Zeile durchgehen, das sollten nur Ziffern 
             // und Leerzeichen sein
-            if (y == MAX_NUMBER) {
-                printlog("Fehler beim Einlesen des Sudokus: zu viele Datenzeilen.");
-                ok = 0; // oje, das war keine Ziffer!
+            if (y >= MAX_NUMBER) {
+                printlog("Error reading the Sudoku from file: too many data rows.");
+                ok = 0; // oops
                 break;
             }
             printf("Storing line %d ...\n", y);
@@ -508,12 +521,12 @@ int readSudoku(char *inputFilename) {
                 c = line[x];
                 if ((c >= '0') && (c <= (char) (MAX_NUMBER + (int) '0'))) {
                     fields[y * MAX_NUMBER + x].initialValue = (int) (c - '0');
-                } else if ((c == ' ') || (c == '.')) {
+                } else if ((c == ' ') || (c == '.') || (c == '_')) {
                     fields[y * MAX_NUMBER + x].initialValue = 0;
                 } else {
-                    sprintf(buffer, "Fehler beim Einlesen des Sudokus: illegales Zeichen ('%c') in Zeile %d an Position %d.\n", c, x + 1, linecount);
+                    sprintf(buffer, "Error reading the Sudoku from file: illegal character ('%c') in line %d at position %d.\n", c, x + 1, linecount);
                     printlog(buffer);
-                    ok = 0; // oje, das war keine Ziffer!
+                    ok = 0; // oops, this was no number
                     break;
                 }
             }
@@ -524,16 +537,21 @@ int readSudoku(char *inputFilename) {
     }
     printf("Sudoku read\n");
 
+    fclose(file);
+
     if (ok && y != MAX_NUMBER) {
-        printlog("Fehler beim Einlesen des Sudokus: es muessen genau 9 Datenzeilen sein.");
+        printlog("Error reading the Sudoku from file: too few data rows.");
         ok = 0;
     }
+
+    printf("Copy original grid ...\n");
 
     // copy original grid
     for (f = 0; f < NUMBER_OF_FIELDS; f++) {
         fields[f].value = fields[f].initialValue;
     }
 
-    fclose(file);
+    printf("Initial values filled.\n");
+
     return ok;
 }

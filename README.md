@@ -40,7 +40,7 @@ Usage
   
 ### Format of Sudoku input file
 
-1. Empty cells are represented by a dot '.'.
+1. Empty cells are represented by a dot '.' or '0' or '\_'.
 2. Each Sudoku row is written in a separate line
 3. lines starting with a hashbang '#' are considered comments and are silently skippde
 

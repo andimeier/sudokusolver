@@ -38,6 +38,16 @@ void initFields() {
         exit(EXIT_FAILURE);
     }
 
+    // alloc candidates
+    for (int f = 0; f < NUMBER_OF_FIELDS; f++) {
+        unsigned *candidates = (unsigned *) malloc(sizeof (unsigned) * MAX_NUMBER);
+        if (candidates == NULL) {
+            exit(EXIT_FAILURE);
+        }
+        fields[f].candidates = candidates;
+    }
+
+
     // FIXME debugging code
     for (int f = 0; f < NUMBER_OF_FIELDS; f++) // FIXME debugging code
         fields[f].candidates[0] = 3;
@@ -128,6 +138,11 @@ void freeUnits() {
  * free fields memory
  */
 void freeFields() {
+
+    for (int f = 0; f < NUMBER_OF_FIELDS; f++) {
+        free(fields[f].candidates);
+    }
+
     free(fields);
 }
 
@@ -159,7 +174,7 @@ void initGrid() {
 
         for (int n = 0; n < MAX_NUMBER; n++) {
             printf("Writing candidates for field #%d, candidate %d ...\n", f, n); // FIXME debugging code
-            field->candidates[n] = n;
+            field->candidates[n] = n + 1;
         }
 
         field->candidatesLeft = MAX_NUMBER;
@@ -236,6 +251,10 @@ void initGrid() {
         }
     }
     printf("[5fgx] done initialising grid.\n");
+
+    for (int f = 0; f < NUMBER_OF_FIELDS; f++) {
+        printf("[1234] field #%d: in row %d, col %d, box %d\n", f, fields[f].unitPositions[ROWS], fields[f].unitPositions[COLS], fields[f].unitPositions[BOXES]);
+    }
 }
 
 /**
@@ -445,18 +464,38 @@ int checkForSolvedCells() {
 
     progress = 0;
 
+    for (f = 0; f < NUMBER_OF_FIELDS; f++) { // FIXME debugging code
+        field = fields + f;
+        printf("Field #%d: candidate[0] is %d. value: %d\n", f, field->candidates[0], field->value);
+    }
+
+    for (int f = 0; f < NUMBER_OF_FIELDS; f++) {
+        printf("[1234-4] field #%d: in row %d, col %d, box %d\n", f, fields[f].unitPositions[ROWS], fields[f].unitPositions[COLS], fields[f].unitPositions[BOXES]);
+    }
+
+
     for (f = 0; f < NUMBER_OF_FIELDS; f++) {
-        field = &(fields[f]);
+        field = fields + f;
         value = field->value;
+
+        printf("field #%d has value %d\n", f, value); // FIXME debugging code
+        fflush(stdout); // FIXME debugging code
+
         if (value) {
             // field contains a number => this number must not appear in
             // any other "neighboring" fields (fields within the same unit)
 
             // forbid number in other cells of the same unit
 
+            printf("[4hhs]\n");
             for (int u = 0; u < unitDefs.count; u++) {
+                printf("[6hshhs]\n");
                 Unit *unit = &(unitDefs.units[u]);
+                printf("[6hshhs++]\n");
+                printf("field #%d has positions ROWS %d - COLS %d - BOXES %d \n", f, field->unitPositions[0], field->unitPositions[1], field->unitPositions[2]);
                 container = unit->fields[field->unitPositions[u]];
+
+                printf("[47hhs]\n");
 
                 // go through all positions (numbers) of the container and 
                 // forbid this number in all other fields of the container
@@ -466,12 +505,14 @@ int checkForSolvedCells() {
                 for (int i = 0; i < 9; i++) {
                     candidates[i] = 0;
                 }
+                printf("[4nx7hhs]\n");
                 candidates[value - 1] = value;
 
                 Field * preserve[2];
                 preserve[0] = field;
                 preserve[1] = NULL;
 
+                printf("Forbid other numbers than %d in field #%d\n", value, f);
                 progress |= forbidNumbersInOtherFields(container, candidates, preserve);
             }
         }
