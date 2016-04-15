@@ -498,7 +498,7 @@ int readSudoku(char *inputFilename) {
 
             // alle Zeichen der Zeile durchgehen, das sollten nur Ziffern 
             // und Leerzeichen sein
-            if (y > MAX_NUMBER) {
+            if (y == MAX_NUMBER) {
                 printlog("Fehler beim Einlesen des Sudokus: zu viele Datenzeilen.");
                 ok = 0; // oje, das war keine Ziffer!
                 break;
@@ -522,7 +522,7 @@ int readSudoku(char *inputFilename) {
             // eine Kommentarzeile
         }
     }
-    printf("Sudoku read");
+    printf("Sudoku read\n");
 
     if (ok && y != MAX_NUMBER) {
         printlog("Fehler beim Einlesen des Sudokus: es muessen genau 9 Datenzeilen sein.");
