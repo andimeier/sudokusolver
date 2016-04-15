@@ -22,7 +22,7 @@ static int getUniquePositionInContainer(Field **container, unsigned n);
 // auxiliary functions
 static int setUniqueNumber(Field *field);
 static void showCandidates(Field *field);
-static void showAllCandidates();
+void showAllCandidates();
 
 UnitDefs unitDefs;
 Field *fields; // the fields of the game board
@@ -391,6 +391,7 @@ int forbidNumbersInOtherFields(Field **container, unsigned *n, Field **dontTouch
     Field *field;
 
     printf("forbid number in container\n");
+    showAllCandidates();
 
     progress = 0; // nothing has changed yet
     if (verboseLogging == 2) {
@@ -408,7 +409,8 @@ int forbidNumbersInOtherFields(Field **container, unsigned *n, Field **dontTouch
             for (int i = 0; i < MAX_NUMBER; i++) {
                 if (n[i]) {
                     // was a candidate until now => remove candidate now
-                    if (field->candidates[i]) {
+                    if (!field->value && field->candidates[i]) {
+                        printf("--- forbid %u in field %d/%d\n", i + 1, field->unitPositions[ROWS], field->unitPositions[COLS]);
                         field->candidates[i] = 0;
                         field->candidatesLeft--;
                         progress = 1;
@@ -417,6 +419,8 @@ int forbidNumbersInOtherFields(Field **container, unsigned *n, Field **dontTouch
             }
         }
     }
+    
+    showAllCandidates();
 
     return progress;
 }
@@ -595,6 +599,8 @@ int findNakedTuples(size_t dimension) {
     // allow for pairs, triples and quadruples
     assert(dimension <= MAX_TUPLE_DIMENSION);
 
+    printf("--- yeah: ...\n");
+
     progress = 0;
 
     // search in all unit types (rows, cols, boxes, ...) for a tuple of numbers 
@@ -610,13 +616,18 @@ int findNakedTuples(size_t dimension) {
             printlog(buffer);
         }
 
+        printf("container \"%s\" has %zu instances\n", unit->name, unit->containers);
         for (int c = 0; c < unit->containers; c++) {
             Field **container = unit->fields[c];
 
+            printf("iterating into instance %d of container \"%s\"\n", c, unit->name);
+
             // check for naked tuples in this container
-            for (n1 = 1; n1 < MAX_NUMBER; n1++) {
-                for (n2 = 1; n2 < MAX_NUMBER; n2++) {
+            for (n1 = 1; n1 <= MAX_NUMBER; n1++) {
+                for (n2 = 1; n2 <= MAX_NUMBER; n2++) {
                     unsigned tuple[MAX_NUMBER];
+
+                    printf("??? [kdb] Searching for: naked tuples of dimension %d (%u, %u) in units of type %s, #%d ... \n", (int) dimension, n1, n2, unit->name, c);
 
                     // build tuple to search for
                     for (int i = 0; i < MAX_NUMBER; i++) {
@@ -626,6 +637,7 @@ int findNakedTuples(size_t dimension) {
                     tuple[n2 - 1] = n2;
 
 
+                    printf("tuple: (%u, %u)\n", tuple[2], tuple[7]);
 
                     // search for cells with exactly this tuple as
                     // candidates
@@ -634,13 +646,27 @@ int findNakedTuples(size_t dimension) {
                     for (int pos = 0; pos < MAX_NUMBER; pos++) {
                         unsigned *candidates = container[pos]->candidates;
                         // check candidates if they match the tuple
+                        if (tuple[2] == 3 && tuple[7] == 8 && u == 2 && c == 0) {
+                            printf("[jhh1] {pass %d of %d} checking position %d of box 0 ... \n", pos, MAX_NUMBER, pos);
+                            showCandidates(container[pos]);
+                        }
+                        if (tuple[3] == 4 && tuple[6] == 7 && u == 2 && c == 5) {
+                            printf("[jhh2] {pass %d of %d} checking position %d of box 0 ... \n", pos, MAX_NUMBER, pos);
+                            showCandidates(container[pos]);
+                        }
                         if (compareCandidates(candidates, tuple)) {
+                            printf("YEAH found!\n");
                             foundTupleFields[countTupleFound++] = container[pos];
-                            if (countTupleFound == dimension)
+                            if (countTupleFound == dimension) {
                                 // terminate list of field pointers
                                 foundTupleFields[countTupleFound] = NULL;
-                            break;
+                                break;
+                            }
+                        } else {
+                            printf("oooh not found!\n");
                         }
+
+
                     }
                     if (countTupleFound == dimension) {
                         // we found "dimension" places in the container
@@ -816,6 +842,11 @@ void showAllCandidates() {
     for (int f = 0; f < NUMBER_OF_FIELDS; f++) {
         field = fields + f;
 
+        if (field->value) {
+            printf("candidates for field %d/%d ... value %u\n", field->unitPositions[ROWS], field->unitPositions[COLS], field->value);
+            continue;
+        }
+        
         for (int i = 0; i < MAX_NUMBER; i++) {
             candidates[i] = (char) (field->candidates[i] + '0');
         }

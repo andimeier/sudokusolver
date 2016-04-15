@@ -455,6 +455,8 @@ int solve() {
          */
     } while (progress);
 
+    showAllCandidates();
+    
     // wir kommen hierher, weil die letzte Iteration keine einzige Aenderung gebracht
     // hat => wir bleiben stecken mit unserem Algorithmus. Ohne Aenderung in der
     // Implementierung ist dieses Sudoku nicht loesbar
