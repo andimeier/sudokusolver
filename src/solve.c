@@ -33,10 +33,20 @@ int verboseLogging; // 0 ... no verbose logging, 1 ... log changes, 2 ... log ev
  * init the units
  */
 void initFields() {
-    fields = (Field *) malloc(sizeof (Field) * 81);
+    fields = (Field *) malloc(sizeof (Field) * NUMBER_OF_FIELDS);
     if (fields == NULL) {
         exit(EXIT_FAILURE);
     }
+
+    // FIXME debugging code
+    for (int f = 0; f < NUMBER_OF_FIELDS; f++) // FIXME debugging code
+        fields[f].candidates[0] = 3;
+
+    for (int f = 0; f < NUMBER_OF_FIELDS; f++) // FIXME debugging code
+        printf("Field #%d: candidate[0] is %d\n", f, fields[f].candidates[0]);
+
+    for (int f = 0; f < NUMBER_OF_FIELDS; f++) // FIXME debugging code
+        printf("with pointer ... Field #%d: candidate[0] is %d\n", f, (fields + f)->candidates[0]);
 }
 
 /**
@@ -128,19 +138,31 @@ void initGrid() {
 
     assert(unitDefs.count > 0);
 
+    printf("-----init grid---------\n");
+    for (int f = 0; f < NUMBER_OF_FIELDS; f++) // FIXME debugging code
+        printf("starting with ... Field #%d: candidate[0] is %d\n", f, (fields + f)->candidates[0]);
+
     // Initialisierung:
     // zunaechst sind ueberall alle Zahlen moeglich
-    for (f = 0; f < 81; f++) {
-        field = fields + y * 9 + x;
+    for (f = 0; f < NUMBER_OF_FIELDS; f++) {
+        field = fields + f;
 
         x = f % 9;
         y = f / 9;
+        printf("Field #%d: row %d, col %d\n", f, y, x);
 
-        for (int n = 0; n < 9; n++) {
+        // FIXME debugging code
+        for (int f = 0; f < NUMBER_OF_FIELDS; f++) // FIXME debugging code
+            printf("XD starting with ... Field #%d: candidate[0] is %d\n", f, (fields + f)->candidates[0]);
+        printf("1st Field #%d: candidate[0] is %d\n", f, (fields + f)->candidates[0]); //FIXME debugging code
+        printf("2nd Field #%d: candidate[0] is %d\n", f, field->candidates[0]); //FIXME debugging code
+
+        for (int n = 0; n < MAX_NUMBER; n++) {
+            printf("Writing candidates for field #%d, candidate %d ...\n", f, n); // FIXME debugging code
             field->candidates[n] = n;
         }
 
-        field->candidatesLeft = 9;
+        field->candidatesLeft = MAX_NUMBER;
         field->value = 0;
         field->initialValue = 0;
 
@@ -149,6 +171,7 @@ void initGrid() {
             exit(EXIT_FAILURE);
         }
 
+        printf("unitPositions for field %d [ROWS] = %d\n", f, y); // FIXME debugging code
         unitPositions[ROWS] = y;
         unitDefs.units[ROWS].fields[y][x] = field;
 
@@ -160,15 +183,25 @@ void initGrid() {
         //            field = fields[y * 9 + x];
 
         field->unitPositions = unitPositions;
+
+        printf("Field #%d, row: %d, col: %d\n", f, field->unitPositions[ROWS], field->unitPositions[COLS]);
     }
 
     // fill units with pointers to the corresponding fields
+    printf("--------------\n");
+    for (int ix = 0; ix < 10; ix++) {
+        field = fields + ix;
+        printf("field #%d, row is %d\n", ix, field->unitPositions[ROWS]);
+    }
+    printf("--------------\n");
+
 
     // rows
     unit = &(unitDefs.units[ROWS]);
     for (int row = 0; row < 9; row++) {
         for (int ix = 0; ix < 9; ix++) {
-            field = &(fields[row * 9 + ix]);
+            field = fields + row * 9 + ix;
+            printf("[adsf] row %d, col %d: field [%d] row is %d\n", row, ix, row * 9 + ix, field->unitPositions[ROWS]);
             assert(field->unitPositions[ROWS] == row);
 
             unit->fields[row][ix] = field;
@@ -176,10 +209,11 @@ void initGrid() {
     }
 
     // cols
+    printf("[dxsf] next ...\n");
     unit = &(unitDefs.units[COLS]);
     for (int col = 0; col < 9; col++) {
         for (int ix = 0; ix < 9; ix++) {
-            field = &(fields[ix * 9 + col]);
+            field = fields + ix * 9 + col;
             assert(field->unitPositions[COLS] == col);
 
             unit->fields[col][ix] = field;
@@ -187,12 +221,13 @@ void initGrid() {
     }
 
     // boxes
+    printf("[dx56sf] next ...\n");
     unit = &(unitDefs.units[BOXES]);
     for (int box = 0; box < 9; box++) {
         for (int ix = 0; ix < 9; ix++) {
 
             getQuadrantField(box, ix, &x, &y);
-            field = &(fields[y * 9 + x]);
+            field = fields + y * 9 + x;
             assert(field->unitPositions[BOXES] == box);
             assert(field->unitPositions[COLS] == x);
             assert(field->unitPositions[ROWS] == y);
@@ -200,13 +235,14 @@ void initGrid() {
             unit->fields[box][ix] = field;
         }
     }
+    printf("[5fgx] done initialising grid.\n");
 }
 
 /**
  * frees memory allocated for the grid fields
  */
 void freeGrid() {
-    for (int f = 0; f < 81; f++) {
+    for (int f = 0; f < NUMBER_OF_FIELDS; f++) {
         free(fields[f].unitPositions);
     }
 }
@@ -222,7 +258,7 @@ void freeGrid() {
 int isFinished() {
     int f;
 
-    for (f = 0; f < 81; f++) {
+    for (f = 0; f < NUMBER_OF_FIELDS; f++) {
         if (!fields[f].value)
             // ein leeres Feld gefunden => wir sind noch nicht fertig!
             return 0;
@@ -409,7 +445,7 @@ int checkForSolvedCells() {
 
     progress = 0;
 
-    for (f = 0; f < 81; f++) {
+    for (f = 0; f < NUMBER_OF_FIELDS; f++) {
         field = &(fields[f]);
         value = field->value;
         if (value) {

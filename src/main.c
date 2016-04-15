@@ -38,7 +38,6 @@ int main(int argc, char **argv) {
     char *inputFilename = NULL;
     char *sudoku = NULL;
 
-
     // read command line arguments
     opterr = 0;
 
@@ -120,13 +119,13 @@ int main(int argc, char **argv) {
     } else {
 
         int numbersFound = 0;
-        for (int f = 0; f < 81; f++)
+        for (int f = 0; f < NUMBER_OF_FIELDS; f++)
             if (fields[f].value)
                 numbersFound++;
 
         printlog("-----------------------------------------------");
         printlog("      Sudoku konnte nicht geloest werden!");
-        sprintf(buffer, "      %d von 81 Zellen wurden gefunden.", numbersFound);
+        sprintf(buffer, "      %d von %d Zellen wurden gefunden.", numbersFound, NUMBER_OF_FIELDS);
         printlog(buffer);
         printlog("-----------------------------------------------");
     }
@@ -474,7 +473,7 @@ int readSudoku(char *inputFilename) {
         return 0;
 
     // Sudoku initialisieren
-    for (f = 0; f < 81; f++) {
+    for (f = 0; f < NUMBER_OF_FIELDS; f++) {
         fields[f].initialValue = 0;
     }
 
@@ -522,7 +521,7 @@ int readSudoku(char *inputFilename) {
     }
 
     // copy original grid
-    for (f = 0; f < 81; f++) {
+    for (f = 0; f < NUMBER_OF_FIELDS; f++) {
         fields[f].value = fields[f].initialValue;
     }
 
