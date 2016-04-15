@@ -27,7 +27,7 @@ void show(int showInit) {
     int index;
     Field *field;
 
-    for (y = 0; y < 9; y++) {
+    for (y = 0; y < MAX_NUMBER; y++) {
 
         if (!(y % 3)) {
             // intermediate header row
@@ -39,7 +39,7 @@ void show(int showInit) {
         if (showInit) {
 
             // show starting grid's data row
-            for (x = 0; x < 9; x++) {
+            for (x = 0; x < MAX_NUMBER; x++) {
                 if (x % 3)
                     buffer[index++] = ' ';
                 else
@@ -61,7 +61,7 @@ void show(int showInit) {
         }
 
         // show current grid's data row
-        for (x = 0; x < 9; x++) {
+        for (x = 0; x < MAX_NUMBER; x++) {
             if (x % 3)
                 buffer[index++] = ' ';
             else
@@ -226,20 +226,20 @@ void printSvg(int finalVersion) {
             "	  <line class='thin'  x1='72' y1='0' x2='72' y2='81' />", svgfile);
 
     rows = unitDefs.units[ROWS].fields;
-    for (y = 0; y < 9; y++) {
-        for (x = 0; x < 9; x++) {
+    for (y = 0; y < MAX_NUMBER; y++) {
+        for (x = 0; x < MAX_NUMBER; x++) {
             field = rows[y][x];
             if (field->value) {
-                float xPos = x * 9 + 4.5;
-                float yPos = y * 9 + 7.65;
+                float xPos = x * MAX_NUMBER + 4.5;
+                float yPos = y * MAX_NUMBER + 7.65;
                 fprintf(svgfile, "<text class=\"final\" x=\"%f\"  y=\"%f\" text-anchor=\"middle\">%d</text>\n", xPos, yPos, field->value);
             } else {
                 // alle noch moeglichen Zahlen ausgeben
                 int n1;
-                for (n1 = 1; n1 <= 9; n1++) {
+                for (n1 = 1; n1 <= MAX_NUMBER; n1++) {
                     if (field->candidates[n1 - 1] == n1) {
-                        float xPos = x * 9 + ((n1 - 1) % 3) * 3 + 1;
-                        float yPos = y * 9 + ((int) ((n1 - 1) / 3) * 3 + 2.4);
+                        float xPos = x * MAX_NUMBER + ((n1 - 1) % 3) * 3 + 1;
+                        float yPos = y * MAX_NUMBER + ((int) ((n1 - 1) / 3) * 3 + 2.4);
                         fprintf(svgfile, "<text class=\"possibilities\" x=\"%f\"  y=\"%f\" text-anchor=\"middle\">%d</text>\n", xPos, yPos, n1);
                     }
                 }

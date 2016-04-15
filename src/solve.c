@@ -78,13 +78,13 @@ void initUnits() {
     // first unit: row
     unit = &(unitDefs.units[ROWS]);
     unit->name = strdup("row");
-    unit->containers = 9;
+    unit->containers = MAX_NUMBER;
     unit->fields = (Field ***) malloc(sizeof (Field **) * unit->containers);
     if (unit->fields == NULL) {
         exit(EXIT_FAILURE);
     }
     for (int i = 0; i < unit->containers; i++) {
-        unit->fields[i] = (Field **) malloc(sizeof (Field *) * 9);
+        unit->fields[i] = (Field **) malloc(sizeof (Field *) * MAX_NUMBER);
         if (unit->fields[i] == NULL) {
             exit(EXIT_FAILURE);
         }
@@ -93,13 +93,13 @@ void initUnits() {
     // second unit: column
     unit = &(unitDefs.units[COLS]);
     unit->name = strdup("column");
-    unit->containers = 9;
+    unit->containers = MAX_NUMBER;
     unit->fields = (Field ***) malloc(sizeof (Field **) * unit->containers);
     if (unit->fields == NULL) {
         exit(EXIT_FAILURE);
     }
     for (int i = 0; i < unit->containers; i++) {
-        unit->fields[i] = (Field **) malloc(sizeof (Field *) * 9);
+        unit->fields[i] = (Field **) malloc(sizeof (Field *) * MAX_NUMBER);
         if (unit->fields[i] == NULL) {
             exit(EXIT_FAILURE);
         }
@@ -108,13 +108,13 @@ void initUnits() {
     // third unit: box
     unit = &(unitDefs.units[BOXES]);
     unit->name = strdup("box");
-    unit->containers = 9;
+    unit->containers = MAX_NUMBER;
     unit->fields = (Field ***) malloc(sizeof (Field **) * unit->containers);
     if (unit->fields == NULL) {
         exit(EXIT_FAILURE);
     }
     for (int i = 0; i < unit->containers; i++) {
-        unit->fields[i] = (Field **) malloc(sizeof (Field *) * 9);
+        unit->fields[i] = (Field **) malloc(sizeof (Field *) * MAX_NUMBER);
         if (unit->fields[i] == NULL) {
             exit(EXIT_FAILURE);
         }
@@ -163,8 +163,8 @@ void initGrid() {
         for (f = 0; f < NUMBER_OF_FIELDS; f++) {
             field = fields + f;
 
-            x = f % 9;
-            y = f / 9;
+            x = f % MAX_NUMBER;
+            y = f / MAX_NUMBER;
             printf("Field #%d: row %d, col %d\n", f, y, x);
 
             for (int n = 0; n < MAX_NUMBER; n++) {
@@ -188,7 +188,6 @@ void initGrid() {
 
             unitPositions[BOXES] = getQuadrantNr(x, y);
             unitDefs.units[BOXES].fields[unitPositions[BOXES]][y] = field;
-            //            field = fields[y * 9 + x];
 
             field->unitPositions = unitPositions;
         }
@@ -197,10 +196,10 @@ void initGrid() {
 
     // rows
     unit = &(unitDefs.units[ROWS]);
-    for (int row = 0; row < 9; row++) {
-        for (int ix = 0; ix < 9; ix++) {
-            field = fields + row * 9 + ix;
-            printf("[adsf] row %d, col %d: field [%d] row is %d\n", row, ix, row * 9 + ix, field->unitPositions[ROWS]);
+    for (int row = 0; row < MAX_NUMBER; row++) {
+        for (int ix = 0; ix < MAX_NUMBER; ix++) {
+            field = fields + row * MAX_NUMBER + ix;
+            printf("[adsf] row %d, col %d: field [%d] row is %d\n", row, ix, row * MAX_NUMBER + ix, field->unitPositions[ROWS]);
             assert(field->unitPositions[ROWS] == row);
 
             unit->fields[row][ix] = field;
@@ -210,9 +209,9 @@ void initGrid() {
     // cols
     printf("[dxsf] next ...\n");
     unit = &(unitDefs.units[COLS]);
-    for (int col = 0; col < 9; col++) {
-        for (int ix = 0; ix < 9; ix++) {
-            field = fields + ix * 9 + col;
+    for (int col = 0; col < MAX_NUMBER; col++) {
+        for (int ix = 0; ix < MAX_NUMBER; ix++) {
+            field = fields + ix * MAX_NUMBER + col;
             assert(field->unitPositions[COLS] == col);
 
             unit->fields[col][ix] = field;
@@ -222,11 +221,11 @@ void initGrid() {
     // boxes
     printf("[dx56sf] next ...\n");
     unit = &(unitDefs.units[BOXES]);
-    for (int box = 0; box < 9; box++) {
-        for (int ix = 0; ix < 9; ix++) {
+    for (int box = 0; box < MAX_NUMBER; box++) {
+        for (int ix = 0; ix < MAX_NUMBER; ix++) {
 
             getQuadrantField(box, ix, &x, &y);
-            field = fields + y * 9 + x;
+            field = fields + y * MAX_NUMBER + x;
             assert(field->unitPositions[BOXES] == box);
             assert(field->unitPositions[COLS] == x);
             assert(field->unitPositions[ROWS] == y);
@@ -400,7 +399,7 @@ int forbidNumbersInOtherFields(Field **container, unsigned *n, Field **dontTouch
     }
 
     // walk through entire container
-    for (int pos = 0; pos < 9; pos++) {
+    for (int pos = 0; pos < MAX_NUMBER; pos++) {
         field = container[pos];
 
         // don't touch the 'dontTouch' fields
@@ -430,7 +429,7 @@ int forbidNumbersInOtherFields(Field **container, unsigned *n, Field **dontTouch
 
 int forbidNumber(Field *field, unsigned n) {
 
-    assert(n >= 1 && n <= 9);
+    assert(n >= 1 && n <= MAX_NUMBER);
 
     if (field->candidates[n - 1]) {
         if (verboseLogging == 2) {
@@ -503,10 +502,10 @@ int checkForSolvedCells() {
 
                 // go through all positions (numbers) of the container and 
                 // forbid this number in all other fields of the container
-                unsigned candidates[9];
+                unsigned candidates[MAX_NUMBER];
 
                 // build tuple to search for
-                for (int i = 0; i < 9; i++) {
+                for (int i = 0; i < MAX_NUMBER; i++) {
                     candidates[i] = 0;
                 }
                 printf("[4nx7hhs]\n");
@@ -574,7 +573,7 @@ int findHiddenSingles() {
  * compare two lists of candidates and check if they are equal
  */
 int compareCandidates(unsigned *c1, unsigned *c2) {
-    for (int n = 0; n < 9; n++) {
+    for (int n = 0; n < MAX_NUMBER; n++) {
         if (c1[n] != c2[n])
             return 0;
     }
@@ -612,45 +611,43 @@ int findNakedTuples(size_t dimension) {
         }
 
         for (int c = 0; c < unit->containers; c++) {
-            for (unsigned n = 1; n <= 9; n++) {
-                Field **container = unit->fields[c];
+            Field **container = unit->fields[c];
 
-                // check for naked tuples in this container
-                for (n1 = 1; n1 < 9; n1++) {
-                    for (n2 = 1; n2 < 9; n2++) {
-                        unsigned tuple[9];
+            // check for naked tuples in this container
+            for (n1 = 1; n1 < MAX_NUMBER; n1++) {
+                for (n2 = 1; n2 < MAX_NUMBER; n2++) {
+                    unsigned tuple[MAX_NUMBER];
 
-                        // build tuple to search for
-                        for (int i = 0; i < 9; i++) {
-                            tuple[i] = 0;
+                    // build tuple to search for
+                    for (int i = 0; i < MAX_NUMBER; i++) {
+                        tuple[i] = 0;
+                    }
+                    tuple[n1 - 1] = n1;
+                    tuple[n2 - 1] = n2;
+
+
+
+                    // search for cells with exactly this tuple as
+                    // candidates
+                    Field * foundTupleFields[MAX_TUPLE_DIMENSION + 1];
+                    int countTupleFound = 0;
+                    for (int pos = 0; pos < MAX_NUMBER; pos++) {
+                        unsigned *candidates = container[pos]->candidates;
+                        // check candidates if they match the tuple
+                        if (compareCandidates(candidates, tuple)) {
+                            foundTupleFields[countTupleFound++] = container[pos];
+                            if (countTupleFound == dimension)
+                                // terminate list of field pointers
+                                foundTupleFields[countTupleFound] = NULL;
+                            break;
                         }
-                        tuple[n1 - 1] = n1;
-                        tuple[n2 - 1] = n2;
-
-
-
-                        // search for cells with exactly this tuple as
-                        // candidates
-                        Field * foundTupleFields[MAX_TUPLE_DIMENSION + 1];
-                        int countTupleFound = 0;
-                        for (int pos = 0; pos < 9; pos++) {
-                            unsigned *candidates = container[pos]->candidates;
-                            // check candidates if they match the tuple
-                            if (compareCandidates(candidates, tuple)) {
-                                foundTupleFields[countTupleFound++] = container[pos];
-                                if (countTupleFound == dimension)
-                                    // terminate list of field pointers
-                                    foundTupleFields[countTupleFound] = NULL;
-                                break;
-                            }
-                        }
-                        if (countTupleFound == dimension) {
-                            // we found "dimension" places in the container
-                            // containing the tuple => these numbers must be
-                            // distributed among these found fields => forbid
-                            // these numbers in all other fields of the container
-                            progress |= forbidNumbersInOtherFields(container, tuple, foundTupleFields);
-                        }
+                    }
+                    if (countTupleFound == dimension) {
+                        // we found "dimension" places in the container
+                        // containing the tuple => these numbers must be
+                        // distributed among these found fields => forbid
+                        // these numbers in all other fields of the container
+                        progress |= forbidNumbersInOtherFields(container, tuple, foundTupleFields);
                     }
                 }
             }
@@ -791,8 +788,8 @@ int findHiddenPairs() {
     progress = 0;
 
     // hidden pairs in rows
-    for (y = 0; y < 9; y++) {
-        for (cand = 1; cand <= 9; cand++) {
+    for (y = 0; y < MAX_NUMBER; y++) {
+        for (cand = 1; cand <= MAX_NUMBER; cand++) {
             // countCandidateInRow(cand, y);
         }
 
