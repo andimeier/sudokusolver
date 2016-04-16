@@ -40,10 +40,18 @@ void showAllCandidates() {
     }
 }
 
+/**
+ * log a "reduction" event (candidates could be removed)
+ * @param msg
+ */
 void logReduction(char *msg) {
     printf("--- %s\n", msg);
 }
 
+/**
+ * log a "found a number" event
+ * @param msg
+ */
 void logNewNumber(char *msg) {
     printf("+++ %s\n", msg);
 }
