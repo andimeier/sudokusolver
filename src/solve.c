@@ -812,7 +812,7 @@ int findPointingTupels() {
 
 
     printf("[pii] starting findPointingTupels ...\n");
-    
+
     // search in all unit types (rows, cols, boxes, ...) for a tuple of numbers 
     // which form a "pointing tuple"
 
@@ -827,21 +827,32 @@ int findPointingTupels() {
         for (int c = 0; c < unit->containers; c++) {
             FieldsVector *container = unit->fields[c];
 
-            printf("iterating into instance %d of container \"%s\"\n", c, unit->name);
+            showAllCandidates();
+
+            printf("iterating into instance %d of container \"%s\"\n", c, unit->name); // FIXME debugging output
 
             // check for pointing tuples in this container
             for (n = 1; n <= MAX_NUMBER; n++) {
                 FieldsVector *fields;
 
                 // collect all fields which contain this candidate
-                printf("get fields with candidate %u in unit type %s ... \n", n, unit->name);
+                printf("get fields with candidate %u in unit type %s ... \n", n, unit->name); // FIXME debugging output
                 fields = fieldsWithCandidate(container, n);
-                printf("got fields\n");
+                printf("got fields:\n"); // FIXME debugging output
+                Field **ptr = fields; // FIXME debugging variable
+                while (*ptr) { // FIXME debugging output
+                    printf("  candidate %u is possible in field %d/%d\n", n, (*ptr)->unitPositions[ROWS], (*ptr)->unitPositions[COLS]);
+                    ptr++;
+                }
+
+                printf("[hhh1]\n");
 
                 if (*fields == NULL) {
                     // candidate n not found in any free field => skip it
+                    printf("[hhh2]\n");
                     continue;
                 }
+                printf("[hhh3]\n");
 
                 // for every unit type other than the current one, check if
                 // all fields of the tuple share the same "other" unit instance.
@@ -851,10 +862,12 @@ int findPointingTupels() {
 
                 for (int u2 = 0; u2 < unitDefs.count; u2++) {
                     if (u2 == u) {
-                        // only look in OTHER units
+                        // only look in OTHER unit types
+                        printf("[hhh4]\n");
                         continue;
                     }
 
+                    printf("[hhh5]\n");
                     printf("  look at unit %s ...\n", unitDefs.units[u2].name);
 
                     int containerIndex;
@@ -865,16 +878,20 @@ int findPointingTupels() {
                     containerIndex = (* fieldsPtr)->unitPositions[u2];
                     printf("the tupel MIGHT be in %s #%d ...\n", unitDefs.units[u2].name, containerIndex);
                     fieldsPtr++;
-                    while (fieldsPtr) {
-                        if ((* fieldsPtr)->unitPositions[u2] != containerIndex) {
+                    while (*fieldsPtr) {
+                        printf("[jjj2] check next position ...\n");
+                        if ((*fieldsPtr)->unitPositions[u2] != containerIndex) {
+                            printf("[jjj3] FOUND SOMETHING => no tupel...\n");
                             break;
                         }
 
                         fieldsPtr++;
                     }
 
+                    printf("[jjj4] finished\n");
+
                     // found pointing tuple?
-                    if (!fieldsPtr) {
+                    if (!(*fieldsPtr)) {
                         printf("[lkkk] Found pointing tuple in %s #%d ...) \n", unitDefs.units[u2].name, containerIndex);
 
                         // prepare tuple
