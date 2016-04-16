@@ -40,6 +40,8 @@ extern "C" {
         size_t count;
     } UnitDefs;
 
+    typedef Field * FieldsVector;
+    
 #ifdef	__cplusplus
 }
 #endif

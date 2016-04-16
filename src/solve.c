@@ -22,7 +22,8 @@ static int getUniquePositionInContainer(Field **container, unsigned n);
 
 // auxiliary functions
 static int setUniqueNumber(Field *field);
-static Field **fieldsWithCandidate(Field **container, unsigned n);
+static FieldsVector *fieldsWithCandidate(FieldsVector *container, unsigned n);
+static int fieldHasCandidate(Field *field, unsigned n);
 
 UnitDefs unitDefs;
 Field *fields; // the fields of the game board
@@ -36,7 +37,7 @@ int verboseLogging; // 0 ... no verbose logging, 1 ... log changes, 2 ... log ev
  */
 void initFields() {
     fields = (Field *) xmalloc(sizeof (Field) * NUMBER_OF_FIELDS);
-    
+
     // alloc candidates
     for (int f = 0; f < NUMBER_OF_FIELDS; f++) {
         unsigned *candidates = (unsigned *) xmalloc(sizeof (unsigned) * MAX_NUMBER);
@@ -338,9 +339,9 @@ int containsField(Field **list, Field * field) {
 }
 
 //-------------------------------------------------------------------
-// "Isoliert" pairs/triples/quads in einem Quadranten: die candidates, die
+// "Isoliert" pairs/triples/quads in einem Container: die candidates, die
 // in diesen beiden Zellen moeglich sein, koennen im restlichen
-// Quadranten nicht mehr vorkommen
+// Container nicht mehr vorkommen
 // Return-Wert:
 //   1 ... mind. 1 Nummer in der restlichen Spalte oder dem restlichen
 //         Quadranten wurde verboten, wir "sind weitergekommen"
@@ -810,6 +811,8 @@ int findPointingTupels() {
     progress = 0;
 
 
+    printf("[pii] starting findPointingTupels ...\n");
+    
     // search in all unit types (rows, cols, boxes, ...) for a tuple of numbers 
     // which form a "pointing tuple"
 
@@ -822,16 +825,23 @@ int findPointingTupels() {
 
         printf("container \"%s\" has %zu instances\n", unit->name, unit->containers);
         for (int c = 0; c < unit->containers; c++) {
-            Field **container = unit->fields[c];
+            FieldsVector *container = unit->fields[c];
 
             printf("iterating into instance %d of container \"%s\"\n", c, unit->name);
 
-            // check for naked tuples in this container
+            // check for pointing tuples in this container
             for (n = 1; n <= MAX_NUMBER; n++) {
-                Field **fields;
+                FieldsVector *fields;
 
                 // collect all fields which contain this candidate
+                printf("get fields with candidate %u in unit type %s ... \n", n, unit->name);
                 fields = fieldsWithCandidate(container, n);
+                printf("got fields\n");
+
+                if (*fields == NULL) {
+                    // candidate n not found in any free field => skip it
+                    continue;
+                }
 
                 // for every unit type other than the current one, check if
                 // all fields of the tuple share the same "other" unit instance.
@@ -844,36 +854,37 @@ int findPointingTupels() {
                         // only look in OTHER units
                         continue;
                     }
-                    
-                    int pos = -1;
+
+                    printf("  look at unit %s ...\n", unitDefs.units[u2].name);
+
+                    int containerIndex;
                     // check if all fields share the same instance of the "other
                     // unit"
                     Field **fieldsPtr;
-                    fieldsPtr = fields;
+                    fieldsPtr = &fields;
+                    containerIndex = (* fieldsPtr)->unitPositions[u2];
+                    printf("the tupel MIGHT be in %s #%d ...\n", unitDefs.units[u2].name, containerIndex);
+                    fieldsPtr++;
                     while (fieldsPtr) {
-                        if (pos == -1) {
-                            pos = fieldsPtr;
+                        if ((* fieldsPtr)->unitPositions[u2] != containerIndex) {
+                            break;
                         }
-                        
+
                         fieldsPtr++;
                     }
-                }
-                
-                // prepare tuple
-                for (int i = 0; i < MAX_NUMBER; i++) {
-                    tuple[i] = 0;
-                }
-                tuple[n - 1] = n;
 
+                    // found pointing tuple?
+                    if (!fieldsPtr) {
+                        printf("[lkkk] Found pointing tuple in %s #%d ...) \n", unitDefs.units[u2].name, containerIndex);
 
-                
+                        // prepare tuple
+                        for (int i = 0; i < MAX_NUMBER; i++) {
+                            tuple[i] = 0;
+                        }
+                        tuple[n - 1] = n;
 
-                if (countTupleFound == dimension) {
-                    // we found "dimension" places in the container
-                    // containing the tuple => these numbers must be
-                    // distributed among these found fields => forbid
-                    // these numbers in all other fields of the container
-                    progress |= forbidNumbersInOtherFields(container, tuple, fields);
+                        progress |= forbidNumbersInOtherFields(unitDefs.units[u2].fields[containerIndex], tuple, fields);
+                    }
                 }
 
                 free(fields);
@@ -893,19 +904,20 @@ int findPointingTupels() {
  * @param n the number to look for as a candidate
  * @return vector of fields containing the given number as possible candidate
  */
-Field **fieldsWithCandidate(Field **container, unsigned n) {
+FieldsVector *fieldsWithCandidate(Field **container, unsigned n) {
     int ix;
     Field *field;
-    Field **found;
-    Field **foundPtr;
+    FieldsVector *found;
+    FieldsVector *foundPtr;
 
-    found = (Field **) xmalloc(sizeof (Field) * (MAX_NUMBER + 1));
+    found = (FieldsVector *) xmalloc(sizeof (Field *) * (MAX_NUMBER + 1));
 
     foundPtr = found;
     for (ix = 0; ix < MAX_NUMBER; ix++) {
-        field = container + ix;
+        field = *(container + ix);
         if (fieldHasCandidate(field, n)) {
-            foundPtr++ = field;
+            *foundPtr = field;
+            foundPtr++;
         }
     }
 

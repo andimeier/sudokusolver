@@ -149,10 +149,12 @@ int *unsigneddup(unsigned const *src, size_t len) {
     return p;
 }
 
-
 void *xmalloc(size_t size) {
     void *value = malloc(size);
-    if (value == 0)
-        fatal("virtual memory exhausted");
+    if (value == 0) {
+        printf("virtual memory exhausted\n");
+        exit(EXIT_FAILURE);
+    }
+    
     return value;
 }

@@ -30,7 +30,7 @@ extern "C" {
     int findHiddenPairsAndTriples(); // not implemented yet
     int findNakedQuads(); // not implemented yet
     int findHiddenQuads(); // not implemented yet
-    int findPointingPairsAndTriples(); // not implemented yet
+    int findPointingTupels();
     int boxLineReduction(); // not implemented yet
 
 #ifdef	__cplusplus
