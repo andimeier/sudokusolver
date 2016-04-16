@@ -7,6 +7,7 @@
 #include "global.h"
 #include "util.h"
 #include "show.h"
+#include "log.h"
 
 /*
 Fehlende Strategien:
@@ -98,7 +99,7 @@ int main(int argc, char **argv) {
     initUnits();
     initGrid();
 
-        for (int f = 0; f < NUMBER_OF_FIELDS; f++) {
+    for (int f = 0; f < NUMBER_OF_FIELDS; f++) {
         printf("[1234-1] field #%d: in row %d, col %d, box %d\n", f, fields[f].unitPositions[ROWS], fields[f].unitPositions[COLS], fields[f].unitPositions[BOXES]);
     }
 
@@ -111,7 +112,7 @@ int main(int argc, char **argv) {
         show(0);
     }
 
-        for (int f = 0; f < NUMBER_OF_FIELDS; f++) {
+    for (int f = 0; f < NUMBER_OF_FIELDS; f++) {
         printf("[1234-2] field #%d: in row %d, col %d, box %d\n", f, fields[f].unitPositions[ROWS], fields[f].unitPositions[COLS], fields[f].unitPositions[BOXES]);
     }
 
@@ -194,7 +195,7 @@ int solve() {
     errors = 0; // noch keine Fehler aufgetreten
 
     printf("[4sf]\n");
-    
+
     printSvg(0);
 
     printf("[4s65f]\n");
@@ -224,7 +225,7 @@ int solve() {
 
         // alle Felder durchgehen und vorkommende Zahlen in der selben
         // Reihe, in der selben Spalte und im selben Quadranten verbieten
-        if (verboseLogging == 2) 
+        if (verboseLogging == 2)
             printlog("??? Searching for: unique numbers ... \n");
 
         progress |= checkForSolvedCells();
@@ -251,6 +252,13 @@ int solve() {
             return 1;
 
         progress |= findNakedTuples(2); // find naked pairs
+
+        if (isFinished())
+            return 1;
+
+        //progress |= findNakedTuples(3); // find naked triples
+
+        progress |= findPointingTupels(); // find pointing pairs/triples
 
 
         if (verboseLogging) {
@@ -456,7 +464,7 @@ int solve() {
     } while (progress);
 
     showAllCandidates();
-    
+
     // wir kommen hierher, weil die letzte Iteration keine einzige Aenderung gebracht
     // hat => wir bleiben stecken mit unserem Algorithmus. Ohne Aenderung in der
     // Implementierung ist dieses Sudoku nicht loesbar

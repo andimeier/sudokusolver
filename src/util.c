@@ -148,3 +148,11 @@ int *unsigneddup(unsigned const *src, size_t len) {
     memcpy(p, src, len * sizeof (unsigned));
     return p;
 }
+
+
+void *xmalloc(size_t size) {
+    void *value = malloc(size);
+    if (value == 0)
+        fatal("virtual memory exhausted");
+    return value;
+}

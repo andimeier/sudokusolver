@@ -33,8 +33,6 @@ extern "C" {
     int findPointingPairsAndTriples(); // not implemented yet
     int boxLineReduction(); // not implemented yet
 
-    void showAllCandidates();
-
 #ifdef	__cplusplus
 }
 #endif

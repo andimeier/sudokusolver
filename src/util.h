@@ -22,9 +22,10 @@ extern "C" {
     void openLogFile(char *outputFilename);
     void printlog(char *text);
     void closeLogFile();
-    
+
     int *unsigneddup(unsigned const *src, size_t len);
-    
+    void *xmalloc(size_t size);
+            
 #ifdef	__cplusplus
 }
 #endif

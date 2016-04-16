@@ -13,6 +13,7 @@
 #include "global.h"
 #include "typedefs.h"
 #include "util.h"
+#include "log.h"
 
 // search for pairs, triples and quadruples, not more
 #define MAX_TUPLE_DIMENSION 4
@@ -21,8 +22,7 @@ static int getUniquePositionInContainer(Field **container, unsigned n);
 
 // auxiliary functions
 static int setUniqueNumber(Field *field);
-static void showCandidates(Field *field);
-void showAllCandidates();
+static Field **fieldsWithCandidate(Field **container, unsigned n);
 
 UnitDefs unitDefs;
 Field *fields; // the fields of the game board
@@ -35,17 +35,11 @@ int verboseLogging; // 0 ... no verbose logging, 1 ... log changes, 2 ... log ev
  * init the units
  */
 void initFields() {
-    fields = (Field *) malloc(sizeof (Field) * NUMBER_OF_FIELDS);
-    if (fields == NULL) {
-        exit(EXIT_FAILURE);
-    }
-
+    fields = (Field *) xmalloc(sizeof (Field) * NUMBER_OF_FIELDS);
+    
     // alloc candidates
     for (int f = 0; f < NUMBER_OF_FIELDS; f++) {
-        unsigned *candidates = (unsigned *) malloc(sizeof (unsigned) * MAX_NUMBER);
-        if (candidates == NULL) {
-            exit(EXIT_FAILURE);
-        }
+        unsigned *candidates = (unsigned *) xmalloc(sizeof (unsigned) * MAX_NUMBER);
         fields[f].candidates = candidates;
     }
 
@@ -69,55 +63,34 @@ void initUnits() {
 
     // assuming a standard Sudoku, 
     // we have 3 units (row, column, box)
-    unitDefs.units = (Unit *) malloc(sizeof (Unit) * 3);
-    if (unitDefs.units == NULL) {
-        exit(EXIT_FAILURE);
-    }
+    unitDefs.units = (Unit *) xmalloc(sizeof (Unit) * 3);
     unitDefs.count = 3;
 
     // first unit: row
     unit = &(unitDefs.units[ROWS]);
     unit->name = strdup("row");
     unit->containers = MAX_NUMBER;
-    unit->fields = (Field ***) malloc(sizeof (Field **) * unit->containers);
-    if (unit->fields == NULL) {
-        exit(EXIT_FAILURE);
-    }
+    unit->fields = (Field ***) xmalloc(sizeof (Field **) * unit->containers);
     for (int i = 0; i < unit->containers; i++) {
-        unit->fields[i] = (Field **) malloc(sizeof (Field *) * MAX_NUMBER);
-        if (unit->fields[i] == NULL) {
-            exit(EXIT_FAILURE);
-        }
+        unit->fields[i] = (Field **) xmalloc(sizeof (Field *) * MAX_NUMBER);
     }
 
     // second unit: column
     unit = &(unitDefs.units[COLS]);
     unit->name = strdup("column");
     unit->containers = MAX_NUMBER;
-    unit->fields = (Field ***) malloc(sizeof (Field **) * unit->containers);
-    if (unit->fields == NULL) {
-        exit(EXIT_FAILURE);
-    }
+    unit->fields = (Field ***) xmalloc(sizeof (Field **) * unit->containers);
     for (int i = 0; i < unit->containers; i++) {
-        unit->fields[i] = (Field **) malloc(sizeof (Field *) * MAX_NUMBER);
-        if (unit->fields[i] == NULL) {
-            exit(EXIT_FAILURE);
-        }
+        unit->fields[i] = (Field **) xmalloc(sizeof (Field *) * MAX_NUMBER);
     }
 
     // third unit: box
     unit = &(unitDefs.units[BOXES]);
     unit->name = strdup("box");
     unit->containers = MAX_NUMBER;
-    unit->fields = (Field ***) malloc(sizeof (Field **) * unit->containers);
-    if (unit->fields == NULL) {
-        exit(EXIT_FAILURE);
-    }
+    unit->fields = (Field ***) xmalloc(sizeof (Field **) * unit->containers);
     for (int i = 0; i < unit->containers; i++) {
-        unit->fields[i] = (Field **) malloc(sizeof (Field *) * MAX_NUMBER);
-        if (unit->fields[i] == NULL) {
-            exit(EXIT_FAILURE);
-        }
+        unit->fields[i] = (Field **) xmalloc(sizeof (Field *) * MAX_NUMBER);
     }
 }
 
@@ -175,10 +148,7 @@ void initGrid() {
             field->value = 0;
             field->initialValue = 0;
 
-            int *unitPositions = (int *) malloc(sizeof (int) * unitDefs.count);
-            if (unitPositions == NULL) {
-                exit(EXIT_FAILURE);
-            }
+            int *unitPositions = (int *) xmalloc(sizeof (int) * unitDefs.count);
 
             unitPositions[ROWS] = y;
             unitDefs.units[ROWS].fields[y][x] = field;
@@ -410,7 +380,9 @@ int forbidNumbersInOtherFields(Field **container, unsigned *n, Field **dontTouch
                 if (n[i]) {
                     // was a candidate until now => remove candidate now
                     if (!field->value && field->candidates[i]) {
-                        printf("--- forbid %u in field %d/%d\n", i + 1, field->unitPositions[ROWS], field->unitPositions[COLS]);
+                        sprintf(buffer, "forbid %u in field %d/%d\n", i + 1, field->unitPositions[ROWS], field->unitPositions[COLS]);
+                        logReduction(buffer);
+
                         field->candidates[i] = 0;
                         field->candidatesLeft--;
                         progress = 1;
@@ -419,7 +391,7 @@ int forbidNumbersInOtherFields(Field **container, unsigned *n, Field **dontTouch
             }
         }
     }
-    
+
     showAllCandidates();
 
     return progress;
@@ -599,7 +571,7 @@ int findNakedTuples(size_t dimension) {
     // allow for pairs, triples and quadruples
     assert(dimension <= MAX_TUPLE_DIMENSION);
 
-    printf("--- yeah: ...\n");
+    printf("- yeah: ...\n");
 
     progress = 0;
 
@@ -824,34 +796,133 @@ int findHiddenPairs() {
     return progress;
 }
 
-void showCandidates(Field *field) {
-    char candidates[MAX_NUMBER + 1];
+/**
+ * find pointing pairs or triples
+ * 
+ * @return progress flag: 1 for "something has changed", 0 for "no change"
+ */
+int findPointingTupels() {
+    Unit *unit;
+    int progress; // flag: something has changed
+    unsigned tuple[MAX_NUMBER];
+    unsigned n;
 
-    for (int i = 0; i < MAX_NUMBER; i++) {
-        candidates[i] = (char) (field->candidates[i] + '0');
+    progress = 0;
+
+
+    // search in all unit types (rows, cols, boxes, ...) for a tuple of numbers 
+    // which form a "pointing tuple"
+
+    for (int u = 0; u < unitDefs.count; u++) {
+        unit = &(unitDefs.units[u]);
+        if (verboseLogging == 2) {
+            sprintf(buffer, "??? Searching for: pointing tuples in units of type %s ... \n", unit->name);
+            printlog(buffer);
+        }
+
+        printf("container \"%s\" has %zu instances\n", unit->name, unit->containers);
+        for (int c = 0; c < unit->containers; c++) {
+            Field **container = unit->fields[c];
+
+            printf("iterating into instance %d of container \"%s\"\n", c, unit->name);
+
+            // check for naked tuples in this container
+            for (n = 1; n <= MAX_NUMBER; n++) {
+                Field **fields;
+
+                // collect all fields which contain this candidate
+                fields = fieldsWithCandidate(container, n);
+
+                // for every unit type other than the current one, check if
+                // all fields of the tuple share the same "other" unit instance.
+                // If so, the candidate can be removed from all fields in the
+                // "other" instance except for the fields in the tuple (in the
+                // current container)
+
+                for (int u2 = 0; u2 < unitDefs.count; u2++) {
+                    if (u2 == u) {
+                        // only look in OTHER units
+                        continue;
+                    }
+                    
+                    int pos = -1;
+                    // check if all fields share the same instance of the "other
+                    // unit"
+                    Field **fieldsPtr;
+                    fieldsPtr = fields;
+                    while (fieldsPtr) {
+                        if (pos == -1) {
+                            pos = fieldsPtr;
+                        }
+                        
+                        fieldsPtr++;
+                    }
+                }
+                
+                // prepare tuple
+                for (int i = 0; i < MAX_NUMBER; i++) {
+                    tuple[i] = 0;
+                }
+                tuple[n - 1] = n;
+
+
+                
+
+                if (countTupleFound == dimension) {
+                    // we found "dimension" places in the container
+                    // containing the tuple => these numbers must be
+                    // distributed among these found fields => forbid
+                    // these numbers in all other fields of the container
+                    progress |= forbidNumbersInOtherFields(container, tuple, fields);
+                }
+
+                free(fields);
+            }
+        }
     }
-    candidates[MAX_NUMBER] = '\0';
 
-    printf("candidates for field %d/%d are: %s\n", field->unitPositions[ROWS], field->unitPositions[COLS], candidates);
+    return progress;
+
 }
 
-void showAllCandidates() {
-    char candidates[MAX_NUMBER + 1];
+/**
+ * collects all unresolved fields in which the given number is a possible 
+ * candidate
+ * 
+ * @param container
+ * @param n the number to look for as a candidate
+ * @return vector of fields containing the given number as possible candidate
+ */
+Field **fieldsWithCandidate(Field **container, unsigned n) {
+    int ix;
     Field *field;
+    Field **found;
+    Field **foundPtr;
 
-    for (int f = 0; f < NUMBER_OF_FIELDS; f++) {
-        field = fields + f;
+    found = (Field **) xmalloc(sizeof (Field) * (MAX_NUMBER + 1));
 
-        if (field->value) {
-            printf("candidates for field %d/%d ... value %u\n", field->unitPositions[ROWS], field->unitPositions[COLS], field->value);
-            continue;
+    foundPtr = found;
+    for (ix = 0; ix < MAX_NUMBER; ix++) {
+        field = container + ix;
+        if (fieldHasCandidate(field, n)) {
+            foundPtr++ = field;
         }
-        
-        for (int i = 0; i < MAX_NUMBER; i++) {
-            candidates[i] = (char) (field->candidates[i] + '0');
-        }
-        candidates[MAX_NUMBER] = '\0';
-
-        printf("candidates for field %d/%d are: %s\n", field->unitPositions[ROWS], field->unitPositions[COLS], candidates);
     }
+
+    // terminate vector
+    foundPtr = NULL;
+
+    return found;
+}
+
+/**
+ * checks if the field is unresolved and the given number is a possible 
+ * candidate
+ * 
+ * @param field the field to check
+ * @param n the number to check
+ * @return 1 if the number is a possible candidate, 0 if it is not
+ */
+int fieldHasCandidate(Field *field, unsigned n) {
+    return !field->value && (field->candidates[n - 1] == n);
 }
