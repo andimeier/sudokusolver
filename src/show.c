@@ -146,6 +146,25 @@ void show(int showInit) {
     //	printlog("+-----+-----+-----+");
 }
 
+void sudokuString() {
+    // display sudoku string, e.g. 5600340701000403000130500020400000304
+    char *buffer;
+    int f;
+
+    buffer = (char *) xmalloc(sizeof (char) * NUMBER_OF_FIELDS);
+
+    for (f = 0; f < NUMBER_OF_FIELDS; f++) {
+        buffer[f] = (char)(fields[f].value + '0');
+    }
+    buffer[f] = '\0';
+
+    // intermediate header row
+    printlog(buffer);
+    printf(buffer);
+
+    free(buffer);
+}
+
 
 //-------------------------------------------------------------------
 // FIXME description is wrong/obsolete:
@@ -259,7 +278,7 @@ void printSvg(int finalVersion) {
  * @return {char *} the string representing the position of the field in the 
  *   grid, e.g. "B1" (null-terminated C string)
  */
-char *position(Field *field) {
+char *position(Field * field) {
     char *position;
 
     position = (char*) malloc(sizeof (char)*3);

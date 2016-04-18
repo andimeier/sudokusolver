@@ -17,6 +17,7 @@ extern "C" {
     struct Field;
 
     void show(int showInit);
+    void sudokuString();
     void printSvg(int finalVersion);
     char *position(Field *field);
 

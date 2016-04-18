@@ -828,26 +828,31 @@ int findPointingTupels() {
             FieldsVector *container = unit->fields[c];
 
             showAllCandidates();
-
+            show(0);
+            printf("Alex\n");
+            show(0);
+            sudokuString();
+            
             printf("iterating into instance %d of container \"%s\"\n", c, unit->name); // FIXME debugging output
 
             // check for pointing tuples in this container
             for (n = 1; n <= MAX_NUMBER; n++) {
-                FieldsVector *fields;
+                FieldsVector *fieldsVector;
 
                 // collect all fields which contain this candidate
                 printf("get fields with candidate %u in unit type %s ... \n", n, unit->name); // FIXME debugging output
-                fields = fieldsWithCandidate(container, n);
+                fieldsVector = fieldsWithCandidate(container, n);
                 printf("got fields:\n"); // FIXME debugging output
-                Field **ptr = fields; // FIXME debugging variable
+                Field **ptr = fieldsVector; // FIXME debugging variable
                 while (*ptr) { // FIXME debugging output
+//                    printf("ptr point to address %d\n", (int) *ptr);
                     printf("  candidate %u is possible in field %d/%d\n", n, (*ptr)->unitPositions[ROWS], (*ptr)->unitPositions[COLS]);
                     ptr++;
                 }
 
                 printf("[hhh1]\n");
 
-                if (*fields == NULL) {
+                if (*fieldsVector == NULL) {
                     // candidate n not found in any free field => skip it
                     printf("[hhh2]\n");
                     continue;
@@ -870,12 +875,16 @@ int findPointingTupels() {
                     printf("[hhh5]\n");
                     printf("  look at unit %s ...\n", unitDefs.units[u2].name);
 
+                    //                    for (int f2 = 0; f2 < NUMBER_OF_FIELDS; f2++) { // FIXME debugging output
+                    //                        printf("[1234] field #%d: in row %d, col %d, box %d\n", f2, fields[f2].unitPositions[ROWS], fields[f2].unitPositions[COLS], fields[f2].unitPositions[BOXES]);
+                    //                    }
+
+
                     int containerIndex;
-                    // check if all fields share the same instance of the "other
-                    // unit"
+                    // check if all fields share the same instance of the "other unit"
                     Field **fieldsPtr;
-                    fieldsPtr = &fields;
-                    containerIndex = (* fieldsPtr)->unitPositions[u2];
+                    fieldsPtr = fieldsVector;
+                    containerIndex = (*fieldsPtr)->unitPositions[u2];
                     printf("the tupel MIGHT be in %s #%d ...\n", unitDefs.units[u2].name, containerIndex);
                     fieldsPtr++;
                     while (*fieldsPtr) {
@@ -900,11 +909,11 @@ int findPointingTupels() {
                         }
                         tuple[n - 1] = n;
 
-                        progress |= forbidNumbersInOtherFields(unitDefs.units[u2].fields[containerIndex], tuple, fields);
+                        progress |= forbidNumbersInOtherFields(unitDefs.units[u2].fields[containerIndex], tuple, fieldsVector);
                     }
                 }
 
-                free(fields);
+                free(fieldsVector);
             }
         }
     }

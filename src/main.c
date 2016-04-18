@@ -28,6 +28,7 @@ in das hier erwartete:
 
 void printUsage();
 int readSudoku();
+int importSudoku(char *sudoku);
 int solve();
 
 char buffer[1000]; // buffer for string operations
@@ -105,6 +106,10 @@ int main(int argc, char **argv) {
 
     if (inputFilename && !readSudoku(inputFilename)) {
         return 1; // Oje ... stopp!
+    }
+
+    if (sudoku) {
+        importSudoku(sudoku);
     }
 
     if (verboseLogging) {
@@ -229,13 +234,14 @@ int solve() {
             printlog("??? Searching for: unique numbers ... \n");
 
         progress |= checkForSolvedCells();
-
+        if (progress) continue;
 
         if (verboseLogging) {
             printSvg(0);
         }
 
         progress |= findHiddenSingles();
+        if (progress) continue;
 
 
         if (verboseLogging) {
@@ -252,6 +258,7 @@ int solve() {
             return 1;
 
         progress |= findNakedTuples(2); // find naked pairs
+        if (progress) continue;
 
         if (isFinished())
             return 1;
@@ -259,6 +266,7 @@ int solve() {
         //progress |= findNakedTuples(3); // find naked triples
 
         progress |= findPointingTupels(); // find pointing pairs/triples
+        if (progress) continue;
 
 
         if (verboseLogging) {
@@ -564,4 +572,41 @@ int readSudoku(char *inputFilename) {
     printf("Initial values filled.\n");
 
     return ok;
+}
+
+/**
+ * import a sudoku as a sequence of characters representing the initial numbers.
+ * Empty fields can be defined by using 0, _ or .
+ * 
+ * @param sudoku the Sudoku string
+ */
+int importSudoku(char *sudoku) {
+    int f;
+    char c;
+
+    for (f = 0; f < NUMBER_OF_FIELDS; f++) {
+        c = sudoku[f];
+        if (c == '\0') {
+            sprintf(buffer, "Error parsing the Sudoku input: unexpected end of Sudoku data after character #%d", f);
+            printlog(buffer);
+            exit(EXIT_FAILURE);
+        }
+
+        if ((c >= '0') && (c <= (char) (MAX_NUMBER + (int) '0'))) {
+            fields[f].initialValue = (int) (c - '0');
+        } else if ((c == ' ') || (c == '.') || (c == '_')) {
+            fields[f].initialValue = 0;
+        } else {
+            sprintf(buffer, "Error reading the Sudoku from file: illegal character ('%c') at position %d.\n", c, f);
+            printlog(buffer);
+            exit(EXIT_FAILURE);
+        }
+    }
+
+        // copy original grid
+    for (f = 0; f < NUMBER_OF_FIELDS; f++) {
+        fields[f].value = fields[f].initialValue;
+    }
+
+    return 1;
 }
