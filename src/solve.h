@@ -22,6 +22,7 @@ extern "C" {
     void freeFields();
     int isFinished();
     int forbidNumber(Field *field, unsigned n);
+    void initCandidates();
 
     // strategies
     int checkForSolvedCells();

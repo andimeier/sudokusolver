@@ -2,6 +2,7 @@
 #include <stdlib.h>
 #include <string.h>
 #include <ctype.h>
+#include <assert.h>
 #include <unistd.h>
 #include "solve.h"
 #include "global.h"
@@ -40,6 +41,10 @@ int main(int argc, char **argv) {
     char *inputFilename = NULL;
     char *sudoku = NULL;
 
+    // if the Sudoku is wider than 26 numbers, we have a memory allocation issue
+    // with the field->name (what is right of "Z26"?)
+    assert(MAX_NUMBER <= 26);
+    
     // read command line arguments
     opterr = 0;
 
@@ -142,6 +147,7 @@ int main(int argc, char **argv) {
         sprintf(buffer, "      %d von %d Zellen wurden gefunden.", numbersFound, NUMBER_OF_FIELDS);
         printlog(buffer);
         printlog("-----------------------------------------------");
+        sudokuString();
     }
 
     if (errors) {
@@ -205,6 +211,8 @@ int solve() {
 
     printf("[4s65f]\n");
 
+    initCandidates();
+    
     do {
         iteration++;
         progress = 0; // noch kein neuen Erkenntnis in dieser Runde (hat ja erst begonnen)
@@ -233,14 +241,20 @@ int solve() {
         if (verboseLogging == 2)
             printlog("??? Searching for: unique numbers ... \n");
 
+        printlog("Enter strategy --- Check for solved cells ...\n");
         progress |= checkForSolvedCells();
+        sprintf(buffer, "After strategy --- Check for solved cells ... progress: %d\n", progress);
+        printlog(buffer);
         if (progress) continue;
 
         if (verboseLogging) {
             printSvg(0);
         }
 
+        printlog("Enter strategy --- Find hidden singles ...\n");
         progress |= findHiddenSingles();
+        sprintf(buffer, "After strategy --- Find hidden singles ... progress: %d\n", progress);
+        printlog(buffer);
         if (progress) continue;
 
 
@@ -257,16 +271,22 @@ int solve() {
         if (isFinished())
             return 1;
 
-        progress |= findNakedTuples(2); // find naked pairs
-        if (progress) continue;
+//        printlog("Enter strategy --- Find naked pairs ...\n");
+        //        progress |= findNakedTuples(2); // find naked pairs
+//        printlog("After strategy --- Find naked pairs ... progress: %d\n", progress);
+        //        if (progress) continue;
 
         if (isFinished())
             return 1;
 
+//        printlog("Enter strategy --- Find naked triples ...\n");
         //progress |= findNakedTuples(3); // find naked triples
+//        printlog("After strategy --- Find naked triples ... progress: %d\n", progress);
 
-        progress |= findPointingTupels(); // find pointing pairs/triples
-        if (progress) continue;
+//        printlog("Enter strategy --- Find pointing tuples ...\n");
+        //        progress |= findPointingTupels(); // find pointing pairs/triples
+//        printlog("After strategy --- Find ponting tuples ... progress: %d\n", progress);
+        //        if (progress) continue;
 
 
         if (verboseLogging) {
@@ -603,7 +623,7 @@ int importSudoku(char *sudoku) {
         }
     }
 
-        // copy original grid
+    // copy original grid
     for (f = 0; f < NUMBER_OF_FIELDS; f++) {
         fields[f].value = fields[f].initialValue;
     }

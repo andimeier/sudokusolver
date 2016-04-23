@@ -24,6 +24,12 @@ static int getUniquePositionInContainer(Field **container, unsigned n);
 static int setUniqueNumber(Field *field);
 static FieldsVector *fieldsWithCandidate(FieldsVector *container, unsigned n);
 static int fieldHasCandidate(Field *field, unsigned n);
+static unsigned recurseNakedTuples(unsigned maxLevel, FieldsVector *container, unsigned level, unsigned *numbers, FieldsVector *fieldsContainingCandidates);
+static int fieldCandidatesSubsetOf(Field *field, unsigned *numbers);
+static unsigned equalNumberOfFieldsAndCandidates(FieldsVector *fieldsVector, unsigned *numbers);
+static int forbidNumbersInOtherFields(Field **container, unsigned *n, Field **dontTouch);
+static void forbidNumberInNeighbors(Field *field, unsigned n);
+static void setValue(Field *field, unsigned value);
 
 UnitDefs unitDefs;
 Field *fields; // the fields of the game board
@@ -161,6 +167,11 @@ void initGrid() {
             unitDefs.units[BOXES].fields[unitPositions[BOXES]][y] = field;
 
             field->unitPositions = unitPositions;
+            
+            // use the ROWS and COLS coordinates as the "name" of the field
+            char *name = (char *)xmalloc(sizeof(char) * 4);
+            sprintf(name, "%c%u", (char)(x + (int)'A'), y + 1);
+            field->name = name;
         }
 
     // fill units with pointers to the corresponding fields
@@ -217,6 +228,7 @@ void initGrid() {
 void freeGrid() {
     for (int f = 0; f < NUMBER_OF_FIELDS; f++) {
         free(fields[f].unitPositions);
+        free(fields[f].name);
     }
 }
 
@@ -250,7 +262,7 @@ int isFinished() {
 //   die fixierte Zahl
 
 int setUniqueNumber(Field *field) {
-    int n;
+    unsigned n;
 
     if (field->value) {
         if (verboseLogging == 2) {
@@ -267,7 +279,7 @@ int setUniqueNumber(Field *field) {
     }
 
     unsigned *candidates = field->candidates;
-    for (n = 1; n <= MAX_NUMBER; n++)
+    for (n = 1; n <= MAX_NUMBER; n++) {
         if (candidates[n - 1]) {
             if (verboseLogging == 2) {
                 // TODO sprintf(buffer, "Aha, nur mehr eine Moeglichkeit in Feld (%d/%d) (possibilities: %s): %d\n", y + 1, x + 1, possibilities[y][x], n);
@@ -276,6 +288,9 @@ int setUniqueNumber(Field *field) {
             field->value = n;
             break;
         }
+    }
+    
+    forbidNumberInNeighbors(field, n);
 
     return n;
 }
@@ -429,12 +444,35 @@ int forbidNumber(Field *field, unsigned n) {
 }
 
 //-------------------------------------------------------------------
+// set all candidates for all fields initially
+
+void initCandidates() {
+    int f;
+    Field *field;
+
+    printlog("Before initCandidates:\n");
+    showAllCandidates();
+
+    for (f = 0; f < NUMBER_OF_FIELDS; f++) {
+        field = fields + f;
+
+        if (field->value) {
+            sprintf(buffer, "Set value of field %s to %u\n", field->name, field->value);
+            printlog(buffer);
+            setValue(field, field->value);
+        }
+    }
+
+    printlog("After initCandidates:\n");
+    showAllCandidates();
+}
+
+//-------------------------------------------------------------------
 // check for solved cells and remove candidates from neighbor cells
 // @return 1 ... something has changed, 0 ... nothing changed
 
 int checkForSolvedCells() {
     int f;
-    Field **container;
     Field *field;
     int value;
     int progress; // Flag: in einer Iteration wurde zumindest eine Erkenntnis gewonnen
@@ -442,12 +480,6 @@ int checkForSolvedCells() {
     progress = 0;
 
     showAllCandidates();
-
-
-    for (f = 0; f < NUMBER_OF_FIELDS; f++) { // FIXME debugging code
-        field = fields + f;
-        printf("Field #%d: candidate[0] is %d. value: %d\n", f, field->candidates[0], field->value);
-    }
 
     for (int f = 0; f < NUMBER_OF_FIELDS; f++) {
         printf("[1234-4] field #%d: in row %d, col %d, box %d\n", f, fields[f].unitPositions[ROWS], fields[f].unitPositions[COLS], fields[f].unitPositions[BOXES]);
@@ -461,42 +493,11 @@ int checkForSolvedCells() {
         printf("field #%d has value %d\n", f, value); // FIXME debugging code
         fflush(stdout); // FIXME debugging code
 
-        if (value) {
-            // field contains a number => this number must not appear in
-            // any other "neighboring" fields (fields within the same unit)
-
-            // forbid number in other cells of the same unit
-
-            printf("[4hhs]\n");
-            for (int u = 0; u < unitDefs.count; u++) {
-                printf("[6hshhs]\n");
-                Unit *unit = &(unitDefs.units[u]);
-                printf("[6hshhs++]\n");
-                printf("field #%d has positions ROWS %d - COLS %d - BOXES %d \n", f, field->unitPositions[0], field->unitPositions[1], field->unitPositions[2]);
-                container = unit->fields[field->unitPositions[u]];
-
-                printf("[47hhs]\n");
-
-                // go through all positions (numbers) of the container and 
-                // forbid this number in all other fields of the container
-                unsigned candidates[MAX_NUMBER];
-
-                // build tuple to search for
-                for (int i = 0; i < MAX_NUMBER; i++) {
-                    candidates[i] = 0;
-                }
-                printf("[4nx7hhs]\n");
-                candidates[value - 1] = value;
-
-                Field * preserve[2];
-                preserve[0] = field;
-                preserve[1] = NULL;
-
-                printf("Forbid other numbers than %u in container %s, except field %d/%d\n", value, unit->name, field->unitPositions[ROWS], field->unitPositions[COLS]);
-                progress |= forbidNumbersInOtherFields(container, candidates, preserve);
-                showAllCandidates();
-            }
+        if (field->candidatesLeft == 1 && !field->value) {
+            setUniqueNumber(field);
+            progress = 1;
         }
+
 
     }
     return progress;
@@ -797,6 +798,34 @@ int findHiddenPairs() {
     return progress;
 }
 
+int recurseHiddenTuples(unsigned maxLevel, FieldsVector *fields, unsigned level, unsigned *candidates, FieldsVector *fieldsContainingCandidates) {
+
+    // make room for new candidate in the candidates vector
+    candidates[level + 1] = 0;
+
+    // add next number to numbers vector
+    for (unsigned n = 1; n < MAX_NUMBER; n++) {
+        candidates[level] = n;
+
+        // check this combination of candidates (in the candidates vector) 
+        // whether there are only length(candidates) Sudoku fields in which
+        // the candidates can occur => in this case this would be a hidden
+        // tuple of length length(candidates)
+
+        // FIXME setFieldsContainingCandidates(fieldsContainingCandidates, n);
+
+        // recurse further?
+        // FIXME 
+        //        if () {
+        //        }
+    }
+
+    // "rollback" recursion
+    candidates[level] = 0;
+
+    return 0; // FIXME ????
+}
+
 /**
  * find pointing pairs or triples
  * 
@@ -832,7 +861,7 @@ int findPointingTupels() {
             printf("Alex\n");
             show(0);
             sudokuString();
-            
+
             printf("iterating into instance %d of container \"%s\"\n", c, unit->name); // FIXME debugging output
 
             // check for pointing tuples in this container
@@ -845,7 +874,7 @@ int findPointingTupels() {
                 printf("got fields:\n"); // FIXME debugging output
                 Field **ptr = fieldsVector; // FIXME debugging variable
                 while (*ptr) { // FIXME debugging output
-//                    printf("ptr point to address %d\n", (int) *ptr);
+                    //                    printf("ptr point to address %d\n", (int) *ptr);
                     printf("  candidate %u is possible in field %d/%d\n", n, (*ptr)->unitPositions[ROWS], (*ptr)->unitPositions[COLS]);
                     ptr++;
                 }
@@ -963,4 +992,215 @@ FieldsVector *fieldsWithCandidate(Field **container, unsigned n) {
  */
 int fieldHasCandidate(Field *field, unsigned n) {
     return !field->value && (field->candidates[n - 1] == n);
+}
+
+/**
+ * find naked tuples (pairs, triples, ...) which share the same candidates.
+ * For instance, if two fields have only the candidates 2 and 4, then 2 and 4
+ * can be eliminated from all other fields in the same container.
+ * 
+ * @param container vector of fields (=container) in which we look for naked 
+ *   tuples
+ * @param dimension dimension of the tupel to be looked for. 2=pairs, 
+ *   3=triples etc.
+ * @return progress flag: 1 for "something has changed", 0 for "no change"
+ */
+unsigned findNakedTuplesInContainer(FieldsVector *container, unsigned dimension) {
+    unsigned progress;
+    unsigned *numbers;
+    FieldsVector *foundFields;
+
+    assert(dimension > 0 && dimension < MAX_NUMBER);
+
+    progress = 0;
+    numbers = (unsigned *) xmalloc(sizeof (unsigned) * (dimension + 1));
+    foundFields = (FieldsVector *) xmalloc(sizeof (FieldsVector) * (dimension + 1));
+
+    // we are in level 0 of recursion: initialize numbers vector
+    numbers[0] = 0;
+    foundFields[0] = NULL;
+
+    if (recurseNakedTuples(dimension, container, 1, numbers, foundFields)) {
+        progress = 1;
+    }
+
+    free(foundFields);
+    free(numbers);
+
+    return progress;
+}
+
+/**
+ * recursively look for naked tuples of the dimension maxLevel.
+ * Note: finds tupels of the given dimension and below the given dimension.
+ * For example, if dimension is 3, then naked triples are found, but naked pairs
+ * as well.
+ * @param maxLevel
+ * @param fields vector of found fields, terminated with NULL
+ * @param level
+ * @param numbers numbers vector to be searched for, terminated with 0
+ * @param fieldsContainingCandidates
+ * @return 1 if a naked tuple has been found, 0 otherwise
+ */
+unsigned recurseNakedTuples(unsigned maxLevel, FieldsVector *container, unsigned level, unsigned *numbers, FieldsVector *fieldsContainingCandidates) {
+
+    if (level > maxLevel) {
+        // maximum recursion depth reached => nothing found
+        return 0;
+    }
+
+    // iterate through all numbers of this level
+    numbers[level] = 0;
+    fieldsContainingCandidates[level] = NULL;
+    for (unsigned number = 0; number < MAX_NUMBER; number++) {
+        numbers[level - 1] = number;
+
+        for (unsigned i = 0; i < MAX_NUMBER; i++) {
+            Field *field;
+
+            field = container[i];
+            if (fieldCandidatesSubsetOf(field, numbers)) {
+                fieldsContainingCandidates[level - 1] = field;
+
+                // check if we have found enough fields
+                if (equalNumberOfFieldsAndCandidates(fieldsContainingCandidates, numbers)) {
+                    unsigned progress;
+
+                    // found a naked tuple!
+                    progress = 0;
+
+                    // eliminate the found numbers of the naked tuple from
+                    // all other field of the same container
+                    // TODO and from other containers if all found fields 
+                    // share the same other container
+                    progress |= forbidNumbersInOtherFields(container, numbers, fieldsContainingCandidates);
+                    return progress;
+                }
+            }
+        }
+
+        // no tuple of dimension "level" found => recurse further
+        return recurseNakedTuples(maxLevel, container, level + 1, numbers, fieldsContainingCandidates);
+    }
+
+    return 0;
+}
+
+/**
+ * checks if the possible candidates for a field are a subset of the candidates
+ * given in the parameter
+ * 
+ * @param field pointer to field for which the candidates should be checked
+ * @param numbers vector of numbers, terminated with 0
+ * @return 1 if the field's candidates are a (strict or non-strict) subset of
+ *   the given numbers vector. 0 if they are not.
+ */
+int fieldCandidatesSubsetOf(Field *field, unsigned *numbers) {
+
+    while (*numbers) {
+        if (!field->candidates[*numbers]) {
+            // if any candidate is found which is not in "numbers", the field's
+            // candidates are no subset of "numbers"
+            return 0;
+        }
+        numbers++;
+    }
+
+    return 1;
+}
+
+/**
+ * checks if the number of fields in the FieldsVector and the number of numbers
+ * in the numbers vector are equal.
+ * 
+ * @param fieldsVector vector or pointers to Fields, terminated with a NULL 
+ *   pointer
+ * @param numbers vector of numbers, terminated with 0
+ * @return 1 both have equal length. 0 if they differ
+ */
+unsigned equalNumberOfFieldsAndCandidates(FieldsVector *fieldsVector, unsigned *numbers) {
+
+    do {
+        if (*fieldsVector == NULL && *numbers == 0) {
+            return 1;
+        }
+
+        // if we are still here, then at least one of the vectors is not null.
+        // However, if the other one is exhausted, then both vectors apparently
+        // do not have the same length
+        if (*fieldsVector == NULL || *numbers == 0) {
+            return 0;
+        }
+
+        fieldsVector++;
+        numbers++;
+    } while (1);
+}
+
+
+
+
+//FieldsVector **containersContainingAllFields(FieldsVector *fields) {
+//}
+
+/**
+ * sets the value of a field and eliminates this number from all candidates
+ * of neighboring fields
+ * 
+ * @param field pointer to the Field structure
+ * @param value the number to be set as result field value
+ */
+void setValue(Field *field, unsigned value) {
+    unsigned n;
+
+    assert(value <= MAX_NUMBER);
+
+    field->value = value;
+
+    unsigned *candidates = field->candidates;
+    for (n = 1; n <= MAX_NUMBER; n++) {
+        candidates[n - 1] = (n == value) ? value : 0;
+    }
+
+    forbidNumberInNeighbors(field, n);
+}
+
+/**
+ * forbids a number in all neighbor fields of the given field. This is used
+ * e.g. after setting the value of a field to eliminate this number from all
+ * neighbors.
+ * 
+ * @param field
+ * @param n
+ */
+void forbidNumberInNeighbors(Field *field, unsigned n) {
+    Field **container;
+
+    sprintf(buffer, "Forbid number %u in neighbors of field ...\n", n);
+    printlog(buffer);
+    
+    // forbid number in all other "neighboring fields"
+    for (int u = 0; u < unitDefs.count; u++) {
+        printf("[6hshhs]\n");
+        Unit *unit = &(unitDefs.units[u]);
+        printf("[6hshhs++]\n");
+        container = unit->fields[field->unitPositions[u]];
+
+        // go through all positions (numbers) of the container and 
+        // forbid this number in all other fields of the container
+        unsigned candidates[MAX_NUMBER];
+
+        // build tuple to search for
+        for (int i = 0; i < MAX_NUMBER; i++) {
+            candidates[i] = 0;
+        }
+        candidates[n - 1] = n;
+
+        // preserve candidate in "our" field only
+        Field * preserve[2];
+        preserve[0] = field;
+        preserve[1] = NULL;
+
+        forbidNumbersInOtherFields(container, candidates, preserve);
+    }
 }

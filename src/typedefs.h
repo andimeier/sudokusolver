@@ -20,6 +20,7 @@ extern "C" {
         unsigned initialValue;
         unsigned candidatesLeft;
         unsigned value;
+        char *name; // "name" of field = coordinates, e.g. "A2"
     } Field;
     
     typedef struct Unit {
