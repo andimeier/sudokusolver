@@ -27,16 +27,20 @@ void show(int showInit) {
     int index;
     Field *field;
 
+    printlog(showInit ? "   1 2 3 4 5 6 7 8 9          1 2 3 4 5 6 7 8 9 " : "   1 2 3 4 5 6 7 8 9 ");
     for (y = 0; y < MAX_NUMBER; y++) {
 
         if (!(y % 3)) {
             // intermediate header row
-            printlog(showInit ? "+-----+-----+-----+      +-----+-----+-----+" : "+-----+-----+-----+");
+            printlog(showInit ? "  +-----+-----+-----+        +-----+-----+-----+" : "  +-----+-----+-----+");
 
         }
         // normal data row
         index = 0;
         if (showInit) {
+
+            buffer[index++] = (char) (y + (int) 'A');
+            buffer[index++] = ' ';
 
             // show starting grid's data row
             for (x = 0; x < MAX_NUMBER; x++) {
@@ -60,6 +64,9 @@ void show(int showInit) {
             index = strlen(buffer);
         }
 
+        buffer[index++] = (char) (y + (int) 'A');
+        buffer[index++] = ' ';
+
         // show current grid's data row
         for (x = 0; x < MAX_NUMBER; x++) {
             if (x % 3)
@@ -81,7 +88,7 @@ void show(int showInit) {
     }
 
     // intermediate header row
-    printlog(showInit ? "+-----+-----+-----+      +-----+-----+-----+" : "+-----+-----+-----+");
+    printlog(showInit ? "  +-----+-----+-----+        +-----+-----+-----+" : "  +-----+-----+-----+");
 
 
 
@@ -154,7 +161,7 @@ void sudokuString() {
     buffer = (char *) xmalloc(sizeof (char) * NUMBER_OF_FIELDS);
 
     for (f = 0; f < NUMBER_OF_FIELDS; f++) {
-        buffer[f] = (char)(fields[f].value + '0');
+        buffer[f] = (char) (fields[f].value + '0');
     }
     buffer[f] = '\0';
 

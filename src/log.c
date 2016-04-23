@@ -16,7 +16,7 @@ void showCandidates(Field *field) {
     }
     candidates[MAX_NUMBER] = '\0';
 
-    printf("candidates for field %d/%d are: %s\n", field->unitPositions[ROWS], field->unitPositions[COLS], candidates);
+    printf("candidates for field %s are: %s\n", field->name, candidates);
 }
 
 void showAllCandidates() {
@@ -27,7 +27,7 @@ void showAllCandidates() {
         field = fields + f;
 
         if (field->value) {
-            printf("candidates for field %d/%d ... value %u\n", field->unitPositions[ROWS], field->unitPositions[COLS], field->value);
+            printf("candidates for field %s ... value %u\n", field->name, field->value);
             continue;
         }
 
@@ -36,7 +36,7 @@ void showAllCandidates() {
         }
         candidates[MAX_NUMBER] = '\0';
 
-        printf("candidates for field %d/%d are: %s\n", field->unitPositions[ROWS], field->unitPositions[COLS], candidates);
+        printf("candidates for field %s are: %s\n", field->name, candidates);
     }
 }
 

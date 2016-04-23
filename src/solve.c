@@ -170,7 +170,7 @@ void initGrid() {
             
             // use the ROWS and COLS coordinates as the "name" of the field
             char *name = (char *)xmalloc(sizeof(char) * 4);
-            sprintf(name, "%c%u", (char)(x + (int)'A'), y + 1);
+            sprintf(name, "%c%u", (char)(y + (int)'A'), x + 1);
             field->name = name;
         }
 
@@ -457,7 +457,7 @@ void initCandidates() {
         field = fields + f;
 
         if (field->value) {
-            sprintf(buffer, "Set value of field %s to %u\n", field->name, field->value);
+            sprintf(buffer, "Set value of field %s (#%d) to %u\n", field->name, f, field->value);
             printlog(buffer);
             setValue(field, field->value);
         }
@@ -1162,7 +1162,7 @@ void setValue(Field *field, unsigned value) {
         candidates[n - 1] = (n == value) ? value : 0;
     }
 
-    forbidNumberInNeighbors(field, n);
+    forbidNumberInNeighbors(field, value);
 }
 
 /**
@@ -1176,7 +1176,9 @@ void setValue(Field *field, unsigned value) {
 void forbidNumberInNeighbors(Field *field, unsigned n) {
     Field **container;
 
-    sprintf(buffer, "Forbid number %u in neighbors of field ...\n", n);
+    assert(n <= MAX_NUMBER);
+    
+    sprintf(buffer, "Forbid number %u in neighbors of field %s ...\n", n, field->name);
     printlog(buffer);
     
     // forbid number in all other "neighboring fields"
