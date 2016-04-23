@@ -167,10 +167,10 @@ void initGrid() {
             unitDefs.units[BOXES].fields[unitPositions[BOXES]][y] = field;
 
             field->unitPositions = unitPositions;
-            
+
             // use the ROWS and COLS coordinates as the "name" of the field
-            char *name = (char *)xmalloc(sizeof(char) * 4);
-            sprintf(name, "%c%u", (char)(y + (int)'A'), x + 1);
+            char *name = (char *) xmalloc(sizeof (char) * 4);
+            sprintf(name, "%c%u", (char) (y + (int) 'A'), x + 1);
             field->name = name;
         }
 
@@ -266,8 +266,8 @@ int setUniqueNumber(Field *field) {
 
     if (field->value) {
         if (verboseLogging == 2) {
-            // TODO sprintf(buffer, "FEHLER! HUCH! Obwohl schon ausgefuellt, wird das aufgerufen! (%d/%d) soll gesetzt werden, ist aber bereits %d!\n", f, fields[f].value);
-            // TODO printlog(buffer);
+            sprintf(buffer, "FEHLER! HUCH! Obwohl schon ausgefuellt, wird das aufgerufen! Field %s soll gesetzt werden, ist aber bereits %d!\n", field->name, field->value);
+            printlog(buffer);
             sprintf(buffer, "Fehler vor inc: %d\n", errors); //?DEBUG
             printlog(buffer);
         }
@@ -282,15 +282,13 @@ int setUniqueNumber(Field *field) {
     for (n = 1; n <= MAX_NUMBER; n++) {
         if (candidates[n - 1]) {
             if (verboseLogging == 2) {
-                // TODO sprintf(buffer, "Aha, nur mehr eine Moeglichkeit in Feld (%d/%d) (possibilities: %s): %d\n", y + 1, x + 1, possibilities[y][x], n);
+                // TODO sprintf(buffer, "Aha, nur mehr eine Moeglichkeit in Feld %s (possibilities: %s): %d\n", field->name, possibilities[y][x], n);
                 // TODO printlog(buffer);
             }
-            field->value = n;
+            setValue(field, n);
             break;
         }
     }
-    
-    forbidNumberInNeighbors(field, n);
 
     return n;
 }
@@ -531,7 +529,7 @@ int findHiddenSingles() {
                         // TODO sprintf(buffer, "!!! Neue Erkenntnis 2a: In Zeile %d kann %d nur an Position %d vorkommen => (%d/%d) = %d!\n", y + 1, n, x + 1, y + 1, x + 1, n);
                         // TODO printlog(buffer);
                     }
-                    container[pos]->value = n;
+                    setValue(container[pos], n);
 
                     Field *field = container[pos];
                     sprintf(buffer, "*** [hidden single] hidden single in unit %s, field %d/%d: %u ... \n", unit->name, field->unitPositions[ROWS], field->unitPositions[COLS], n);
@@ -1151,14 +1149,12 @@ unsigned equalNumberOfFieldsAndCandidates(FieldsVector *fieldsVector, unsigned *
  * @param value the number to be set as result field value
  */
 void setValue(Field *field, unsigned value) {
-    unsigned n;
-
     assert(value <= MAX_NUMBER);
 
     field->value = value;
 
     unsigned *candidates = field->candidates;
-    for (n = 1; n <= MAX_NUMBER; n++) {
+    for (unsigned n = 1; n <= MAX_NUMBER; n++) {
         candidates[n - 1] = (n == value) ? value : 0;
     }
 
@@ -1177,10 +1173,10 @@ void forbidNumberInNeighbors(Field *field, unsigned n) {
     Field **container;
 
     assert(n <= MAX_NUMBER);
-    
+
     sprintf(buffer, "Forbid number %u in neighbors of field %s ...\n", n, field->name);
     printlog(buffer);
-    
+
     // forbid number in all other "neighboring fields"
     for (int u = 0; u < unitDefs.count; u++) {
         printf("[6hshhs]\n");
