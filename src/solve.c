@@ -49,17 +49,6 @@ void initFields() {
         unsigned *candidates = (unsigned *) xmalloc(sizeof (unsigned) * MAX_NUMBER);
         fields[f].candidates = candidates;
     }
-
-
-    // FIXME debugging code
-    for (int f = 0; f < NUMBER_OF_FIELDS; f++) // FIXME debugging code
-        fields[f].candidates[0] = 3;
-
-    for (int f = 0; f < NUMBER_OF_FIELDS; f++) // FIXME debugging code
-        printf("Field #%d: candidate[0] is %d\n", f, fields[f].candidates[0]);
-
-    for (int f = 0; f < NUMBER_OF_FIELDS; f++) // FIXME debugging code
-        printf("with pointer ... Field #%d: candidate[0] is %d\n", f, (fields + f)->candidates[0]);
 }
 
 /**
@@ -135,7 +124,6 @@ void initGrid() {
 
     assert(unitDefs.count > 0);
 
-    printf("-----init grid---------\n");
     for (int f = 0; f < NUMBER_OF_FIELDS; f++) // FIXME debugging code
 
         // Initialisierung:
@@ -145,7 +133,6 @@ void initGrid() {
 
             x = f % MAX_NUMBER;
             y = f / MAX_NUMBER;
-            printf("Field #%d: row %d, col %d\n", f, y, x);
 
             for (int n = 0; n < MAX_NUMBER; n++) {
                 field->candidates[n] = n + 1;
@@ -181,7 +168,6 @@ void initGrid() {
     for (int row = 0; row < MAX_NUMBER; row++) {
         for (int ix = 0; ix < MAX_NUMBER; ix++) {
             field = fields + row * MAX_NUMBER + ix;
-            printf("[adsf] row %d, col %d: field [%d] row is %d\n", row, ix, row * MAX_NUMBER + ix, field->unitPositions[ROWS]);
             assert(field->unitPositions[ROWS] == row);
 
             unit->fields[row][ix] = field;
@@ -189,7 +175,6 @@ void initGrid() {
     }
 
     // cols
-    printf("[dxsf] next ...\n");
     unit = &(unitDefs.units[COLS]);
     for (int col = 0; col < MAX_NUMBER; col++) {
         for (int ix = 0; ix < MAX_NUMBER; ix++) {
@@ -201,7 +186,6 @@ void initGrid() {
     }
 
     // boxes
-    printf("[dx56sf] next ...\n");
     unit = &(unitDefs.units[BOXES]);
     for (int box = 0; box < MAX_NUMBER; box++) {
         for (int ix = 0; ix < MAX_NUMBER; ix++) {
@@ -214,11 +198,6 @@ void initGrid() {
 
             unit->fields[box][ix] = field;
         }
-    }
-    printf("[5fgx] done initialising grid.\n");
-
-    for (int f = 0; f < NUMBER_OF_FIELDS; f++) {
-        printf("[1234] field #%d: in row %d, col %d, box %d\n", f, fields[f].unitPositions[ROWS], fields[f].unitPositions[COLS], fields[f].unitPositions[BOXES]);
     }
 }
 
@@ -266,16 +245,10 @@ int setUniqueNumber(Field *field) {
 
     if (field->value) {
         if (verboseLogging == 2) {
-            sprintf(buffer, "FEHLER! HUCH! Obwohl schon ausgefuellt, wird das aufgerufen! Field %s soll gesetzt werden, ist aber bereits %d!\n", field->name, field->value);
-            printlog(buffer);
-            sprintf(buffer, "Fehler vor inc: %d\n", errors); //?DEBUG
+            sprintf(buffer, "Ouch! Already containing a value, but \"setUniqueNumber\" is called! Field %s is already %u!\n", field->name, field->value);
             printlog(buffer);
         }
         errors++;
-        if (verboseLogging) {
-            sprintf(buffer, "Fehler nach inc: %d\n", errors); //?DEBUG
-            printlog(buffer);
-        }
     }
 
     unsigned *candidates = field->candidates;
@@ -318,21 +291,18 @@ int getUniquePositionInContainer(Field **container, unsigned n) {
     foundPos = 0;
     for (pos = 0; pos < MAX_NUMBER; pos++) {
         field = container[pos];
-        printf("[665] field %d/%d: candidate for %u is: %u\n", field->unitPositions[ROWS], field->unitPositions[COLS], n, field->candidates[n - 1]);
         if ((field->value == n) || (!(field->value) && (field->candidates[n - 1] == n))) {
             printf("Field %d/%d can contain candidate %u\n", field->unitPositions[ROWS], field->unitPositions[COLS], n);
             if (!unique) {
-                printf("This is the FIRST occurrence in the container\n");
-                unique = 1; // erstes gefundenes Vorkommen in der Reihe
-                foundPos = pos; // Position merken, falls sie eindeutig ist
+                unique = 1; // first occurrence in the current container
+                foundPos = pos; // remember position, in case it is the only one
             } else {
-                // oje, das waere schon das 2. Vorkommen der Zahl in dieser Reihe
-                return -1; // war wohl nix
+                // what a pity, this is the second occurrence of this number in the container
+                return -1; // => apparently no hidden single
             }
         }
     }
     if (unique) {
-        printf("Yeah, found only one occurrence of %u in the container\n", n);
         return foundPos;
     }
 
@@ -394,7 +364,7 @@ int forbidNumbersInOtherFields(Field **container, unsigned *n, Field **dontTouch
                 if (n[i]) {
                     // was a candidate until now => remove candidate now
                     if (!field->value && field->candidates[i]) {
-                        sprintf(buffer, "forbid %u in field %d/%d\n", i + 1, field->unitPositions[ROWS], field->unitPositions[COLS]);
+                        sprintf(buffer, "forbid %u in field %s\n", i + 1, field->name);
                         logReduction(buffer);
 
                         field->candidates[i] = 0;
@@ -448,9 +418,6 @@ void initCandidates() {
     int f;
     Field *field;
 
-    printlog("Before initCandidates:\n");
-    showAllCandidates();
-
     for (f = 0; f < NUMBER_OF_FIELDS; f++) {
         field = fields + f;
 
@@ -461,12 +428,13 @@ void initCandidates() {
         }
     }
 
-    printlog("After initCandidates:\n");
+    printlog("Initial candidates are:\n");
     showAllCandidates();
 }
 
 //-------------------------------------------------------------------
-// check for solved cells and remove candidates from neighbor cells
+// check for cells having only one candidate left and set their value (and
+// then eliminate this value in neighboring fields)
 // @return 1 ... something has changed, 0 ... nothing changed
 
 int checkForSolvedCells() {
@@ -479,23 +447,14 @@ int checkForSolvedCells() {
 
     showAllCandidates();
 
-    for (int f = 0; f < NUMBER_OF_FIELDS; f++) {
-        printf("[1234-4] field #%d: in row %d, col %d, box %d\n", f, fields[f].unitPositions[ROWS], fields[f].unitPositions[COLS], fields[f].unitPositions[BOXES]);
-    }
-
-
     for (f = 0; f < NUMBER_OF_FIELDS; f++) {
         field = fields + f;
         value = field->value;
-
-        printf("field #%d has value %d\n", f, value); // FIXME debugging code
-        fflush(stdout); // FIXME debugging code
 
         if (field->candidatesLeft == 1 && !field->value) {
             setUniqueNumber(field);
             progress = 1;
         }
-
 
     }
     return progress;
