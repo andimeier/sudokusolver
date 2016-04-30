@@ -79,6 +79,7 @@ OUT = out
 TEST = test
 
 .PHONY: clean default all .init
+.PRECIOUS: $(OUT)/$(TARGET) $(OBJECTS)
 
 .init:
 	mkdir -p $(OUT)
@@ -88,7 +89,9 @@ all: clean default
 test: $(OUT)/$(TEST_TARGET)
 
 OBJECTS = $(patsubst $(SRC)/%.c, $(OUT)/%.o, $(wildcard $(SRC)/*.c))
-TEST_OBJECTS = $(patsubst $(TEST)/%.c, $(OUT)/%.o, $(wildcard $(TEST)/test*.c))
+TEST_OBJECTS = \
+  $(filter-out $(OUT)/main.o, $(patsubst $(SRC)/%.c, $(OUT)/%.o, $(wildcard $(SRC)/*.c))) \
+  $(patsubst $(TEST)/%.c, $(OUT)/test/%.o, $(wildcard $(TEST)/test*.c))
 HEADERS = $(wildcard $(SRC)/*.h)
 
 INC_DIRS=-I$(SRC) -I$(UNITY_ROOT)/src -I$(UNITY_ROOT)/extras/fixture/src
@@ -99,11 +102,16 @@ TEST_SRC_FILES = \
   $(filter-out src/main.c, $(wildcard $(SRC)/*.c)) \
   $(TEST)/test*.c
 
+# compile source files
 $(OUT)/%.o: $(SRC)/%.c $(HEADERS)
+	$(CC) $(CFLAGS) $(INC_DIRS) $(SYMBOLS) -c $< -o $@
+
+# compile unit test files
+$(OUT)/test/%.o: $(TEST)/%.c $(HEADERS)
+	mkdir -p $(OUT)
 	$(CC) $(CFLAGS) -c $< -o $@
 
-.PRECIOUS: $(OUT)/$(TARGET) $(OBJECTS)
-
+# link files
 $(OUT)/$(TARGET): $(OBJECTS)
 	$(CC) $(OBJECTS) -Wall $(LIBS) -o $@
 
@@ -119,7 +127,12 @@ clean:
 #	$(CC) $(OBJECTS) $(TEST_OBJECTS) -Wall $(LIBS) -o $@
 #	./$(TEST_TARGET) -v
 
-$(OUT)/$(TEST_TARGET): $(OBJECTS)
+#$(OUT)/$(TEST_TARGET): $(OBJECTS) $(TEST_OBJECTS)
+#	$(CC) $(TEST_OBJECTS) -Wall -o $@
+#	# execute tests
+#	./$@ -v
+
+$(OUT)/$(TEST_TARGET): $(TEST_OBJECTS)
 	$(CC) $(CFLAGS) $(INC_DIRS) $(SYMBOLS) $(TEST_SRC_FILES) -o $@
 	# execute tests
 	./$@ -v
