@@ -1056,9 +1056,10 @@ unsigned recurseNakedTuples(unsigned maxLevel, FieldsVector *container, unsigned
 int fieldCandidatesSubsetOf(Field *field, unsigned *numbers) {
 
     while (*numbers) {
-        if (!field->candidates[*numbers]) {
+        if (!field->candidates[*numbers - 1]) {
             // if any candidate is found which is not in "numbers", the field's
             // candidates are no subset of "numbers"
+            printf("OJE! number %u not found in candidates (%u)\n", *numbers, field->candidates[*numbers - 1]);
             return 0;
         }
         numbers++;
