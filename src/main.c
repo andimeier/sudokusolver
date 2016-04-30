@@ -32,8 +32,6 @@ int readSudoku();
 int importSudoku(char *sudoku);
 int solve();
 
-char buffer[1000]; // buffer for string operations
-
 int main(int argc, char **argv) {
     int result;
     int c;

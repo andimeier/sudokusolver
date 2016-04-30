@@ -17,6 +17,7 @@
       <itemPath>src/Makefile</itemPath>
     </logicalFolder>
     <itemPath>DataTypes.md</itemPath>
+    <itemPath>test/UnitTest.c</itemPath>
   </logicalFolder>
   <sourceFolderFilter>^(nbproject)$</sourceFolderFilter>
   <sourceRootList>
@@ -55,6 +56,8 @@
       <item path="src/solve.c" ex="false" tool="0" flavor2="2">
       </item>
       <item path="src/util.c" ex="false" tool="0" flavor2="2">
+      </item>
+      <item path="test/UnitTest.c" ex="false" tool="0" flavor2="0">
       </item>
     </conf>
   </confs>

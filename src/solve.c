@@ -31,6 +31,8 @@ static int forbidNumbersInOtherFields(Field **container, unsigned *n, Field **do
 static void forbidNumberInNeighbors(Field *field, unsigned n);
 static void setValue(Field *field, unsigned value);
 
+char buffer[1000]; // buffer for string operations
+
 UnitDefs unitDefs;
 Field *fields; // the fields of the game board
 

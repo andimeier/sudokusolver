@@ -49,6 +49,7 @@ MKDIR=mkdir
 CP=cp
 CCADMIN=CCadmin
 
+UNITY_ROOT=../Unity
 
 
 
@@ -66,31 +67,62 @@ CC = gcc
 #yypCFLAGS = -g -Wall -std=c99
 CFLAGS = -g -Wall
 
+TEST_TARGET = testrunner-sudoku-solver
+
 # directory containing the source files
 SRC = src
 
 # output directory
 OUT = out
 
+# directory containing the unit test source files
+TEST = test
+
 .PHONY: clean default all .init
 
 .init:
 	mkdir -p $(OUT)
 
-default: .init $(TARGET)
-all: default
+default: .init $(OUT)/$(TARGET)
+all: clean default
+test: $(OUT)/$(TEST_TARGET)
 
 OBJECTS = $(patsubst $(SRC)/%.c, $(OUT)/%.o, $(wildcard $(SRC)/*.c))
+TEST_OBJECTS = $(patsubst $(TEST)/%.c, $(OUT)/%.o, $(wildcard $(TEST)/test*.c))
 HEADERS = $(wildcard $(SRC)/*.h)
+
+INC_DIRS=-I$(SRC) -I$(UNITY_ROOT)/src -I$(UNITY_ROOT)/extras/fixture/src
+SYMBOLS=
+TEST_SRC_FILES = \
+  $(UNITY_ROOT)/src/unity.c \
+  $(UNITY_ROOT)/extras/fixture/src/unity_fixture.c \
+  $(filter-out src/main.c, $(wildcard $(SRC)/*.c)) \
+  $(TEST)/test*.c
 
 $(OUT)/%.o: $(SRC)/%.c $(HEADERS)
 	$(CC) $(CFLAGS) -c $< -o $@
 
-.PRECIOUS: $(TARGET) $(OBJECTS)
+.PRECIOUS: $(OUT)/$(TARGET) $(OBJECTS)
 
-$(TARGET): $(OBJECTS)
-	$(CC) $(OBJECTS) -Wall $(LIBS) -o $(OUT)/$@
+$(OUT)/$(TARGET): $(OBJECTS)
+	$(CC) $(OBJECTS) -Wall $(LIBS) -o $@
 
 clean:
 	-rm -f $(OUT)/*.o
 	-rm -f $(OUT)/$(TARGET)
+
+#$(OUT)/%.o: $(SRC)/%.c $(HEADERS)
+#	$(CC) $(CFLAGS) -c $< -o $@
+
+#$(OUT)/$(TEST_TARGET): $(OBJECTS) $(TEST_OBJECTS)
+#	$(C_COMPILER) $(CFLAGS) $(INC_DIRS) $(SYMBOLS) $(SRC_FILES1) -o $(TEST_TARGET)
+#	$(CC) $(OBJECTS) $(TEST_OBJECTS) -Wall $(LIBS) -o $@
+#	./$(TEST_TARGET) -v
+
+$(OUT)/$(TEST_TARGET): $(OBJECTS)
+	$(CC) $(CFLAGS) $(INC_DIRS) $(SYMBOLS) $(TEST_SRC_FILES) -o $@
+	# execute tests
+	./$@ -v
+
+print-%:
+	@echo '$*=$($*)'
