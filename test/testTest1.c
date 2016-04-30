@@ -43,6 +43,31 @@ void test_fieldCandidatesSubsetOf(void) {
 
     TEST_ASSERT_EQUAL(1, fieldCandidatesSubsetOf(&field, numbers));
 
+    numbers[0] = 2;
+    numbers[1] = 7;
+    numbers[2] = 0;
+
+    TEST_ASSERT_EQUAL(0, fieldCandidatesSubsetOf(&field, numbers));
+
+    for (unsigned i = 0; i < 9; i++) {
+        candidates[i] = 0;
+    }
+    candidates[4] = 5;
+
+    numbers[0] = 5;
+    numbers[1] = 0;
+    numbers[2] = 0;
+
+    TEST_ASSERT_EQUAL(1, fieldCandidatesSubsetOf(&field, numbers));
+
+    numbers[0] = 5;
+    numbers[1] = 7;
+    numbers[2] = 0;
+
+    TEST_ASSERT_EQUAL(0, fieldCandidatesSubsetOf(&field, numbers));
+
+
+
     free(numbers);
     free(candidates);
 }
