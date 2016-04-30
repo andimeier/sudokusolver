@@ -34,6 +34,8 @@ extern "C" {
     int findPointingTupels();
     int boxLineReduction(); // not implemented yet
 
+    int fieldCandidatesSubsetOf(Field *field, unsigned *numbers);
+
 #ifdef	__cplusplus
 }
 #endif

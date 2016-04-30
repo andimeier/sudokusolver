@@ -25,7 +25,6 @@ static int setUniqueNumber(Field *field);
 static FieldsVector *fieldsWithCandidate(FieldsVector *container, unsigned n);
 static int fieldHasCandidate(Field *field, unsigned n);
 static unsigned recurseNakedTuples(unsigned maxLevel, FieldsVector *container, unsigned level, unsigned *numbers, FieldsVector *fieldsContainingCandidates);
-static int fieldCandidatesSubsetOf(Field *field, unsigned *numbers);
 static unsigned equalNumberOfFieldsAndCandidates(FieldsVector *fieldsVector, unsigned *numbers);
 static int forbidNumbersInOtherFields(Field **container, unsigned *n, Field **dontTouch);
 static void forbidNumberInNeighbors(Field *field, unsigned n);

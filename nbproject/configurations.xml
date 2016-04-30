@@ -17,7 +17,7 @@
       <itemPath>src/Makefile</itemPath>
     </logicalFolder>
     <itemPath>DataTypes.md</itemPath>
-    <itemPath>test/UnitTest.c</itemPath>
+    <itemPath>test/testTest1.c</itemPath>
   </logicalFolder>
   <sourceFolderFilter>^(nbproject)$</sourceFolderFilter>
   <sourceRootList>
@@ -39,6 +39,11 @@
           <buildCommand>${MAKE} -f Makefile</buildCommand>
           <cleanCommand>${MAKE} -f Makefile clean</cleanCommand>
           <executablePath>out\sudoku-solver.exe</executablePath>
+          <cTool>
+            <incDir>
+              <pElem>../unity/src</pElem>
+            </incDir>
+          </cTool>
         </makeTool>
       </makefileType>
       <item path="DataTypes.md" ex="false" tool="3" flavor2="0">
@@ -57,7 +62,7 @@
       </item>
       <item path="src/util.c" ex="false" tool="0" flavor2="2">
       </item>
-      <item path="test/UnitTest.c" ex="false" tool="0" flavor2="0">
+      <item path="test/testTest1.c" ex="false" tool="0" flavor2="0">
       </item>
     </conf>
   </confs>

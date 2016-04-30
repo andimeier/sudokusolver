@@ -78,7 +78,7 @@ OUT = out
 # directory containing the unit test source files
 TEST = test
 
-.PHONY: clean default all .init
+.PHONY: clean default all .init test
 .PRECIOUS: $(OUT)/$(TARGET) $(OBJECTS)
 
 .init:
@@ -87,6 +87,8 @@ TEST = test
 default: .init $(OUT)/$(TARGET)
 all: clean default
 test: $(OUT)/$(TEST_TARGET)
+	# execute tests
+	./$< -v
 
 OBJECTS = $(patsubst $(SRC)/%.c, $(OUT)/%.o, $(wildcard $(SRC)/*.c))
 TEST_OBJECTS = \
@@ -109,7 +111,7 @@ $(OUT)/%.o: $(SRC)/%.c $(HEADERS)
 # compile unit test files
 $(OUT)/test/%.o: $(TEST)/%.c $(HEADERS)
 	mkdir -p $(OUT)
-	$(CC) $(CFLAGS) -c $< -o $@
+	$(CC) $(CFLAGS) $(INC_DIRS) -c $< -o $@
 
 # link files
 $(OUT)/$(TARGET): $(OBJECTS)
@@ -134,8 +136,6 @@ clean:
 
 $(OUT)/$(TEST_TARGET): $(TEST_OBJECTS)
 	$(CC) $(CFLAGS) $(INC_DIRS) $(SYMBOLS) $(TEST_SRC_FILES) -o $@
-	# execute tests
-	./$@ -v
 
 print-%:
 	@echo '$*=$($*)'
