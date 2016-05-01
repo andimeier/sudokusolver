@@ -5,8 +5,8 @@
  * Created on 04. April 2016, 21:31
  */
 
-#ifndef GLOBAL_H
-#define	GLOBAL_H
+#ifndef GRID_H
+#define	GRID_H
 
 #include "typedefs.h"
 
@@ -32,23 +32,11 @@ extern "C" {
     // More exotic Sudokus may use more unit, e.g. color units.
     extern struct UnitDefs unitDefs;
 
-    // general buffer for string operations
-    extern char buffer[1000];
-
-    // number of errors in the algorithm
-    extern int errors;
-
-    // 0 ... no verbose logging, 1 ... log changes, 2 ... log even considerations
-    extern int verboseLogging;
-
-    // filename of SVG file
-    extern char *svgFilename;
-
 
 
 #ifdef	__cplusplus
 }
 #endif
 
-#endif	/* GLOBAL_H */
+#endif	/* GRID_H */
 

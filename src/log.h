@@ -25,6 +25,13 @@ extern "C" {
     void closeLogFile();
 
 
+    extern char buffer[1000];
+
+    // 0 ... no verbose logging, 1 ... log changes, 2 ... log even considerations
+    extern int verboseLogging;
+
+
+
 #ifdef	__cplusplus
 }
 #endif

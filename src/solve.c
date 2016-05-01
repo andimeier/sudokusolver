@@ -10,7 +10,7 @@
 #include <assert.h>
 #include "solve.h"
 #include "show.h"
-#include "global.h"
+#include "grid.h"
 #include "typedefs.h"
 #include "util.h"
 #include "gridutils.h"

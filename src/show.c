@@ -7,7 +7,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
-#include "global.h"
+#include "grid.h"
 #include "show.h"
 #include "util.h"
 #include "log.h"

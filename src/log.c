@@ -6,12 +6,17 @@
  */
 #include <stdio.h>
 #include <string.h>
-#include "global.h"
+#include "grid.h"
 
 
 static FILE *logfile;
 
+// general buffer for string operations
+char buffer[1000];
 
+int verboseLogging;
+
+    
 void showCandidates(Field *field) {
     char candidates[MAX_NUMBER + 1];
 
@@ -59,7 +64,6 @@ void logReduction(char *msg) {
 void logNewNumber(char *msg) {
     printf("+++ %s\n", msg);
 }
-
 
 void openLogFile(char *outputFilename) {
     logfile = fopen(outputFilename, "w");

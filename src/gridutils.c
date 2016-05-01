@@ -6,7 +6,7 @@
  */
 #include <assert.h>
 #include <stdio.h>
-#include "global.h"
+#include "grid.h"
 #include "gridutils.h"
 #include "log.h"
 #include "util.h"
@@ -189,14 +189,9 @@ int fieldHasCandidate(Field *field, unsigned n) {
 int setUniqueNumber(Field *field) {
     unsigned n;
 
-    if (field->value) {
-        if (verboseLogging == 2) {
-            sprintf(buffer, "Ouch! Already containing a value, but \"setUniqueNumber\" is called! Field %s is already %u!\n", field->name, field->value);
-            printlog(buffer);
-        }
-        errors++;
-    }
-
+    // field should not be solved already
+    assert(!field->value);
+    
     unsigned *candidates = field->candidates;
     for (n = 1; n <= MAX_NUMBER; n++) {
         if (candidates[n - 1]) {

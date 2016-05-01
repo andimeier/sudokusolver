@@ -21,6 +21,9 @@ extern "C" {
     void printSvg(int finalVersion);
     char *position(Field *field);
 
+    // filename of SVG file
+    extern char *svgFilename;
+
 #ifdef	__cplusplus
 }
 #endif

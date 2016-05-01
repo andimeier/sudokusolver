@@ -26,6 +26,10 @@ extern "C" {
     int findPointingTupels();
     int boxLineReduction(); // not implemented yet
 
+    // number of errors in the algorithm
+    extern int errors;
+
+
 #ifdef	__cplusplus
 }
 #endif

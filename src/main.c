@@ -5,7 +5,7 @@
 #include <assert.h>
 #include <unistd.h>
 #include "solve.h"
-#include "global.h"
+#include "grid.h"
 #include "util.h"
 #include "show.h"
 #include "log.h"
@@ -41,7 +41,7 @@ int main(int argc, char **argv) {
     // if the Sudoku is wider than 26 numbers, we have a memory allocation issue
     // with the field->name (what is right of "Z26"?)
     assert(MAX_NUMBER <= 26);
-    
+
     // read command line arguments
     opterr = 0;
 

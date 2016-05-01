@@ -1,6 +1,6 @@
 #include <stdio.h>
 #include "typedefs.h"
-#include "global.h"
+#include "grid.h"
 #include "log.h"
 #include "acquire.h"
 
