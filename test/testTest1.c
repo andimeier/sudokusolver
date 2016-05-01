@@ -6,9 +6,16 @@
  */
 
 #include <stdlib.h>
+#include <memory.h>
 #include "unity.h"
 #include "solve.h"
 #include "util.h"
+#include "gridutils.h"
+
+unsigned * uintdup(unsigned *dest, unsigned const *src, size_t len) {
+    memcpy(dest, src, len * sizeof (unsigned));
+    return dest;
+}
 
 void test_Dummy(void) {
     TEST_ASSERT_EQUAL(2, 240);
@@ -23,15 +30,10 @@ void test_fieldCandidatesSubsetOf(void) {
     unsigned *candidates;
     Field field;
     unsigned *numbers;
+    unsigned cand1[9] = {0, 2, 0, 4, 5, 6, 0, 0, 0};
 
     candidates = (unsigned *) xmalloc(sizeof (unsigned) * 9);
-    for (unsigned i = 0; i < 9; i++) {
-        candidates[i] = 0;
-    }
-    candidates[1] = 2;
-    candidates[3] = 4;
-    candidates[4] = 5;
-    candidates[5] = 6;
+    uintdup(candidates, cand1, 9);
 
     field.candidates = candidates;
 

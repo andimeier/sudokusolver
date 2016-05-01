@@ -19,10 +19,6 @@ extern "C" {
     void getQuadrantField(int q, int position, int *x, int *y);
     int getQuadrantNr(int x, int y);
 
-    void openLogFile(char *outputFilename);
-    void printlog(char *text);
-    void closeLogFile();
-
     int *unsigneddup(unsigned const *src, size_t len);
     void *xmalloc(size_t size);
             

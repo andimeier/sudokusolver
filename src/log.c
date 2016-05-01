@@ -8,6 +8,10 @@
 #include <string.h>
 #include "global.h"
 
+
+static FILE *logfile;
+
+
 void showCandidates(Field *field) {
     char candidates[MAX_NUMBER + 1];
 
@@ -55,3 +59,29 @@ void logReduction(char *msg) {
 void logNewNumber(char *msg) {
     printf("+++ %s\n", msg);
 }
+
+
+void openLogFile(char *outputFilename) {
+    logfile = fopen(outputFilename, "w");
+}
+
+//-------------------------------------------------------------------
+
+void printlog(char *text) {
+    // printlog a message to printlog file or to stdout
+
+    if (logfile) {
+        fputs(text, logfile);
+    } else {
+        // no printlog file => write to stdout
+        puts(text);
+    }
+}
+
+//-------------------------------------------------------------------
+
+void closeLogFile() {
+    if (logfile)
+        fclose(logfile);
+}
+

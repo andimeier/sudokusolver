@@ -20,6 +20,11 @@ extern "C" {
     void logReduction(char *msg);
     void logNewNumber(char *msg);
 
+    void openLogFile(char *outputFilename);
+    void printlog(char *text);
+    void closeLogFile();
+
+
 #ifdef	__cplusplus
 }
 #endif

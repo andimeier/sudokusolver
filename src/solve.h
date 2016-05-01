@@ -14,15 +14,7 @@
 extern "C" {
 #endif
 
-    void initFields();
-    void initUnits();
-    void initGrid();
-    void freeUnits();
-    void freeGrid();
-    void freeFields();
-    int isFinished();
-    int forbidNumber(Field *field, unsigned n);
-    void initCandidates();
+    int solve();
 
     // strategies
     int checkForSolvedCells();
@@ -33,8 +25,6 @@ extern "C" {
     int findHiddenQuads(); // not implemented yet
     int findPointingTupels();
     int boxLineReduction(); // not implemented yet
-
-    int fieldCandidatesSubsetOf(Field *field, unsigned *numbers);
 
 #ifdef	__cplusplus
 }

@@ -2,6 +2,9 @@
 <configurationDescriptor version="95">
   <logicalFolder name="root" displayName="root" projectFiles="true" kind="ROOT">
     <df root="src" name="0">
+      <in>gridutils.c</in>
+      <in>init.c</in>
+      <in>init.h</in>
       <in>log.c</in>
       <in>log.h</in>
       <in>main.c</in>
@@ -42,11 +45,18 @@
           <cTool>
             <incDir>
               <pElem>../unity/src</pElem>
+              <pElem>src</pElem>
             </incDir>
           </cTool>
         </makeTool>
       </makefileType>
       <item path="DataTypes.md" ex="false" tool="3" flavor2="0">
+      </item>
+      <item path="src/gridutils.c" ex="false" tool="0" flavor2="2">
+      </item>
+      <item path="src/init.c" ex="false" tool="0" flavor2="0">
+      </item>
+      <item path="src/init.h" ex="false" tool="3" flavor2="0">
       </item>
       <item path="src/log.c" ex="false" tool="0" flavor2="0">
       </item>

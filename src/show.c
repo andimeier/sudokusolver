@@ -10,6 +10,7 @@
 #include "global.h"
 #include "show.h"
 #include "util.h"
+#include "log.h"
 
 // globale Variablen
 // das Sudoku-Feld selbst

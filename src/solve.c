@@ -13,22 +13,15 @@
 #include "global.h"
 #include "typedefs.h"
 #include "util.h"
+#include "gridutils.h"
 #include "log.h"
 
 // search for pairs, triples and quadruples, not more
 #define MAX_TUPLE_DIMENSION 4
 
-static int getUniquePositionInContainer(Field **container, unsigned n);
-
 // auxiliary functions
-static int setUniqueNumber(Field *field);
-static FieldsVector *fieldsWithCandidate(FieldsVector *container, unsigned n);
-static int fieldHasCandidate(Field *field, unsigned n);
 static unsigned recurseNakedTuples(unsigned maxLevel, FieldsVector *container, unsigned level, unsigned *numbers, FieldsVector *fieldsContainingCandidates);
-static unsigned equalNumberOfFieldsAndCandidates(FieldsVector *fieldsVector, unsigned *numbers);
-static int forbidNumbersInOtherFields(Field **container, unsigned *n, Field **dontTouch);
-static void forbidNumberInNeighbors(Field *field, unsigned n);
-static void setValue(Field *field, unsigned value);
+
 
 char buffer[1000]; // buffer for string operations
 
@@ -38,400 +31,6 @@ Field *fields; // the fields of the game board
 
 int errors; // number of errors in the algorithm
 int verboseLogging; // 0 ... no verbose logging, 1 ... log changes, 2 ... log even considerations
-
-/**
- * init the units
- */
-void initFields() {
-    fields = (Field *) xmalloc(sizeof (Field) * NUMBER_OF_FIELDS);
-
-    // alloc candidates
-    for (int f = 0; f < NUMBER_OF_FIELDS; f++) {
-        unsigned *candidates = (unsigned *) xmalloc(sizeof (unsigned) * MAX_NUMBER);
-        fields[f].candidates = candidates;
-    }
-}
-
-/**
- * init the units
- */
-void initUnits() {
-    Unit *unit;
-
-    // assuming a standard Sudoku, 
-    // we have 3 units (row, column, box)
-    unitDefs.units = (Unit *) xmalloc(sizeof (Unit) * 3);
-    unitDefs.count = 3;
-
-    // first unit: row
-    unit = &(unitDefs.units[ROWS]);
-    unit->name = strdup("row");
-    unit->containers = MAX_NUMBER;
-    unit->fields = (Field ***) xmalloc(sizeof (Field **) * unit->containers);
-    for (int i = 0; i < unit->containers; i++) {
-        unit->fields[i] = (Field **) xmalloc(sizeof (Field *) * MAX_NUMBER);
-    }
-
-    // second unit: column
-    unit = &(unitDefs.units[COLS]);
-    unit->name = strdup("column");
-    unit->containers = MAX_NUMBER;
-    unit->fields = (Field ***) xmalloc(sizeof (Field **) * unit->containers);
-    for (int i = 0; i < unit->containers; i++) {
-        unit->fields[i] = (Field **) xmalloc(sizeof (Field *) * MAX_NUMBER);
-    }
-
-    // third unit: box
-    unit = &(unitDefs.units[BOXES]);
-    unit->name = strdup("box");
-    unit->containers = MAX_NUMBER;
-    unit->fields = (Field ***) xmalloc(sizeof (Field **) * unit->containers);
-    for (int i = 0; i < unit->containers; i++) {
-        unit->fields[i] = (Field **) xmalloc(sizeof (Field *) * MAX_NUMBER);
-    }
-}
-
-/**
- * free units memory
- */
-void freeUnits() {
-
-    for (int i = 0; i < unitDefs.count; i++) {
-        free(unitDefs.units[i].name);
-        for (int n = 0; n < unitDefs.units[i].containers; n++) {
-            free(unitDefs.units[i].fields[n]);
-        }
-        free(unitDefs.units[i].fields);
-    }
-    free(unitDefs.units);
-}
-
-/**
- * free fields memory
- */
-void freeFields() {
-
-    for (int f = 0; f < NUMBER_OF_FIELDS; f++) {
-        free(fields[f].candidates);
-    }
-
-    free(fields);
-}
-
-void initGrid() {
-    int x, y;
-    Field *field;
-    Unit *unit;
-
-    assert(unitDefs.count > 0);
-
-    for (int f = 0; f < NUMBER_OF_FIELDS; f++) // FIXME debugging code
-
-        // Initialisierung:
-        // zunaechst sind ueberall alle Zahlen moeglich
-        for (f = 0; f < NUMBER_OF_FIELDS; f++) {
-            field = fields + f;
-
-            x = f % MAX_NUMBER;
-            y = f / MAX_NUMBER;
-
-            for (int n = 0; n < MAX_NUMBER; n++) {
-                field->candidates[n] = n + 1;
-            }
-
-            field->candidatesLeft = MAX_NUMBER;
-            field->value = 0;
-            field->initialValue = 0;
-
-            int *unitPositions = (int *) xmalloc(sizeof (int) * unitDefs.count);
-
-            unitPositions[ROWS] = y;
-            unitDefs.units[ROWS].fields[y][x] = field;
-
-            unitPositions[COLS] = x;
-            unitDefs.units[COLS].fields[x][y] = field;
-
-            unitPositions[BOXES] = getQuadrantNr(x, y);
-            unitDefs.units[BOXES].fields[unitPositions[BOXES]][y] = field;
-
-            field->unitPositions = unitPositions;
-
-            // use the ROWS and COLS coordinates as the "name" of the field
-            char *name = (char *) xmalloc(sizeof (char) * 4);
-            sprintf(name, "%c%u", (char) (y + (int) 'A'), x + 1);
-            field->name = name;
-        }
-
-    // fill units with pointers to the corresponding fields
-
-    // rows
-    unit = &(unitDefs.units[ROWS]);
-    for (int row = 0; row < MAX_NUMBER; row++) {
-        for (int ix = 0; ix < MAX_NUMBER; ix++) {
-            field = fields + row * MAX_NUMBER + ix;
-            assert(field->unitPositions[ROWS] == row);
-
-            unit->fields[row][ix] = field;
-        }
-    }
-
-    // cols
-    unit = &(unitDefs.units[COLS]);
-    for (int col = 0; col < MAX_NUMBER; col++) {
-        for (int ix = 0; ix < MAX_NUMBER; ix++) {
-            field = fields + ix * MAX_NUMBER + col;
-            assert(field->unitPositions[COLS] == col);
-
-            unit->fields[col][ix] = field;
-        }
-    }
-
-    // boxes
-    unit = &(unitDefs.units[BOXES]);
-    for (int box = 0; box < MAX_NUMBER; box++) {
-        for (int ix = 0; ix < MAX_NUMBER; ix++) {
-
-            getQuadrantField(box, ix, &x, &y);
-            field = fields + y * MAX_NUMBER + x;
-            assert(field->unitPositions[BOXES] == box);
-            assert(field->unitPositions[COLS] == x);
-            assert(field->unitPositions[ROWS] == y);
-
-            unit->fields[box][ix] = field;
-        }
-    }
-}
-
-/**
- * frees memory allocated for the grid fields
- */
-void freeGrid() {
-    for (int f = 0; f < NUMBER_OF_FIELDS; f++) {
-        free(fields[f].unitPositions);
-        free(fields[f].name);
-    }
-}
-
-
-//-------------------------------------------------------------------
-// Checkt, ob alle Zellen mit einer Zahl befuellt sind, dann sind 
-// wir naemlich fertig!
-// Return-Wert:
-//   1 ... fertig (in jeder Zelle steht eine Zahl)
-//   0 ... noch nicht fertig
-
-int isFinished() {
-    int f;
-
-    for (f = 0; f < NUMBER_OF_FIELDS; f++) {
-        if (!fields[f].value)
-            // ein leeres Feld gefunden => wir sind noch nicht fertig!
-            return 0;
-    }
-    return 1;
-}
-
-
-//-------------------------------------------------------------------
-// Setzt in dem Feld #f (das nur mehr eine Moeglichkeit aufweisen muss)
-// die einzige Zahl, die in den Candidates gefunden wird.
-// Es muss sichergestellt sein, dass nur mehr eine Zahl moeglich ist,
-// hier wird das nicht mehr ueberprueft - der erste Candidate wird als 
-// "einzig moegliche Zahl" behandelt.
-// Return-Wert:
-//   die fixierte Zahl
-
-int setUniqueNumber(Field *field) {
-    unsigned n;
-
-    if (field->value) {
-        if (verboseLogging == 2) {
-            sprintf(buffer, "Ouch! Already containing a value, but \"setUniqueNumber\" is called! Field %s is already %u!\n", field->name, field->value);
-            printlog(buffer);
-        }
-        errors++;
-    }
-
-    unsigned *candidates = field->candidates;
-    for (n = 1; n <= MAX_NUMBER; n++) {
-        if (candidates[n - 1]) {
-            if (verboseLogging == 2) {
-                // TODO sprintf(buffer, "Aha, nur mehr eine Moeglichkeit in Feld %s (possibilities: %s): %d\n", field->name, possibilities[y][x], n);
-                // TODO printlog(buffer);
-            }
-            setValue(field, n);
-            break;
-        }
-    }
-
-    return n;
-}
-
-//-------------------------------------------------------------------
-// Checkt die Anzahl der moeglichen Vorkommnisse einer Zahl in der
-// Unit u.
-// Liefert:
-//   x ... x-Position des Feldes, in dem die Zahl n als einziges Feld
-//         der ganzen Reihe vorkommen koennte oder
-//   -1 ... Zahl koennte in der Zeile an mehreren Positionen vorkommen
-
-int getUniquePositionInContainer(Field **container, unsigned n) {
-    int pos;
-    int unique;
-    int foundPos;
-    Field *field;
-
-    assert(n >= 1 && n <= MAX_NUMBER);
-    printf("Looking for unique position of %u in container ...\n", n);
-
-    for (pos = 0; pos < MAX_NUMBER; pos++) { // FIXME debugging output
-        showCandidates(container[pos]);
-    }
-
-    unique = 0;
-    foundPos = 0;
-    for (pos = 0; pos < MAX_NUMBER; pos++) {
-        field = container[pos];
-        if ((field->value == n) || (!(field->value) && (field->candidates[n - 1] == n))) {
-            printf("Field %d/%d can contain candidate %u\n", field->unitPositions[ROWS], field->unitPositions[COLS], n);
-            if (!unique) {
-                unique = 1; // first occurrence in the current container
-                foundPos = pos; // remember position, in case it is the only one
-            } else {
-                // what a pity, this is the second occurrence of this number in the container
-                return -1; // => apparently no hidden single
-            }
-        }
-    }
-    if (unique) {
-        return foundPos;
-    }
-
-    return -1;
-}
-
-/**
- * @return 1 if the field is in the field list, 0 if it is not
- */
-int containsField(Field **list, Field * field) {
-    for (int i = 0; list[i] != NULL; i++) {
-        if (field == list[i])
-            return 1;
-
-    }
-    return 0;
-}
-
-//-------------------------------------------------------------------
-// "Isoliert" pairs/triples/quads in einem Container: die candidates, die
-// in diesen beiden Zellen moeglich sein, koennen im restlichen
-// Container nicht mehr vorkommen
-// Return-Wert:
-//   1 ... mind. 1 Nummer in der restlichen Spalte oder dem restlichen
-//         Quadranten wurde verboten, wir "sind weitergekommen"
-//   0 ... Isolieren der Zwillinge hat keine Aenderung im Sudoku bewirkt
-// TODO im Moment gehen nur Zwillinge, trotz des Funktionsnamens!
-//
-// @param n ... tuple of candidates to be removed from "other fields". This
-//   is a vector of MAX_NUMBER numbers, each position stands for the respective
-//   candidate, e.g. an array of [ 0, 2, 0, 0, 5, 6, 0, 0, 0 ] means that
-//   the candidates 2, 5 and 6 shall be removed from all "other fields" (fields
-//   other than those in parameter dontTouch)
-// @param dontTouch ... NULL terminated list of Field pointers. These fields
-//   will not be touched. In all other fields in the container, the given 
-//   numbers will be removed as candidates
-
-int forbidNumbersInOtherFields(Field **container, unsigned *n, Field **dontTouch) {
-    int progress;
-    Field *field;
-
-    printf("forbid number in container\n");
-    showAllCandidates();
-
-    progress = 0; // nothing has changed yet
-    if (verboseLogging == 2) {
-        // TODO sprintf(buffer, "Isoliere Tupel (%d/%d) und (%d/%d): %s/%s\n", y1 + 1, x1 + 1, y2 + 1, x1 + 1, possibilities[y1][x1], possibilities[y2][x2]);
-        // TODO printlog(buffer);
-    }
-
-    // walk through entire container
-    for (int pos = 0; pos < MAX_NUMBER; pos++) {
-        field = container[pos];
-
-        // don't touch the 'dontTouch' fields
-        if (!containsField(dontTouch, field)) {
-            // forbid the tuple numbers
-            for (int i = 0; i < MAX_NUMBER; i++) {
-                if (n[i]) {
-                    // was a candidate until now => remove candidate now
-                    if (!field->value && field->candidates[i]) {
-                        sprintf(buffer, "forbid %u in field %s\n", i + 1, field->name);
-                        logReduction(buffer);
-
-                        field->candidates[i] = 0;
-                        field->candidatesLeft--;
-                        progress = 1;
-                    }
-                }
-            }
-        }
-    }
-
-    showAllCandidates();
-
-    return progress;
-}
-
-//-------------------------------------------------------------------
-// Verbiete eine Zahl in einer bestimmten Zelle
-// Return-Wert:
-//   1 ... Nummer wurde verboten
-//   0 ... keine Aenderung, Nummer war bereits verboten
-
-int forbidNumber(Field *field, unsigned n) {
-
-    assert(n >= 1 && n <= MAX_NUMBER);
-
-    if (field->candidates[n - 1]) {
-        if (verboseLogging == 2) {
-            // TODO sprintf(buffer, "Vorher: (%d/%d) possibilities=%s\n", y + 1, x + 1, possibilities[y][x]);
-            printlog(buffer);
-        }
-        field->candidates[n - 1] = 0;
-        if (verboseLogging == 2) {
-            // TODO sprintf(buffer, "Nachher: (%d/%d) possibilities=%s)\n", y + 1, x + 1, possibilities[y][x]);
-            printlog(buffer);
-        }
-        field->candidatesLeft--;
-        if (field->candidatesLeft == 1) {
-            // nur noch eine einzige Zahl ist moeglich => ausfuellen!
-            setUniqueNumber(field);
-        }
-        return 1;
-    }
-    return 0;
-}
-
-//-------------------------------------------------------------------
-// set all candidates for all fields initially
-
-void initCandidates() {
-    int f;
-    Field *field;
-
-    for (f = 0; f < NUMBER_OF_FIELDS; f++) {
-        field = fields + f;
-
-        if (field->value) {
-            sprintf(buffer, "Set value of field %s (#%d) to %u\n", field->name, f, field->value);
-            printlog(buffer);
-            setValue(field, field->value);
-        }
-    }
-
-    printlog("Initial candidates are:\n");
-    showAllCandidates();
-}
 
 //-------------------------------------------------------------------
 // check for cells having only one candidate left and set their value (and
@@ -910,49 +509,6 @@ int findPointingTupels() {
 }
 
 /**
- * collects all unresolved fields in which the given number is a possible 
- * candidate
- * 
- * @param container
- * @param n the number to look for as a candidate
- * @return vector of fields containing the given number as possible candidate
- */
-FieldsVector *fieldsWithCandidate(Field **container, unsigned n) {
-    int ix;
-    Field *field;
-    FieldsVector *found;
-    FieldsVector *foundPtr;
-
-    found = (FieldsVector *) xmalloc(sizeof (Field *) * (MAX_NUMBER + 1));
-
-    foundPtr = found;
-    for (ix = 0; ix < MAX_NUMBER; ix++) {
-        field = *(container + ix);
-        if (fieldHasCandidate(field, n)) {
-            *foundPtr = field;
-            foundPtr++;
-        }
-    }
-
-    // terminate vector
-    foundPtr = NULL;
-
-    return found;
-}
-
-/**
- * checks if the field is unresolved and the given number is a possible 
- * candidate
- * 
- * @param field the field to check
- * @param n the number to check
- * @return 1 if the number is a possible candidate, 0 if it is not
- */
-int fieldHasCandidate(Field *field, unsigned n) {
-    return !field->value && (field->candidates[n - 1] == n);
-}
-
-/**
  * find naked tuples (pairs, triples, ...) which share the same candidates.
  * For instance, if two fields have only the candidates 2 and 4, then 2 and 4
  * can be eliminated from all other fields in the same container.
@@ -1044,122 +600,318 @@ unsigned recurseNakedTuples(unsigned maxLevel, FieldsVector *container, unsigned
     return 0;
 }
 
-/**
- * checks if the possible candidates for a field are a subset of the candidates
- * given in the parameter
- * 
- * @param field pointer to field for which the candidates should be checked
- * @param numbers vector of numbers, terminated with 0
- * @return 1 if the field's candidates are a (strict or non-strict) subset of
- *   the given numbers vector. 0 if they are not.
- */
-int fieldCandidatesSubsetOf(Field *field, unsigned *numbers) {
-
-    while (*numbers) {
-        if (!field->candidates[*numbers - 1]) {
-            // if any candidate is found which is not in "numbers", the field's
-            // candidates are no subset of "numbers"
-            printf("OJE! number %u not found in candidates (%u)\n", *numbers, field->candidates[*numbers - 1]);
-            return 0;
-        }
-        numbers++;
-    }
-
-    return 1;
-}
-
-/**
- * checks if the number of fields in the FieldsVector and the number of numbers
- * in the numbers vector are equal.
- * 
- * @param fieldsVector vector or pointers to Fields, terminated with a NULL 
- *   pointer
- * @param numbers vector of numbers, terminated with 0
- * @return 1 both have equal length. 0 if they differ
- */
-unsigned equalNumberOfFieldsAndCandidates(FieldsVector *fieldsVector, unsigned *numbers) {
-
-    do {
-        if (*fieldsVector == NULL && *numbers == 0) {
-            return 1;
-        }
-
-        // if we are still here, then at least one of the vectors is not null.
-        // However, if the other one is exhausted, then both vectors apparently
-        // do not have the same length
-        if (*fieldsVector == NULL || *numbers == 0) {
-            return 0;
-        }
-
-        fieldsVector++;
-        numbers++;
-    } while (1);
-}
-
-
-
 
 //FieldsVector **containersContainingAllFields(FieldsVector *fields) {
 //}
 
-/**
- * sets the value of a field and eliminates this number from all candidates
- * of neighboring fields
- * 
- * @param field pointer to the Field structure
- * @param value the number to be set as result field value
- */
-void setValue(Field *field, unsigned value) {
-    assert(value <= MAX_NUMBER);
 
-    field->value = value;
 
-    unsigned *candidates = field->candidates;
-    for (unsigned n = 1; n <= MAX_NUMBER; n++) {
-        candidates[n - 1] = (n == value) ? value : 0;
-    }
 
-    forbidNumberInNeighbors(field, value);
-}
+//-------------------------------------------------------------------
+// Return-Wert
+//   1 ... Sudoku wurde erfolgreich geloest
+//   0 ... Algorithmus bleibt stecken, Endlositeration abgebrochen
 
-/**
- * forbids a number in all neighbor fields of the given field. This is used
- * e.g. after setting the value of a field to eliminate this number from all
- * neighbors.
- * 
- * @param field
- * @param n
- */
-void forbidNumberInNeighbors(Field *field, unsigned n) {
-    Field **container;
+int solve() {
+    int iteration;
+    int progress; // Flag: in einer Iteration wurde zumindest eine Erkenntnis gewonnen
 
-    assert(n <= MAX_NUMBER);
+    iteration = 0;
+    errors = 0; // noch keine Fehler aufgetreten
 
-    sprintf(buffer, "Forbid number %u in neighbors of field %s ...\n", n, field->name);
-    printlog(buffer);
+    printf("[4sf]\n");
 
-    // forbid number in all other "neighboring fields"
-    for (int u = 0; u < unitDefs.count; u++) {
-        printf("[6hshhs]\n");
-        Unit *unit = &(unitDefs.units[u]);
-        printf("[6hshhs++]\n");
-        container = unit->fields[field->unitPositions[u]];
+    printSvg(0);
 
-        // go through all positions (numbers) of the container and 
-        // forbid this number in all other fields of the container
-        unsigned candidates[MAX_NUMBER];
+    printf("[4s65f]\n");
 
-        // build tuple to search for
-        for (int i = 0; i < MAX_NUMBER; i++) {
-            candidates[i] = 0;
+    initCandidates();
+    
+    do {
+        iteration++;
+        progress = 0; // noch kein neuen Erkenntnis in dieser Runde (hat ja erst begonnen)
+        if (verboseLogging == 2) {
+            sprintf(buffer, "----- Beginne Iteration %d -----\n", iteration);
+            printlog(buffer);
         }
-        candidates[n - 1] = n;
 
-        // preserve candidate in "our" field only
-        Field * preserve[2];
-        preserve[0] = field;
-        preserve[1] = NULL;
+        // TODO:
+        //        if (verboseLogging == 2) {
+        //            for (y = 0; y < 9; y++) {
+        //                for (x = 0; x < 9; x++) {
+        //                    if (fields[y][x]) {
+        //                        sprintf(buffer, "  Feld (%d/%d): %d\n", y + 1, x + 1, fields[y][x]);
+        //                        printlog(buffer);
+        //                    } else {
+        //                        // TODO sprintf(buffer, "  Feld (%d/%d): %s\n", y + 1, x + 1, possibilities[y][x]);
+        //                        printlog(buffer);
+        //                    }
+        //                }
+        //            }
+        //        }
 
-        forbidNumbersInOtherFields(container, candidates, preserve);
-    }
+        // alle Felder durchgehen und vorkommende Zahlen in der selben
+        // Reihe, in der selben Spalte und im selben Quadranten verbieten
+        if (verboseLogging == 2)
+            printlog("??? Searching for: unique numbers ... \n");
+
+        printlog("Enter strategy --- Check for solved cells ...\n");
+        progress |= checkForSolvedCells();
+        sprintf(buffer, "After strategy --- Check for solved cells ... progress: %d\n", progress);
+        printlog(buffer);
+        if (progress) continue;
+
+        if (verboseLogging) {
+            printSvg(0);
+        }
+
+        printlog("Enter strategy --- Find hidden singles ...\n");
+        progress |= findHiddenSingles();
+        sprintf(buffer, "After strategy --- Find hidden singles ... progress: %d\n", progress);
+        printlog(buffer);
+        if (progress) continue;
+
+
+        if (verboseLogging) {
+            printSvg(0);
+        }
+
+        //? FIXME FEHLT hier nicht, das nicht nur fuer Spalten und Zeile, sondern auch fuer Quadranten anzuwenden?
+
+
+
+
+        // wenn alle Felder ausgefuellt sind, sind wir wohl fertig!
+        if (isFinished())
+            return 1;
+
+//        printlog("Enter strategy --- Find naked pairs ...\n");
+        //        progress |= findNakedTuples(2); // find naked pairs
+//        printlog("After strategy --- Find naked pairs ... progress: %d\n", progress);
+        //        if (progress) continue;
+
+        if (isFinished())
+            return 1;
+
+//        printlog("Enter strategy --- Find naked triples ...\n");
+        //progress |= findNakedTuples(3); // find naked triples
+//        printlog("After strategy --- Find naked triples ... progress: %d\n", progress);
+
+//        printlog("Enter strategy --- Find pointing tuples ...\n");
+        //        progress |= findPointingTupels(); // find pointing pairs/triples
+//        printlog("After strategy --- Find ponting tuples ... progress: %d\n", progress);
+        //        if (progress) continue;
+
+
+        if (verboseLogging) {
+            printSvg(0);
+        }
+
+        // Suche nach lokaler Eingrenzung einer Zahl in einem Quadranten:
+        // --------------------------------------------------------------
+        // wenn in einem Quadranten eine Zahl nur in Zellen in der gleichen
+        // Zeile vorkommen kann, muss sie in diesem Quadranten in dieser
+        // Zeile stehen und kann daher fuer die restliche Zeile (ausserhalb
+        // des Quadranten) verboten werden.
+        // Analog fuer Spalten.
+
+        /*
+                // gehe alle Quadranten durch
+                int yFound;
+                for (q = 0; q < 9; q++) {
+                    if (verboseLogging == 2) {
+                        sprintf(buffer, "??? Untersuche Quadrant %d auf Zahlen, die auf eine Zeile eingrenzbar sind ...\n", q + 1);
+                        printlog(buffer);
+                    }
+                    getQuadrantStart(q, &qx, &qy);
+                    // alle Zahlen durchgehen
+                    for (n = 1; n <= 9; n++) {
+                        if (verboseLogging == 2) {
+                            sprintf(buffer, " Untersuche Quadrant %d auf die Zahl %d ...\n", q + 1, n);
+                            printlog(buffer);
+                        }
+                        yFound = -1; // noch haben wir fuer diese Zahl keine Zeile gefunden
+                        for (y = qy; y < qy + 3; y++) {
+                            for (x = qx; x < qx + 3; x++) {
+                                if (verboseLogging == 2) {
+                                    // TODO sprintf(buffer, "  yFound=%d Feld (%d/%d) %d %s\n", yFound + 1, y + 1, x + 1, fields[y][x], (fields[y][x] ? "" : possibilities[y][x]));
+                                    printlog(buffer);
+                                }
+                                // kommt die Zahl in diesem Feld als Moeglichkeit vor?
+                                if (fields[y][x] == n) {
+                                    // diese Zahl ist bereits fixiert im Quadranten =>
+                                    // nach dieser brauche ich nicht weitersuchen
+                                    if (verboseLogging == 2) {
+                                        // TODO sprintf(buffer, "    Zahl %d ist bereits in (%d/%d) identifiziert!\n", n, y + 1, x + 1);
+                                        printlog(buffer);
+                                    }
+                                    yFound = -1; // nix Tolles gefunden
+                                    y = 99; // auch die aeussere Schleife beenden
+                                    break; // raus aus der Schleife
+                                }
+                                if (!fields[y][x] && possibilities[y][x][n - 1] != '0') {
+                                    // die Zahl n koennte hier vorkommen
+                                    if (yFound == -1) {
+                                        // wir merken uns diese Zeile, wenn alle anderen
+                                        // Vorkommen auch in dieser Zeile sind, haben wir
+                                        // eine wertvolle Information gewonnen!
+                                        yFound = y;
+                                        if (verboseLogging == 2) {
+                                            sprintf(buffer, "    Zahl %d koennte in Zeile %d vorkommen (%d/%d), merke mir die Zeile ...\n", n, y + 1, y + 1, x + 1);
+                                            printlog(buffer);
+                                        }
+                                    } else if (yFound != y) {
+                                        // oje, das zweite Vorkommen ist in einer
+                                        // anderen Zeile als der gemerkten => Ziel
+                                        // nicht erreicht, das bringt uns nix
+                                        if (verboseLogging == 2) {
+                                            sprintf(buffer, "    Oje, Zahl %d koennte auch in Zeile %d vorkommen (%d/%d), ein Reinfaller.\n", n, y + 1, y + 1, x + 1);
+                                            printlog(buffer);
+                                        }
+                                        yFound = -1; // nix Tolles gefunden
+                                        y = 99;
+                                        break; // diese Zahl war ein Reinfaller
+                                    } else {
+                                        if (verboseLogging == 2) {
+                                            sprintf(buffer, "    Zahl %d koennte auch hier vorkommen, ebenfalls in Zeile %d ...\n", n, y + 1);
+                                            printlog(buffer);
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                        if (yFound != -1) {
+                            if (verboseLogging == 2) {
+                                sprintf(buffer, "  Hurra! Zahl %d kann im Quadranten %d nur in Zeile %d vorkommen.\n", n, q + 1, yFound + 1);
+                                printlog(buffer);
+                            }
+                            for (x = 0; x < 9; x++) {
+                                // wenn ausserhalb unseren Quadranten: alle Vorkommen der
+                                // Zahl n verbieten, die muss naemlich im Quadranten q
+                                // in dieser Zeile vorkommen
+                                if ((x < qx) || (x >= qx + 3)) {
+                                    if (!fields[yFound][x])
+                                        if (forbidNumber(yFound, x, n)) {
+                                            if (verboseLogging == 2) {
+                                                sprintf(buffer, "!! Neue Moeglichkeiten-Erkenntnis 4a: (Nummer %d in (%d/%d) verboten weil in Zeile %d diese Zahl im Quadranten %d sein muss.\n", n, yFound + 1, x + 1, yFound + 1, q + 1);
+                                                printlog(buffer);
+                                            }
+                                            progress = 1;
+                                        }
+                                }
+                            }
+                        }
+                    }
+                }
+
+                if (verboseLogging) {
+                    printSvg(0);
+                }
+
+                // ... analog in Spalten eines Quadranten suchen
+                int xFound;
+                for (q = 0; q < 9; q++) {
+                    if (verboseLogging == 2) {
+                        sprintf(buffer, "Untersuche Quadrant %d auf Zahlen, die auf eine Spalte eingrenzbar sind ...\n", q + 1);
+                        printlog(buffer);
+                    }
+                    getQuadrantStart(q, &qx, &qy);
+                    // alle Zahlen durchgehen
+                    for (n = 1; n <= 9; n++) {
+                        if (verboseLogging == 2) {
+                            sprintf(buffer, " Untersuche Quadrant %d auf die Zahl %d ...\n", q + 1, n);
+                            printlog(buffer);
+                        }
+                        xFound = -1; // noch haben wir fuer diese Zahl keine Spalte gefunden
+                        for (y = qy; y < qy + 3; y++) {
+                            for (x = qx; x < qx + 3; x++) {
+                                if (verboseLogging == 2) {
+                                    sprintf(buffer, "  xFound=%d Feld (%d/%d) %d %s\n", xFound + 1, y + 1, x + 1, fields[y][x], (fields[y][x] ? "" : possibilities[y][x]));
+                                    printlog(buffer);
+                                }
+                                // kommt die Zahl in diesem Feld als Moeglichkeit vor?
+                                if (fields[y][x] == n) {
+                                    // diese Zahl ist bereits fixiert im Quadranten =>
+                                    // nach dieser brauche ich nicht weitersuchen
+                                    if (verboseLogging == 2) {
+                                        sprintf(buffer, "    Zahl %d ist bereits in (%d/%d) identifiziert!\n", n, y + 1, x + 1);
+                                        printlog(buffer);
+                                    }
+                                    xFound = -1; // nix Tolles gefunden
+                                    y = 99; // auch die aeussere Schleife beenden
+                                    break; // raus aus der Schleife
+                                }
+                                if (!fields[y][x] && possibilities[y][x][n - 1] != '0') {
+                                    // die Zahl n koennte hier vorkommen
+                                    if (xFound == -1) {
+                                        // wir merken uns diese Zeile, wenn alle anderen
+                                        // Vorkommen auch in dieser Zeile sind, haben wir
+                                        // eine wertvolle Information gewonnen!
+                                        xFound = x;
+                                        if (verboseLogging == 2) {
+                                            sprintf(buffer, "    Zahl %d koennte in Spalte %d vorkommen (%d/%d), merke mir die Spalte ...\n", n, x + 1, y + 1, x + 1);
+                                            printlog(buffer);
+                                        }
+                                    } else if (xFound != x) {
+                                        // oje, das zweite Vorkommen ist in einer
+                                        // anderen Spalte als der gemerkten => Ziel
+                                        // nicht erreicht, das bringt uns nix
+                                        if (verboseLogging == 2) {
+                                            sprintf(buffer, "    Oje, Zahl %d koennte auch in Spalte %d vorkommen (%d/%d), ein Reinfaller.\n", n, x + 1, y + 1, x + 1);
+                                            printlog(buffer);
+                                        }
+                                        xFound = -1; // nix Tolles gefunden
+                                        y = 99;
+                                        break; // diese Zahl war ein Reinfaller
+                                    } else {
+                                        if (verboseLogging == 2) {
+                                            sprintf(buffer, "    Zahl %d koennte auch hier vorkommen, ebenfalls in Spalte %d ...\n", n, x + 1);
+                                            printlog(buffer);
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                        if (xFound != -1) {
+                            if (verboseLogging == 2) {
+                                sprintf(buffer, "!! Neue Moeglichkeiten-Erkenntnis 5a: Hurra! Zahl %d kann im Quadranten %d nur in Spalte %d vorkommen.\n", n, q + 1, xFound + 1);
+                                printlog(buffer);
+                            }
+                            for (y = 0; y < 9; y++) {
+                                // wenn ausserhalb unseren Quadranten: alle Vorkommen der
+                                // Zahl n verbieten, die muss naemlich im Quadranten q
+                                // in dieser Spalte vorkommen
+                                if ((y < qy) || (y >= qy + 3)) {
+                                    if (!fields[y][xFound])
+                                        if (forbidNumber(y, xFound, n)) {
+                                            if (verboseLogging == 2) {
+                                                sprintf(buffer, "!! Neue Moeglichkeiten-Erkenntnis 5b:  (Nummer %d in (%d/%d) verboten weil in Spalte %d diese Zahl im Quadranten %d sein muss.\n", n, y + 1, xFound + 1, xFound + 1, q + 1);
+                                                printlog(buffer);
+                                            }
+                                            progress = 1;
+                                        }
+                                }
+                            }
+                        }
+                    }
+                }
+
+                if (verboseLogging) {
+                    printSvg(0);
+                }
+
+                // nach der Iteration den Sudoku-Zwischenstand anzeigen
+                if (verboseLogging) show(0);
+         */
+    } while (progress);
+
+    showAllCandidates();
+
+    // wir kommen hierher, weil die letzte Iteration keine einzige Aenderung gebracht
+    // hat => wir bleiben stecken mit unserem Algorithmus. Ohne Aenderung in der
+    // Implementierung ist dieses Sudoku nicht loesbar
+    return 0;
 }
+
+
+

@@ -12,8 +12,6 @@
 #include "util.h"
 
 
-FILE *logfile;
-
 
 //-------------------------------------------------------------------
 // Rechnet aus Quadrantenkoordinaten in Koordinaten, relativ zum
@@ -108,30 +106,6 @@ int getQuadrantNr(int x, int y) {
     assert(y >= 0 && y < 9);
 
     return (y / 3) * 3 + (x / 3);
-}
-
-void openLogFile(char *outputFilename) {
-    logfile = fopen(outputFilename, "w");
-}
-
-//-------------------------------------------------------------------
-
-void printlog(char *text) {
-    // printlog a message to printlog file or to stdout
-
-    if (logfile) {
-        fputs(text, logfile);
-    } else {
-        // no printlog file => write to stdout
-        puts(text);
-    }
-}
-
-//-------------------------------------------------------------------
-
-void closeLogFile() {
-    if (logfile)
-        fclose(logfile);
 }
 
 /**
