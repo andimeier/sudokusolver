@@ -9,7 +9,6 @@
 #include "util.h"
 #include "show.h"
 #include "log.h"
-#include "init.h"
 #include "acquire.h"
 
 /*
@@ -98,9 +97,7 @@ int main(int argc, char **argv) {
         openLogFile(outputFilename);
     }
 
-    initFields();
-    initUnits();
-    initGrid();
+    setupGrid();
 
     if (inputFilename && !readSudoku(inputFilename)) {
         exit(EXIT_FAILURE); // Oje ... stopp!
@@ -151,8 +148,7 @@ int main(int argc, char **argv) {
 
     closeLogFile();
 
-    freeUnits();
-    freeGrid();
+    releaseGrid();
 
     exit(EXIT_SUCCESS);
 }

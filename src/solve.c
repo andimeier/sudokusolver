@@ -13,7 +13,7 @@
 #include "grid.h"
 #include "typedefs.h"
 #include "util.h"
-#include "gridutils.h"
+#include "grid.h"
 #include "log.h"
 
 // search for pairs, triples and quadruples, not more
@@ -21,12 +21,6 @@
 
 // auxiliary functions
 static unsigned recurseNakedTuples(unsigned maxLevel, FieldsVector *container, unsigned level, unsigned *numbers, FieldsVector *fieldsContainingCandidates);
-
-
-char buffer[1000]; // buffer for string operations
-
-UnitDefs unitDefs;
-Field *fields; // the fields of the game board
 
 
 int errors; // number of errors in the algorithm
