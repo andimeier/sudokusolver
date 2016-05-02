@@ -10,7 +10,7 @@
 #include "unity.h"
 #include "solve.h"
 #include "util.h"
-#include "gridutils.h"
+#include "grid.h"
 
 unsigned * uintdup(unsigned *dest, unsigned const *src, size_t len) {
     memcpy(dest, src, len * sizeof (unsigned));
@@ -28,46 +28,41 @@ void test_Dummy2(void) {
 
 void test_fieldCandidatesSubsetOf(void) {
     unsigned *candidates;
-    Field field;
     unsigned *numbers;
-    unsigned cand1[9] = {0, 2, 0, 4, 5, 6, 0, 0, 0};
+    Field field;
 
     candidates = (unsigned *) xmalloc(sizeof (unsigned) * 9);
-    uintdup(candidates, cand1, 9);
-
     field.candidates = candidates;
 
     numbers = (unsigned *) xmalloc(sizeof (unsigned) * 9);
-    numbers[0] = 2;
-    numbers[1] = 4;
-    numbers[2] = 5;
-    numbers[3] = 0;
+
+    
+    unsigned cand1[9] = {0, 2, 0, 4, 5, 6, 0, 0, 0};
+    uintdup(candidates, cand1, 9);
+
+
+    unsigned numb1[4] = { 2, 4, 5, 0 };
+    uintdup(numbers, numb1, 4);
 
     TEST_ASSERT_EQUAL(1, fieldCandidatesSubsetOf(&field, numbers));
 
-    numbers[0] = 2;
-    numbers[1] = 7;
-    numbers[2] = 0;
+    unsigned numb2[3] = { 2, 7, 0 };
+    uintdup(numbers, numb2, 3);
 
     TEST_ASSERT_EQUAL(0, fieldCandidatesSubsetOf(&field, numbers));
 
-    for (unsigned i = 0; i < 9; i++) {
-        candidates[i] = 0;
-    }
-    candidates[4] = 5;
+    unsigned cand2[9] = {0, 0, 0, 0, 5, 0, 0, 0, 0};
+    uintdup(candidates, cand2, 9);
 
-    numbers[0] = 5;
-    numbers[1] = 0;
-    numbers[2] = 0;
+    unsigned numb3[2] = { 5, 0 };
+    uintdup(numbers, numb3, 2);
 
     TEST_ASSERT_EQUAL(1, fieldCandidatesSubsetOf(&field, numbers));
 
-    numbers[0] = 5;
-    numbers[1] = 7;
-    numbers[2] = 0;
+    unsigned numb4[3] = { 5, 7, 0 };
+    uintdup(numbers, numb4, 3);
 
     TEST_ASSERT_EQUAL(0, fieldCandidatesSubsetOf(&field, numbers));
-
 
 
     free(numbers);
