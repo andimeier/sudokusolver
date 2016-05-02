@@ -21,6 +21,7 @@
 
 // auxiliary functions
 static unsigned recurseNakedTuples(unsigned maxLevel, FieldsVector *container, unsigned level, unsigned *numbers, FieldsVector *fieldsContainingCandidates);
+static int compareCandidates(unsigned *c1, unsigned *c2);
 
 int errors; // number of errors in the algorithm
 int verboseLogging; // 0 ... no verbose logging, 1 ... log changes, 2 ... log even considerations
@@ -73,18 +74,19 @@ int findHiddenSingles() {
 
         for (int c = 0; c < unit->containers; c++) {
             for (unsigned n = 1; n <= MAX_NUMBER; n++) {
-                Field **container = unit->fields[c];
-                int pos = getUniquePositionInContainer(container, n);
-                if (pos != -1 && !container[pos]->value) {
+                Container *container = &(unit->theContainers[c]);
+                Field **containerFields = container->fields;
+                int pos = getUniquePositionInContainer(containerFields, n);
+                if (pos != -1 && !containerFields[pos]->value) {
                     // number can only occur in the position pos in this container
                     if (verboseLogging) {
                         // TODO sprintf(buffer, "!!! Neue Erkenntnis 2a: In Zeile %d kann %d nur an Position %d vorkommen => (%d/%d) = %d!\n", y + 1, n, x + 1, y + 1, x + 1, n);
                         // TODO printlog(buffer);
                     }
-                    setValue(container[pos], n);
+                    setValue(containerFields[pos], n);
 
-                    Field *field = container[pos];
-                    sprintf(buffer, "*** [hidden single] hidden single in unit %s, field %d/%d: %u ... \n", unit->name, field->unitPositions[ROWS], field->unitPositions[COLS], n);
+                    Field *field = containerFields[pos];
+                    sprintf(buffer, "*** [hidden single] hidden single in unit %s, field %s: %u ... \n", container->name, field->name, n);
                     printlog(buffer);
 
                     progress = 1; // Flag "neue Erkenntnis" setzen
@@ -95,19 +97,6 @@ int findHiddenSingles() {
     }
 
     return progress;
-}
-
-/**
- * compare two lists of candidates and check if they are equal
- */
-int compareCandidates(unsigned *c1, unsigned *c2) {
-    for (int n = 0; n < MAX_NUMBER; n++) {
-        if (c1[n] != c2[n])
-            return 0;
-    }
-
-    // both are equal
-    return 1;
 }
 
 /**
@@ -142,9 +131,9 @@ int findNakedTuples(size_t dimension) {
 
         printf("container \"%s\" has %zu instances\n", unit->name, unit->containers);
         for (int c = 0; c < unit->containers; c++) {
-            Field **container = unit->fields[c];
+            Field **container = unit->theContainers[c].fields;
 
-            printf("iterating into instance %d of container \"%s\"\n", c, unit->name);
+            printf("iterating into instance %d of container \"%s\", aka %s\n", c, unit->name, unit->theContainers[c].name);
 
             // check for naked tuples in this container
             for (n1 = 1; n1 <= MAX_NUMBER; n1++) {
@@ -208,126 +197,7 @@ int findNakedTuples(size_t dimension) {
 
 }
 
-/*
-int findNakedPairsOBSOLETE() {
-    int x, y, i, j;
-    int q;
-    int x1, x2, y1, y2, qx, qy;
-    int progress; // Flag: in einer Iteration wurde zumindest eine Erkenntnis gewonnen
 
-    progress = 0;
-
-    // Suche nach Zwillingen in einem Quadranten (nicht unbedingt in der gleichen Zeile oder Spalte):
-    // ----------------------------------------------------------------------------------------------
-    // wenn zwei Felder in der gleichen Zeile die gleichen 2 moeglichen 
-    // Zahlen haben, muessen jeweils eine dieser beiden Zahlen in 
-    // jeweils einer dieser 2 Zellen stehen => damit koennen beide 
-    // Zahlen im restlichen Quadranten nicht mehr vorkommen.
-    // Wenn die beiden auch noch in der selben Zeile sind, kann auch 
-    // in der restlichen Zeile keine dieser Zahlen mehr vorkommen.
-    // Analog fuer Spalten.
-    if (verboseLogging == 2) printlog("??? Searching for: twins ... \n");
-
-    for (q = 0; q < 9; q++) {
-        if (verboseLogging == 2) {
-            sprintf(buffer, "Untersuche Quadrant %d auf Zwillinge ...\n", q + 1);
-            printlog(buffer);
-        }
-        getQuadrantStart(q, &qx, &qy);
-        // Vergleiche jedes Feld im Quadranten mit jedem anderen im selben Quadranten
-        for (i = 0; i < 9; i++) {
-            getQuadrantCell(i, &x1, &y1);
-            x1 += qx;
-            y1 += qy;
-            for (j = i + 1; j < 9; j++) {
-                getQuadrantCell(j, &x2, &y2);
-                x2 += qx;
-                y2 += qy;
-
-                if ((nrOfPossibilities[y1][x1] == 2 && nrOfPossibilities[y2][x2] == 2)
-                        && !strcmp(possibilities[y1][x1], possibilities[y2][x2])) {
-                    // ja, wird haben Quadranten-Zwillinge => im restlichen Quadranten 
-                    // koennen diese 2 Zahlen nicht mehr vorkommen!
-                    if (verboseLogging == 2) {
-                        sprintf(buffer, "!! Neue Moeglichkeiten-Erkenntnis 3a: Zwillinge! Feld (%d/%d) und Feld (%d/%d) sind im gleichen Quadranten und haben beide: %s\n", y1 + 1, x1 + 1, y2 + 1, x2 + 1, possibilities[y1][x1]);
-                        printlog(buffer);
-                    }
-                    if (isolateBoxTuples(q, y1, x1, y2, x2))
-                        progress = 1;
-                }
-            }
-        }
-    }
-
-    if (verboseLogging) {
-        printSvg(0);
-    }
-
-
-    // Suche nach Zwillingen in einer Zeile oder einer Spalte (nicht unbedingt in einem Quadranten):
-    // ---------------------------------------------------------------------------------------------
-    // wenn zwei Felder in der gleichen Zeile die gleichen 2 moeglichen 
-    // Zahlen haben, muessen jeweils eine dieser beiden Zahlen in 
-    // jeweils einer dieser 2 Zellen stehen => damit koennen beide 
-    // Zahlen in der restlichen Zeile nicht mehr vorkommen
-
-    // alle Zeilen durchgehen
-    for (y = 0; y < 9; y++) {
-        if (verboseLogging == 2) {
-            sprintf(buffer, "Untersuche Reihe %d auf Zwillinge ...\n", y + 1);
-            printlog(buffer);
-        }
-        // suche Zwillinge in dieser Reihe
-        for (x1 = 0; x1 < 9; x1++) {
-            for (x2 = x1 + 1; x2 < 9; x2++) {
-                // vergleiche die beiden Zellen: sind es Zwillinge?
-                if ((nrOfPossibilities[y][x1] == 2 && nrOfPossibilities[y][x2] == 2)
-                        && !strcmp(possibilities[y][x1], possibilities[y][x2])) {
-                    // ja, x1, x2 sind Zwillinge => in der restlichen Zeile
-                    // koennen diese 2 Zahlen nicht mehr vorkommen!
-                    if (verboseLogging == 2) {
-                        sprintf(buffer, "!! Neue Moeglichkeiten-Erkenntnis 3b: Zwillinge! Feld (%d/%d) und Feld (%d/%d) haben beide: %s\n", y + 1, x1 + 1, y + 1, x2 + 1, possibilities[y][x1]);
-                        printlog(buffer);
-                    }
-                    if (isolateRowTwins(y, x1, x2))
-                        progress = 1;
-                }
-            }
-        }
-    }
-
-    if (verboseLogging) {
-        printSvg(0);
-    }
-
-    // alle Spalten durchgehen
-    for (x = 0; x < 9; x++) {
-        if (verboseLogging == 2) {
-            sprintf(buffer, "Untersuche Spalte %d auf Zwillinge ...\n", x + 1);
-            printlog(buffer);
-        }
-        // suche Zwillinge in dieser Spalte
-        for (y1 = 0; y1 < 9; y1++) {
-            for (y2 = y1 + 1; y2 < 9; y2++) {
-                // vergleiche die beiden Zellen: sind es Zwillinge?
-                if ((nrOfPossibilities[y1][x] == 2 && nrOfPossibilities[y2][x] == 2)
-                        && !strcmp(possibilities[y1][x], possibilities[y2][x])) {
-                    // ja, y1, y2 sind Zwillinge => in der restlichen Spalte
-                    // koennen diese 2 Zahlen nicht mehr vorkommen!
-                    if (verboseLogging == 2) {
-                        sprintf(buffer, "!! Neue Moeglichkeiten-Erkenntnis 3c: Zwillinge! Feld (%d/%d) und Feld (%d/%d) haben beide: %s\n", y1 + 1, x + 1, y2 + 1, x + 1, possibilities[y1][x]);
-                        printlog(buffer);
-                    }
-                    if (isolateColumnTwins(x, y1, y2))
-                        progress = 1;
-                }
-            }
-        }
-    }
-
-    return progress;
-}
- */
 int findHiddenPairs() {
     int y;
     int cand;
@@ -404,7 +274,7 @@ int findPointingTupels() {
 
         printf("container \"%s\" has %zu instances\n", unit->name, unit->containers);
         for (int c = 0; c < unit->containers; c++) {
-            FieldsVector *container = unit->fields[c];
+            FieldsVector *container = unit->theContainers[c].fields;
 
             showAllCandidates();
             show(0);
@@ -488,7 +358,7 @@ int findPointingTupels() {
                         }
                         tuple[n - 1] = n;
 
-                        progress |= forbidNumbersInOtherFields(unitDefs.units[u2].fields[containerIndex], tuple, fieldsVector);
+                        progress |= forbidNumbersInOtherFields(unitDefs.units[u2].theContainers[containerIndex].fields, tuple, fieldsVector);
                     }
                 }
 
@@ -600,9 +470,8 @@ unsigned recurseNakedTuples(unsigned maxLevel, FieldsVector *container, unsigned
 
 
 
-//-------------------------------------------------------------------
-
 /**
+ * The working horse. Try to solve the Sudoku.
  * 
  * @return 1 ... Sudoku has been solved successfully. 0 ... algorithm got stuck,
  *   indefinite iteration cancelled.
@@ -697,3 +566,18 @@ int solve() {
     // Implementierung ist dieses Sudoku nicht loesbar
     return 0;
 }
+
+
+/**
+ * compare two lists of candidates and check if they are equal
+ */
+int compareCandidates(unsigned *c1, unsigned *c2) {
+    for (int n = 0; n < MAX_NUMBER; n++) {
+        if (c1[n] != c2[n])
+            return 0;
+    }
+
+    // both are equal
+    return 1;
+}
+

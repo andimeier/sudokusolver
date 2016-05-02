@@ -66,27 +66,36 @@ void initUnits() {
     unit = &(unitDefs.units[ROWS]);
     unit->name = strdup("row");
     unit->containers = MAX_NUMBER;
-    unit->fields = (Field ***) xmalloc(sizeof (Field **) * unit->containers);
+    unit->theContainers = (Container *) xmalloc(sizeof (Container) * unit->containers);
     for (int i = 0; i < unit->containers; i++) {
-        unit->fields[i] = (Field **) xmalloc(sizeof (Field *) * MAX_NUMBER);
+        Container *container = &(unit->theContainers[i]);
+        sprintf(buffer, "row %c", (char)('A' + i));
+        container->name = strdup(buffer);
+        container->fields = (Field **) xmalloc(sizeof (Field *) * MAX_NUMBER);
     }
 
     // second unit: column
     unit = &(unitDefs.units[COLS]);
     unit->name = strdup("column");
     unit->containers = MAX_NUMBER;
-    unit->fields = (Field ***) xmalloc(sizeof (Field **) * unit->containers);
+    unit->theContainers = (Container *) xmalloc(sizeof (Container) * unit->containers);
     for (int i = 0; i < unit->containers; i++) {
-        unit->fields[i] = (Field **) xmalloc(sizeof (Field *) * MAX_NUMBER);
+        Container *container = &(unit->theContainers[i]);
+        sprintf(buffer, "column %u", i + 1);
+        container->name = strdup(buffer);
+        container->fields = (Field **) xmalloc(sizeof (Field *) * MAX_NUMBER);
     }
 
     // third unit: box
     unit = &(unitDefs.units[BOXES]);
     unit->name = strdup("box");
     unit->containers = MAX_NUMBER;
-    unit->fields = (Field ***) xmalloc(sizeof (Field **) * unit->containers);
+    unit->theContainers = (Container *) xmalloc(sizeof (Container) * unit->containers);
     for (int i = 0; i < unit->containers; i++) {
-        unit->fields[i] = (Field **) xmalloc(sizeof (Field *) * MAX_NUMBER);
+        Container *container = &(unit->theContainers[i]);
+        sprintf(buffer, "box %u", i + 1);
+        container->name = strdup(buffer);
+        container->fields = (Field **) xmalloc(sizeof (Field *) * MAX_NUMBER);
     }
 }
 
@@ -98,9 +107,10 @@ void freeUnits() {
     for (int i = 0; i < unitDefs.count; i++) {
         free(unitDefs.units[i].name);
         for (int n = 0; n < unitDefs.units[i].containers; n++) {
-            free(unitDefs.units[i].fields[n]);
+            free(unitDefs.units[i].theContainers[n].name);
+            free(unitDefs.units[i].theContainers[n].fields);
         }
-        free(unitDefs.units[i].fields);
+        free(unitDefs.units[i].theContainers);
     }
     free(unitDefs.units);
 }
@@ -143,13 +153,13 @@ void initGrid() {
         int *unitPositions = (int *) xmalloc(sizeof (int) * unitDefs.count);
 
         unitPositions[ROWS] = y;
-        unitDefs.units[ROWS].fields[y][x] = field;
+        unitDefs.units[ROWS].theContainers[y].fields[x] = field;
 
         unitPositions[COLS] = x;
-        unitDefs.units[COLS].fields[x][y] = field;
+        unitDefs.units[COLS].theContainers[x].fields[y] = field;
 
         unitPositions[BOXES] = getBoxNr(x, y);
-        unitDefs.units[BOXES].fields[unitPositions[BOXES]][y] = field;
+        unitDefs.units[BOXES].theContainers[unitPositions[BOXES]].fields[y] = field;
 
         field->unitPositions = unitPositions;
 
@@ -170,7 +180,7 @@ void initGrid() {
             field = fields + row * MAX_NUMBER + ix;
             assert(field->unitPositions[ROWS] == row);
 
-            unit->fields[row][ix] = field;
+            unit->theContainers[row].fields[ix] = field;
         }
     }
 
@@ -181,7 +191,7 @@ void initGrid() {
             field = fields + ix * MAX_NUMBER + col;
             assert(field->unitPositions[COLS] == col);
 
-            unit->fields[col][ix] = field;
+            unit->theContainers[col].fields[ix] = field;
         }
     }
 
@@ -196,7 +206,7 @@ void initGrid() {
             assert(field->unitPositions[COLS] == x);
             assert(field->unitPositions[ROWS] == y);
 
-            unit->fields[box][ix] = field;
+            unit->theContainers[box].fields[ix] = field;
         }
     }
 }
@@ -240,7 +250,7 @@ void setValue(Field *field, unsigned value) {
  * @param n
  */
 void forbidNumberInNeighbors(Field *field, unsigned n) {
-    Field **container;
+    Field **containerFields;
 
     assert(n <= MAX_NUMBER);
 
@@ -252,7 +262,7 @@ void forbidNumberInNeighbors(Field *field, unsigned n) {
         printf("[6hshhs]\n");
         Unit *unit = &(unitDefs.units[u]);
         printf("[6hshhs++]\n");
-        container = unit->fields[field->unitPositions[u]];
+        containerFields = unit->theContainers[field->unitPositions[u]].fields;
 
         // go through all positions (numbers) of the container and 
         // forbid this number in all other fields of the container
@@ -269,7 +279,7 @@ void forbidNumberInNeighbors(Field *field, unsigned n) {
         preserve[0] = field;
         preserve[1] = NULL;
 
-        forbidNumbersInOtherFields(container, candidates, preserve);
+        forbidNumbersInOtherFields(containerFields, candidates, preserve);
     }
 }
 
