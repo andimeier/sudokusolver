@@ -4,11 +4,9 @@
  *
  * Created on 04. April 2016, 21:01
  */
-#include <assert.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
-#include "grid.h"
 #include "util.h"
 
 

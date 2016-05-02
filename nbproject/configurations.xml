@@ -4,6 +4,8 @@
     <df root="src" name="0">
       <in>acquire.c</in>
       <in>acquire.h</in>
+      <in>container.c</in>
+      <in>container.h</in>
       <in>grid.c</in>
       <in>log.c</in>
       <in>log.h</in>
@@ -20,7 +22,7 @@
       <itemPath>src/Makefile</itemPath>
     </logicalFolder>
     <itemPath>DataTypes.md</itemPath>
-    <itemPath>test/testTest1.c</itemPath>
+    <itemPath>test/testGridFunctions.c</itemPath>
   </logicalFolder>
   <sourceFolderFilter>^(nbproject)$</sourceFolderFilter>
   <sourceRootList>
@@ -56,6 +58,10 @@
       </item>
       <item path="src/acquire.h" ex="false" tool="3" flavor2="0">
       </item>
+      <item path="src/container.c" ex="false" tool="0" flavor2="0">
+      </item>
+      <item path="src/container.h" ex="false" tool="3" flavor2="0">
+      </item>
       <item path="src/grid.c" ex="false" tool="0" flavor2="2">
       </item>
       <item path="src/log.c" ex="false" tool="0" flavor2="0">
@@ -72,7 +78,7 @@
       </item>
       <item path="src/util.c" ex="false" tool="0" flavor2="2">
       </item>
-      <item path="test/testTest1.c" ex="false" tool="0" flavor2="0">
+      <item path="test/testGridFunctions.c" ex="false" tool="0" flavor2="0">
       </item>
     </conf>
   </confs>
