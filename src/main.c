@@ -125,6 +125,7 @@ int main(int argc, char **argv) {
         printlog("-----------------------------------------------");
         printlog("         FERTIG, SUDOKU WURDE GELOEST!");
         printlog("-----------------------------------------------");
+        sudokuString(1);
     } else {
 
         int numbersFound = 0;
@@ -137,7 +138,7 @@ int main(int argc, char **argv) {
         sprintf(buffer, "      %d von %d Zellen wurden gefunden.", numbersFound, NUMBER_OF_FIELDS);
         printlog(buffer);
         printlog("-----------------------------------------------");
-        sudokuString();
+        sudokuString(0);
     }
 
     if (errors) {

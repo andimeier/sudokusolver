@@ -154,21 +154,27 @@ void show(int showInit) {
     //	printlog("+-----+-----+-----+");
 }
 
-void sudokuString() {
+/**
+ * 
+ * @param showInit {integer} if falsey, only print current grid. If truish,
+ *   print original (init) grid and current grid
+ */
+void sudokuString(int showInit) {
     // display sudoku string, e.g. 5600340701000403000130500020400000304
     char *buffer;
     int f;
+    int val;
 
     buffer = (char *) xmalloc(sizeof (char) * NUMBER_OF_FIELDS);
 
     for (f = 0; f < NUMBER_OF_FIELDS; f++) {
-        buffer[f] = (char) (fields[f].value + '0');
+        val = showInit ? fields[f].initialValue : fields[f].value;
+        buffer[f] = (char) (val + '0');
     }
     buffer[f] = '\0';
 
     // intermediate header row
     printlog(buffer);
-    printf(buffer);
 
     free(buffer);
 }

@@ -22,7 +22,6 @@
 // auxiliary functions
 static unsigned recurseNakedTuples(unsigned maxLevel, FieldsVector *container, unsigned level, unsigned *numbers, FieldsVector *fieldsContainingCandidates);
 
-
 int errors; // number of errors in the algorithm
 int verboseLogging; // 0 ... no verbose logging, 1 ... log changes, 2 ... log even considerations
 
@@ -411,7 +410,7 @@ int findPointingTupels() {
             show(0);
             printf("Alex\n");
             show(0);
-            sudokuString();
+            sudokuString(0);
 
             printf("iterating into instance %d of container \"%s\"\n", c, unit->name); // FIXME debugging output
 
@@ -602,16 +601,18 @@ unsigned recurseNakedTuples(unsigned maxLevel, FieldsVector *container, unsigned
 
 
 //-------------------------------------------------------------------
-// Return-Wert
-//   1 ... Sudoku wurde erfolgreich geloest
-//   0 ... Algorithmus bleibt stecken, Endlositeration abgebrochen
 
+/**
+ * 
+ * @return 1 ... Sudoku has been solved successfully. 0 ... algorithm got stuck,
+ *   indefinite iteration cancelled.
+ */
 int solve() {
     int iteration;
-    int progress; // Flag: in einer Iteration wurde zumindest eine Erkenntnis gewonnen
+    int progress; // flag: something has changed in the iteration
 
     iteration = 0;
-    errors = 0; // noch keine Fehler aufgetreten
+    errors = 0; // no errors yet
 
     printf("[4sf]\n");
 
@@ -620,29 +621,14 @@ int solve() {
     printf("[4s65f]\n");
 
     initCandidates();
-    
+
     do {
         iteration++;
-        progress = 0; // noch kein neuen Erkenntnis in dieser Runde (hat ja erst begonnen)
+        progress = 0; // nothing changed in this iteration (no wonder - has just started)
         if (verboseLogging == 2) {
             sprintf(buffer, "----- Beginne Iteration %d -----\n", iteration);
             printlog(buffer);
         }
-
-        // TODO:
-        //        if (verboseLogging == 2) {
-        //            for (y = 0; y < 9; y++) {
-        //                for (x = 0; x < 9; x++) {
-        //                    if (fields[y][x]) {
-        //                        sprintf(buffer, "  Feld (%d/%d): %d\n", y + 1, x + 1, fields[y][x]);
-        //                        printlog(buffer);
-        //                    } else {
-        //                        // TODO sprintf(buffer, "  Feld (%d/%d): %s\n", y + 1, x + 1, possibilities[y][x]);
-        //                        printlog(buffer);
-        //                    }
-        //                }
-        //            }
-        //        }
 
         // alle Felder durchgehen und vorkommende Zahlen in der selben
         // Reihe, in der selben Spalte und im selben Quadranten verbieten
@@ -679,21 +665,22 @@ int solve() {
         if (isFinished())
             return 1;
 
-//        printlog("Enter strategy --- Find naked pairs ...\n");
-        //        progress |= findNakedTuples(2); // find naked pairs
-//        printlog("After strategy --- Find naked pairs ... progress: %d\n", progress);
-        //        if (progress) continue;
+        printlog("Enter strategy --- Find naked pairs ...\n");
+        progress |= findNakedTuples(2); // find naked pairs
+        sprintf(buffer, "After strategy --- Find naked pairs ... progress: %d\n", progress);
+        printlog(buffer);
+        if (progress) continue;
 
         if (isFinished())
             return 1;
 
-//        printlog("Enter strategy --- Find naked triples ...\n");
+        //        printlog("Enter strategy --- Find naked triples ...\n");
         //progress |= findNakedTuples(3); // find naked triples
-//        printlog("After strategy --- Find naked triples ... progress: %d\n", progress);
+        //        printlog("After strategy --- Find naked triples ... progress: %d\n", progress);
 
-//        printlog("Enter strategy --- Find pointing tuples ...\n");
+        //        printlog("Enter strategy --- Find pointing tuples ...\n");
         //        progress |= findPointingTupels(); // find pointing pairs/triples
-//        printlog("After strategy --- Find ponting tuples ... progress: %d\n", progress);
+        //        printlog("After strategy --- Find ponting tuples ... progress: %d\n", progress);
         //        if (progress) continue;
 
 
@@ -701,202 +688,6 @@ int solve() {
             printSvg(0);
         }
 
-        // Suche nach lokaler Eingrenzung einer Zahl in einem Quadranten:
-        // --------------------------------------------------------------
-        // wenn in einem Quadranten eine Zahl nur in Zellen in der gleichen
-        // Zeile vorkommen kann, muss sie in diesem Quadranten in dieser
-        // Zeile stehen und kann daher fuer die restliche Zeile (ausserhalb
-        // des Quadranten) verboten werden.
-        // Analog fuer Spalten.
-
-        /*
-                // gehe alle Quadranten durch
-                int yFound;
-                for (q = 0; q < 9; q++) {
-                    if (verboseLogging == 2) {
-                        sprintf(buffer, "??? Untersuche Quadrant %d auf Zahlen, die auf eine Zeile eingrenzbar sind ...\n", q + 1);
-                        printlog(buffer);
-                    }
-                    getQuadrantStart(q, &qx, &qy);
-                    // alle Zahlen durchgehen
-                    for (n = 1; n <= 9; n++) {
-                        if (verboseLogging == 2) {
-                            sprintf(buffer, " Untersuche Quadrant %d auf die Zahl %d ...\n", q + 1, n);
-                            printlog(buffer);
-                        }
-                        yFound = -1; // noch haben wir fuer diese Zahl keine Zeile gefunden
-                        for (y = qy; y < qy + 3; y++) {
-                            for (x = qx; x < qx + 3; x++) {
-                                if (verboseLogging == 2) {
-                                    // TODO sprintf(buffer, "  yFound=%d Feld (%d/%d) %d %s\n", yFound + 1, y + 1, x + 1, fields[y][x], (fields[y][x] ? "" : possibilities[y][x]));
-                                    printlog(buffer);
-                                }
-                                // kommt die Zahl in diesem Feld als Moeglichkeit vor?
-                                if (fields[y][x] == n) {
-                                    // diese Zahl ist bereits fixiert im Quadranten =>
-                                    // nach dieser brauche ich nicht weitersuchen
-                                    if (verboseLogging == 2) {
-                                        // TODO sprintf(buffer, "    Zahl %d ist bereits in (%d/%d) identifiziert!\n", n, y + 1, x + 1);
-                                        printlog(buffer);
-                                    }
-                                    yFound = -1; // nix Tolles gefunden
-                                    y = 99; // auch die aeussere Schleife beenden
-                                    break; // raus aus der Schleife
-                                }
-                                if (!fields[y][x] && possibilities[y][x][n - 1] != '0') {
-                                    // die Zahl n koennte hier vorkommen
-                                    if (yFound == -1) {
-                                        // wir merken uns diese Zeile, wenn alle anderen
-                                        // Vorkommen auch in dieser Zeile sind, haben wir
-                                        // eine wertvolle Information gewonnen!
-                                        yFound = y;
-                                        if (verboseLogging == 2) {
-                                            sprintf(buffer, "    Zahl %d koennte in Zeile %d vorkommen (%d/%d), merke mir die Zeile ...\n", n, y + 1, y + 1, x + 1);
-                                            printlog(buffer);
-                                        }
-                                    } else if (yFound != y) {
-                                        // oje, das zweite Vorkommen ist in einer
-                                        // anderen Zeile als der gemerkten => Ziel
-                                        // nicht erreicht, das bringt uns nix
-                                        if (verboseLogging == 2) {
-                                            sprintf(buffer, "    Oje, Zahl %d koennte auch in Zeile %d vorkommen (%d/%d), ein Reinfaller.\n", n, y + 1, y + 1, x + 1);
-                                            printlog(buffer);
-                                        }
-                                        yFound = -1; // nix Tolles gefunden
-                                        y = 99;
-                                        break; // diese Zahl war ein Reinfaller
-                                    } else {
-                                        if (verboseLogging == 2) {
-                                            sprintf(buffer, "    Zahl %d koennte auch hier vorkommen, ebenfalls in Zeile %d ...\n", n, y + 1);
-                                            printlog(buffer);
-                                        }
-                                    }
-                                }
-                            }
-                        }
-                        if (yFound != -1) {
-                            if (verboseLogging == 2) {
-                                sprintf(buffer, "  Hurra! Zahl %d kann im Quadranten %d nur in Zeile %d vorkommen.\n", n, q + 1, yFound + 1);
-                                printlog(buffer);
-                            }
-                            for (x = 0; x < 9; x++) {
-                                // wenn ausserhalb unseren Quadranten: alle Vorkommen der
-                                // Zahl n verbieten, die muss naemlich im Quadranten q
-                                // in dieser Zeile vorkommen
-                                if ((x < qx) || (x >= qx + 3)) {
-                                    if (!fields[yFound][x])
-                                        if (forbidNumber(yFound, x, n)) {
-                                            if (verboseLogging == 2) {
-                                                sprintf(buffer, "!! Neue Moeglichkeiten-Erkenntnis 4a: (Nummer %d in (%d/%d) verboten weil in Zeile %d diese Zahl im Quadranten %d sein muss.\n", n, yFound + 1, x + 1, yFound + 1, q + 1);
-                                                printlog(buffer);
-                                            }
-                                            progress = 1;
-                                        }
-                                }
-                            }
-                        }
-                    }
-                }
-
-                if (verboseLogging) {
-                    printSvg(0);
-                }
-
-                // ... analog in Spalten eines Quadranten suchen
-                int xFound;
-                for (q = 0; q < 9; q++) {
-                    if (verboseLogging == 2) {
-                        sprintf(buffer, "Untersuche Quadrant %d auf Zahlen, die auf eine Spalte eingrenzbar sind ...\n", q + 1);
-                        printlog(buffer);
-                    }
-                    getQuadrantStart(q, &qx, &qy);
-                    // alle Zahlen durchgehen
-                    for (n = 1; n <= 9; n++) {
-                        if (verboseLogging == 2) {
-                            sprintf(buffer, " Untersuche Quadrant %d auf die Zahl %d ...\n", q + 1, n);
-                            printlog(buffer);
-                        }
-                        xFound = -1; // noch haben wir fuer diese Zahl keine Spalte gefunden
-                        for (y = qy; y < qy + 3; y++) {
-                            for (x = qx; x < qx + 3; x++) {
-                                if (verboseLogging == 2) {
-                                    sprintf(buffer, "  xFound=%d Feld (%d/%d) %d %s\n", xFound + 1, y + 1, x + 1, fields[y][x], (fields[y][x] ? "" : possibilities[y][x]));
-                                    printlog(buffer);
-                                }
-                                // kommt die Zahl in diesem Feld als Moeglichkeit vor?
-                                if (fields[y][x] == n) {
-                                    // diese Zahl ist bereits fixiert im Quadranten =>
-                                    // nach dieser brauche ich nicht weitersuchen
-                                    if (verboseLogging == 2) {
-                                        sprintf(buffer, "    Zahl %d ist bereits in (%d/%d) identifiziert!\n", n, y + 1, x + 1);
-                                        printlog(buffer);
-                                    }
-                                    xFound = -1; // nix Tolles gefunden
-                                    y = 99; // auch die aeussere Schleife beenden
-                                    break; // raus aus der Schleife
-                                }
-                                if (!fields[y][x] && possibilities[y][x][n - 1] != '0') {
-                                    // die Zahl n koennte hier vorkommen
-                                    if (xFound == -1) {
-                                        // wir merken uns diese Zeile, wenn alle anderen
-                                        // Vorkommen auch in dieser Zeile sind, haben wir
-                                        // eine wertvolle Information gewonnen!
-                                        xFound = x;
-                                        if (verboseLogging == 2) {
-                                            sprintf(buffer, "    Zahl %d koennte in Spalte %d vorkommen (%d/%d), merke mir die Spalte ...\n", n, x + 1, y + 1, x + 1);
-                                            printlog(buffer);
-                                        }
-                                    } else if (xFound != x) {
-                                        // oje, das zweite Vorkommen ist in einer
-                                        // anderen Spalte als der gemerkten => Ziel
-                                        // nicht erreicht, das bringt uns nix
-                                        if (verboseLogging == 2) {
-                                            sprintf(buffer, "    Oje, Zahl %d koennte auch in Spalte %d vorkommen (%d/%d), ein Reinfaller.\n", n, x + 1, y + 1, x + 1);
-                                            printlog(buffer);
-                                        }
-                                        xFound = -1; // nix Tolles gefunden
-                                        y = 99;
-                                        break; // diese Zahl war ein Reinfaller
-                                    } else {
-                                        if (verboseLogging == 2) {
-                                            sprintf(buffer, "    Zahl %d koennte auch hier vorkommen, ebenfalls in Spalte %d ...\n", n, x + 1);
-                                            printlog(buffer);
-                                        }
-                                    }
-                                }
-                            }
-                        }
-                        if (xFound != -1) {
-                            if (verboseLogging == 2) {
-                                sprintf(buffer, "!! Neue Moeglichkeiten-Erkenntnis 5a: Hurra! Zahl %d kann im Quadranten %d nur in Spalte %d vorkommen.\n", n, q + 1, xFound + 1);
-                                printlog(buffer);
-                            }
-                            for (y = 0; y < 9; y++) {
-                                // wenn ausserhalb unseren Quadranten: alle Vorkommen der
-                                // Zahl n verbieten, die muss naemlich im Quadranten q
-                                // in dieser Spalte vorkommen
-                                if ((y < qy) || (y >= qy + 3)) {
-                                    if (!fields[y][xFound])
-                                        if (forbidNumber(y, xFound, n)) {
-                                            if (verboseLogging == 2) {
-                                                sprintf(buffer, "!! Neue Moeglichkeiten-Erkenntnis 5b:  (Nummer %d in (%d/%d) verboten weil in Spalte %d diese Zahl im Quadranten %d sein muss.\n", n, y + 1, xFound + 1, xFound + 1, q + 1);
-                                                printlog(buffer);
-                                            }
-                                            progress = 1;
-                                        }
-                                }
-                            }
-                        }
-                    }
-                }
-
-                if (verboseLogging) {
-                    printSvg(0);
-                }
-
-                // nach der Iteration den Sudoku-Zwischenstand anzeigen
-                if (verboseLogging) show(0);
-         */
     } while (progress);
 
     showAllCandidates();
@@ -906,6 +697,3 @@ int solve() {
     // Implementierung ist dieses Sudoku nicht loesbar
     return 0;
 }
-
-
-
