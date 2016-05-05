@@ -22,6 +22,7 @@
 typedef int (*strategy)(void);
 
 // auxiliary functions
+static int findNakedTuplesX(size_t dimension);
 static unsigned recurseNakedTuples(unsigned maxLevel, FieldsVector *container, unsigned level, unsigned *numbers, FieldsVector *fieldsContainingCandidates);
 static int compareCandidates(unsigned *c1, unsigned *c2);
 
@@ -38,6 +39,9 @@ int checkForSolvedCells() {
     Field *field;
     int value;
     int progress; // Flag: in einer Iteration wurde zumindest eine Erkenntnis gewonnen
+
+    if (verboseLogging == 2)
+        printlog("[strategy] check for solved cells ...\n");
 
     progress = 0;
 
@@ -58,6 +62,9 @@ int checkForSolvedCells() {
 
 int findHiddenSingles() {
     int progress; // flag: something has changed
+
+    if (verboseLogging == 2)
+        printlog("[strategy] find hidden singles ...\n");
 
     progress = 0;
 
@@ -108,10 +115,13 @@ int findHiddenSingles() {
 int findNakedTuples() {
     int progress;
 
+    if (verboseLogging == 2)
+        printlog("[strategy] find naked tuples ...\n");
+
     progress = 0;
 
     for (int i = 2; i < MAX_TUPLE_DIMENSION; i++) {
-        progress |= findNakedTuples(i);
+        progress |= findNakedTuplesX(i);
 
         if (progress)
             break;
@@ -129,6 +139,11 @@ int findNakedTuplesX(size_t dimension) {
     Unit *unit;
     int progress; // flag: something has changed
     unsigned n1, n2;
+
+    if (verboseLogging == 2) {
+        sprintf(buffer, "[strategy] find naked tuples of dimension %zu ...\n", dimension);
+        printlog(buffer);
+    }
 
     // allow for pairs, triples and quadruples
     assert(dimension <= MAX_TUPLE_DIMENSION);
@@ -497,6 +512,7 @@ int solve() {
     int iteration;
     int progress; // flag: something has changed in the iteration
     strategy *strategies;
+    strategy *currentStrategy;
 
     // add stragies to list of strategies to be used
     strategies = (strategy *) xmalloc(sizeof (strategy) * 10);
@@ -517,6 +533,8 @@ int solve() {
 
     initCandidates();
 
+    // main loop, only enter if Sudoku has been solved or if we got stuck and
+    // are unable to solve the Sudoku
     do {
         iteration++;
         progress = 0; // nothing changed in this iteration (no wonder - has just started)
@@ -525,66 +543,85 @@ int solve() {
             printlog(buffer);
         }
 
-        // alle Felder durchgehen und vorkommende Zahlen in der selben
-        // Reihe, in der selben Spalte und im selben Quadranten verbieten
-        if (verboseLogging == 2)
-            printlog("??? Searching for: unique numbers ... \n");
 
-        printlog("Enter strategy --- Check for solved cells ...\n");
-        
-        progress |= (*strategies[0])();
-        
-//        progress |= checkForSolvedCells();
-        sprintf(buffer, "After strategy --- Check for solved cells ... progress: %d\n", progress);
-        printlog(buffer);
-        if (progress) continue;
+        // loop through all strategies
+        currentStrategy = strategies;
+        while (currentStrategy) {
+            progress |= (**currentStrategy)();
 
-        if (verboseLogging) {
-            printSvg(0);
+            if (progress) {
+                // no iterating to next strategy
+                break;
+            }
+
+            // no progress => try next strategy
+            currentStrategy++;
         }
-
-        printlog("Enter strategy --- Find hidden singles ...\n");
-        progress |= findHiddenSingles();
-        sprintf(buffer, "After strategy --- Find hidden singles ... progress: %d\n", progress);
-        printlog(buffer);
-        if (progress) continue;
-
-
-        if (verboseLogging) {
-            printSvg(0);
-        }
-
-        //? FIXME FEHLT hier nicht, das nicht nur fuer Spalten und Zeile, sondern auch fuer Quadranten anzuwenden?
-
-
-
-
-        // wenn alle Felder ausgefuellt sind, sind wir wohl fertig!
-        if (isFinished())
-            return 1;
-
-        printlog("Enter strategy --- Find naked pairs ...\n");
-//        progress |= findNakedTuples(2); // find naked pairs
-        sprintf(buffer, "After strategy --- Find naked pairs ... progress: %d\n", progress);
-        printlog(buffer);
-        if (progress) continue;
 
         if (isFinished())
             return 1;
 
-        //        printlog("Enter strategy --- Find naked triples ...\n");
-        //progress |= findNakedTuples(3); // find naked triples
-        //        printlog("After strategy --- Find naked triples ... progress: %d\n", progress);
 
-        //        printlog("Enter strategy --- Find pointing tuples ...\n");
-        //        progress |= findPointingTupels(); // find pointing pairs/triples
-        //        printlog("After strategy --- Find ponting tuples ... progress: %d\n", progress);
+        //        // alle Felder durchgehen und vorkommende Zahlen in der selben
+        //        // Reihe, in der selben Spalte und im selben Quadranten verbieten
+        //        if (verboseLogging == 2)
+        //            printlog("??? Searching for: unique numbers ... \n");
+        //
+        //        printlog("Enter strategy --- Check for solved cells ...\n");
+        //
+        //        progress |= (*strategies[0])();
+        //
+        //        //        progress |= checkForSolvedCells();
+        //        sprintf(buffer, "After strategy --- Check for solved cells ... progress: %d\n", progress);
+        //        printlog(buffer);
         //        if (progress) continue;
-
-
-        if (verboseLogging) {
-            printSvg(0);
-        }
+        //
+        //        if (verboseLogging) {
+        //            printSvg(0);
+        //        }
+        //
+        //        printlog("Enter strategy --- Find hidden singles ...\n");
+        //        progress |= (*strategies[1])();
+        //        sprintf(buffer, "After strategy --- Find hidden singles ... progress: %d\n", progress);
+        //        printlog(buffer);
+        //        if (progress) continue;
+        //
+        //
+        //        if (verboseLogging) {
+        //            printSvg(0);
+        //        }
+        //
+        //        //? FIXME FEHLT hier nicht, das nicht nur fuer Spalten und Zeile, sondern auch fuer Quadranten anzuwenden?
+        //
+        //
+        //
+        //
+        //        // wenn alle Felder ausgefuellt sind, sind wir wohl fertig!
+        //        if (isFinished())
+        //            return 1;
+        //
+        //        printlog("Enter strategy --- Find naked pairs ...\n");
+        //        //        progress |= (*strategies[2])();
+        //        sprintf(buffer, "After strategy --- Find naked pairs ... progress: %d\n", progress);
+        //        printlog(buffer);
+        //        if (progress) continue;
+        //
+        //        if (isFinished())
+        //            return 1;
+        //
+        //        //        printlog("Enter strategy --- Find naked triples ...\n");
+        //        //progress |= findNakedTuples(3); // find naked triples
+        //        //        printlog("After strategy --- Find naked triples ... progress: %d\n", progress);
+        //
+        //        //        printlog("Enter strategy --- Find pointing tuples ...\n");
+        //        //        progress |= findPointingTupels(); // find pointing pairs/triples
+        //        //        printlog("After strategy --- Find ponting tuples ... progress: %d\n", progress);
+        //        //        if (progress) continue;
+        //
+        //
+        //        if (verboseLogging) {
+        //            printSvg(0);
+        //        }
 
     } while (progress);
 
