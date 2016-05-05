@@ -19,7 +19,7 @@ extern "C" {
     // strategies
     int checkForSolvedCells();
     int findHiddenSingles();
-    int findNakedTuples(size_t dimension);
+    int findNakedTuples();
     int findHiddenPairsAndTriples(); // not implemented yet
     int findNakedQuads(); // not implemented yet
     int findHiddenQuads(); // not implemented yet

@@ -19,6 +19,8 @@
 // search for pairs, triples and quadruples, not more
 #define MAX_TUPLE_DIMENSION 4
 
+typedef int (*strategy)(void);
+
 // auxiliary functions
 static unsigned recurseNakedTuples(unsigned maxLevel, FieldsVector *container, unsigned level, unsigned *numbers, FieldsVector *fieldsContainingCandidates);
 static int compareCandidates(unsigned *c1, unsigned *c2);
@@ -28,7 +30,7 @@ int verboseLogging; // 0 ... no verbose logging, 1 ... log changes, 2 ... log ev
 
 //-------------------------------------------------------------------
 // check for cells having only one candidate left and set their value (and
-// then eliminate this value in neighboring fields)
+// thus eliminate this value in neighboring fields)
 // @return 1 ... something has changed, 0 ... nothing changed
 
 int checkForSolvedCells() {
@@ -101,10 +103,29 @@ int findHiddenSingles() {
 
 /**
  * find naked tuples (pairs, triples, ...) in the same container
+ * @return 
+ */
+int findNakedTuples() {
+    int progress;
+
+    progress = 0;
+
+    for (int i = 2; i < MAX_TUPLE_DIMENSION; i++) {
+        progress |= findNakedTuples(i);
+
+        if (progress)
+            break;
+    }
+
+    return progress;
+}
+
+/**
+ * find naked tuples (pairs, triples, ...) in the same container
  * @param dimension 2 for pairs, 3 for triples, etc.
  * @return 
  */
-int findNakedTuples(size_t dimension) {
+int findNakedTuplesX(size_t dimension) {
     Unit *unit;
     int progress; // flag: something has changed
     unsigned n1, n2;
@@ -196,7 +217,6 @@ int findNakedTuples(size_t dimension) {
     return progress;
 
 }
-
 
 int findHiddenPairs() {
     int y;
@@ -467,9 +487,6 @@ unsigned recurseNakedTuples(unsigned maxLevel, FieldsVector *container, unsigned
 //FieldsVector **containersContainingAllFields(FieldsVector *fields) {
 //}
 
-
-
-
 /**
  * The working horse. Try to solve the Sudoku.
  * 
@@ -479,6 +496,15 @@ unsigned recurseNakedTuples(unsigned maxLevel, FieldsVector *container, unsigned
 int solve() {
     int iteration;
     int progress; // flag: something has changed in the iteration
+    strategy *strategies;
+
+    // add stragies to list of strategies to be used
+    strategies = (strategy *) xmalloc(sizeof (strategy) * 10);
+    strategies[0] = &checkForSolvedCells;
+    strategies[1] = &findHiddenSingles;
+    strategies[2] = &findNakedTuples;
+    strategies[3] = NULL; // terminate list of strategies
+
 
     iteration = 0;
     errors = 0; // no errors yet
@@ -505,7 +531,10 @@ int solve() {
             printlog("??? Searching for: unique numbers ... \n");
 
         printlog("Enter strategy --- Check for solved cells ...\n");
-        progress |= checkForSolvedCells();
+        
+        progress |= (*strategies[0])();
+        
+//        progress |= checkForSolvedCells();
         sprintf(buffer, "After strategy --- Check for solved cells ... progress: %d\n", progress);
         printlog(buffer);
         if (progress) continue;
@@ -535,7 +564,7 @@ int solve() {
             return 1;
 
         printlog("Enter strategy --- Find naked pairs ...\n");
-        progress |= findNakedTuples(2); // find naked pairs
+//        progress |= findNakedTuples(2); // find naked pairs
         sprintf(buffer, "After strategy --- Find naked pairs ... progress: %d\n", progress);
         printlog(buffer);
         if (progress) continue;
@@ -561,12 +590,13 @@ int solve() {
 
     showAllCandidates();
 
+    free(strategies);
+
     // wir kommen hierher, weil die letzte Iteration keine einzige Aenderung gebracht
     // hat => wir bleiben stecken mit unserem Algorithmus. Ohne Aenderung in der
     // Implementierung ist dieses Sudoku nicht loesbar
     return 0;
 }
-
 
 /**
  * compare two lists of candidates and check if they are equal
