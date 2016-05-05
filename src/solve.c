@@ -516,10 +516,11 @@ int solve() {
 
     // add stragies to list of strategies to be used
     strategies = (strategy *) xmalloc(sizeof (strategy) * 10);
-    strategies[0] = &checkForSolvedCells;
-    strategies[1] = &findHiddenSingles;
-    strategies[2] = &findNakedTuples;
-    strategies[3] = NULL; // terminate list of strategies
+    currentStrategy = strategies;
+    *currentStrategy++ = &checkForSolvedCells;
+    *currentStrategy++ = &findHiddenSingles;
+    *currentStrategy++ = &findNakedTuples;
+    *currentStrategy++ = NULL; // terminate list of strategies
 
 
     iteration = 0;
@@ -558,70 +559,9 @@ int solve() {
             currentStrategy++;
         }
 
-        if (isFinished())
+        if (isFinished()) {
             return 1;
-
-
-        //        // alle Felder durchgehen und vorkommende Zahlen in der selben
-        //        // Reihe, in der selben Spalte und im selben Quadranten verbieten
-        //        if (verboseLogging == 2)
-        //            printlog("??? Searching for: unique numbers ... \n");
-        //
-        //        printlog("Enter strategy --- Check for solved cells ...\n");
-        //
-        //        progress |= (*strategies[0])();
-        //
-        //        //        progress |= checkForSolvedCells();
-        //        sprintf(buffer, "After strategy --- Check for solved cells ... progress: %d\n", progress);
-        //        printlog(buffer);
-        //        if (progress) continue;
-        //
-        //        if (verboseLogging) {
-        //            printSvg(0);
-        //        }
-        //
-        //        printlog("Enter strategy --- Find hidden singles ...\n");
-        //        progress |= (*strategies[1])();
-        //        sprintf(buffer, "After strategy --- Find hidden singles ... progress: %d\n", progress);
-        //        printlog(buffer);
-        //        if (progress) continue;
-        //
-        //
-        //        if (verboseLogging) {
-        //            printSvg(0);
-        //        }
-        //
-        //        //? FIXME FEHLT hier nicht, das nicht nur fuer Spalten und Zeile, sondern auch fuer Quadranten anzuwenden?
-        //
-        //
-        //
-        //
-        //        // wenn alle Felder ausgefuellt sind, sind wir wohl fertig!
-        //        if (isFinished())
-        //            return 1;
-        //
-        //        printlog("Enter strategy --- Find naked pairs ...\n");
-        //        //        progress |= (*strategies[2])();
-        //        sprintf(buffer, "After strategy --- Find naked pairs ... progress: %d\n", progress);
-        //        printlog(buffer);
-        //        if (progress) continue;
-        //
-        //        if (isFinished())
-        //            return 1;
-        //
-        //        //        printlog("Enter strategy --- Find naked triples ...\n");
-        //        //progress |= findNakedTuples(3); // find naked triples
-        //        //        printlog("After strategy --- Find naked triples ... progress: %d\n", progress);
-        //
-        //        //        printlog("Enter strategy --- Find pointing tuples ...\n");
-        //        //        progress |= findPointingTupels(); // find pointing pairs/triples
-        //        //        printlog("After strategy --- Find ponting tuples ... progress: %d\n", progress);
-        //        //        if (progress) continue;
-        //
-        //
-        //        if (verboseLogging) {
-        //            printSvg(0);
-        //        }
+        }
 
     } while (progress);
 
