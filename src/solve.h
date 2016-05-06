@@ -29,6 +29,9 @@ extern "C" {
     // number of errors in the algorithm
     extern int errors;
 
+    // auxiliary functions
+    unsigned findNakedTuplesInContainer(FieldsVector *container, unsigned dimension);
+
 
 #ifdef	__cplusplus
 }

@@ -26,6 +26,7 @@ static int findNakedTuplesX(size_t dimension);
 static unsigned recurseNakedTuples(unsigned maxLevel, FieldsVector *container, unsigned level, unsigned *numbers, FieldsVector *fieldsContainingCandidates);
 static int compareCandidates(unsigned *c1, unsigned *c2);
 
+
 int errors; // number of errors in the algorithm
 int verboseLogging; // 0 ... no verbose logging, 1 ... log changes, 2 ... log even considerations
 
@@ -432,6 +433,9 @@ unsigned findNakedTuplesInContainer(FieldsVector *container, unsigned dimension)
     numbers[0] = 0;
     foundFields[0] = NULL;
 
+    printf("starting recursion ...\n"); // DEBUG
+    fflush(stdout);
+
     if (recurseNakedTuples(dimension, container, 1, numbers, foundFields)) {
         progress = 1;
     }
@@ -461,6 +465,8 @@ unsigned recurseNakedTuples(unsigned maxLevel, FieldsVector *container, unsigned
         return 0;
     }
 
+    printf("Entering recursion level %d/%d ...\n", level, maxLevel);
+
     // iterate through all numbers of this level
     numbers[level] = 0;
     fieldsContainingCandidates[level] = NULL;
@@ -485,6 +491,7 @@ unsigned recurseNakedTuples(unsigned maxLevel, FieldsVector *container, unsigned
                     // all other field of the same container
                     // TODO and from other containers if all found fields 
                     // share the same other container
+                    printf("GOT IT!\n");
                     progress |= forbidNumbersInOtherFields(container, numbers, fieldsContainingCandidates);
                     return progress;
                 }
@@ -495,6 +502,7 @@ unsigned recurseNakedTuples(unsigned maxLevel, FieldsVector *container, unsigned
         return recurseNakedTuples(maxLevel, container, level + 1, numbers, fieldsContainingCandidates);
     }
 
+    printf("leaving recursion level %d/%d\n", level, maxLevel);
     return 0;
 }
 

@@ -26,8 +26,11 @@ int readSudoku(char *inputFilename) {
     // open file
     file = fopen(inputFilename, "r");
 
-    if (!file)
+    if (!file) {
+        sprintf(buffer, "Error opening Sudoku file %s\n", inputFilename);
+        printlog(buffer);
         return 0;
+    }
 
     // Sudoku initialisieren
     for (f = 0; f < NUMBER_OF_FIELDS; f++) {
