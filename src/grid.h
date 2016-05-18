@@ -45,7 +45,7 @@ extern "C" {
     FieldsVector *fieldsWithCandidate(FieldsVector *container, unsigned n);
     unsigned equalNumberOfFieldsAndCandidates(FieldsVector *fieldsVector, unsigned *numbers);
     int getUniquePositionInContainer(Field **container, unsigned n);
-    int fieldCandidatesSubsetOf(Field *field, unsigned *numbers);
+    int fieldCandidatesAreSubsetOf(Field *field, unsigned *numbers);
     int containsField(Field **list, Field * field);
     int isFinished();
     void initCandidates();

@@ -462,22 +462,32 @@ unsigned recurseNakedTuples(unsigned maxLevel, FieldsVector *container, unsigned
 
     if (level > maxLevel) {
         // maximum recursion depth reached => nothing found
+        sprintf(buffer, "maximum recursion depth of %u reached.", level);
+        printlog(buffer);
         return 0;
     }
 
-    printf("Entering recursion level %d/%d ...\n", level, maxLevel);
+    printf("Entering recursion level %u/%u ...\n", level, maxLevel);
 
     // iterate through all numbers of this level
     numbers[level] = 0;
     fieldsContainingCandidates[level] = NULL;
-    for (unsigned number = 0; number < MAX_NUMBER; number++) {
+    for (unsigned number = 1; number <= MAX_NUMBER; number++) {
+        // try next number
         numbers[level - 1] = number;
+        sprintf(buffer, "number vector is now (%u, %u), level=%u", numbers[0], numbers[1], level);
+        printlog(buffer);
 
+        // loop through all fields of the container
         for (unsigned i = 0; i < MAX_NUMBER; i++) {
             Field *field;
 
             field = container[i];
-            if (fieldCandidatesSubsetOf(field, numbers)) {
+            sprintf(buffer, "looking at field #%u", i);
+            printlog(buffer);
+            if (fieldCandidatesAreSubsetOf(field, numbers)) {
+                sprintf(buffer, "yeah! field candidates of field #%u are a subset of the numbers %u, %u", i, numbers[0], numbers[1]);
+                printlog(buffer);
                 fieldsContainingCandidates[level - 1] = field;
 
                 // check if we have found enough fields

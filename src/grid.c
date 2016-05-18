@@ -69,7 +69,7 @@ void initUnits() {
     unit->theContainers = (Container *) xmalloc(sizeof (Container) * unit->containers);
     for (int i = 0; i < unit->containers; i++) {
         Container *container = &(unit->theContainers[i]);
-        sprintf(buffer, "row %c", (char)('A' + i));
+        sprintf(buffer, "row %c", (char) ('A' + i));
         container->name = strdup(buffer);
         container->fields = (Field **) xmalloc(sizeof (Field *) * MAX_NUMBER);
     }
@@ -233,6 +233,7 @@ void setValue(Field *field, unsigned value) {
 
     field->value = value;
 
+    // remove all candidates from this field
     unsigned *candidates = field->candidates;
     for (unsigned n = 1; n <= MAX_NUMBER; n++) {
         candidates[n - 1] = (n == value) ? value : 0;
@@ -521,15 +522,64 @@ int getUniquePositionInContainer(Field **container, unsigned n) {
 }
 
 /**
- * checks if the possible candidates for a field are a subset of the candidates
- * given in the parameter
+ * checks if the possible candidates for a field are a subset of the given 
+ * numbers. If the field is already solved, returns 0.
  * 
  * @param field pointer to field for which the candidates should be checked
  * @param numbers vector of numbers, terminated with 0
  * @return 1 if the field's candidates are a (strict or non-strict) subset of
- *   the given numbers vector. 0 if they are not.
+ *   the given numbers vector. 0 if they are not or if the field is already
+ *   solved.
  */
-int fieldCandidatesSubsetOf(Field *field, unsigned *numbers) {
+int fieldCandidatesAreSubsetOf(Field *field, unsigned *numbers) {
+    unsigned *numbersPtr;
+    int found;
+
+    if (field->value) {
+        // already solved => nothing to do with the candidates
+        return 0;
+    }
+
+    for (int i = 0; i < MAX_NUMBER; i++) {
+        if (field->candidates[i]) {
+
+            // check if field candidate is in the numbers vector
+            found = 0;
+            numbersPtr = numbers;
+            while (*numbersPtr) {
+                if (*numbersPtr == field->candidates[i]) {
+                    found = 1;
+                    break;
+                }
+                numbersPtr++;
+            }
+
+            if (!found) {
+                // found a field candidate which is not in the given list of
+                // numbers
+                return 0;
+            }
+        }
+    }
+    return 1;
+}
+
+/**
+ * checks if the possible candidates for a field contain all of the given 
+ * numbers. If the field is already solved, returns 0.
+ * 
+ * @param field pointer to field for which the candidates should be checked
+ * @param numbers vector of numbers, terminated with 0
+ * @return 1 if the field's candidates are a (strict or non-strict) superset of
+ *   the given numbers vector. 0 if they are not or if the field is already
+ *   solved.
+ */
+int fieldCandidatesContainAllOf(Field *field, unsigned *numbers) {
+
+    if (field->value) {
+        // already solved => nothing to do with the candidates
+        return 0;
+    }
 
     while (*numbers) {
         if (!field->candidates[*numbers - 1]) {
