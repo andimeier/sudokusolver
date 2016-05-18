@@ -40,12 +40,14 @@ void showAllCandidates() {
             continue;
         }
 
+        // build candidates string
         for (int i = 0; i < MAX_NUMBER; i++) {
             candidates[i] = (char) (field->candidates[i] + '0');
         }
         candidates[MAX_NUMBER] = '\0';
 
-        printf("candidates for field %s are: %s\n", field->name, candidates);
+        sprintf(buffer, "candidates for field %s are: %s\n", field->name, candidates);
+        printlog(buffer);
     }
 }
 

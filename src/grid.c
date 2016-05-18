@@ -308,8 +308,9 @@ int forbidNumbersInOtherFields(Field **container, unsigned *n, Field **dontTouch
     int progress;
     Field *field;
 
-    printf("forbid number in container\n");
-    showAllCandidates();
+    printlog("[forbidNumbersInOtherFields] forbid number in container");
+    //    showAllCandidates();
+    printlog("end of showing all candidates");
 
     progress = 0; // nothing has changed yet
     if (verboseLogging == 2) {
@@ -321,17 +322,25 @@ int forbidNumbersInOtherFields(Field **container, unsigned *n, Field **dontTouch
     for (int pos = 0; pos < MAX_NUMBER; pos++) {
         field = container[pos];
 
+        printlog("[567]");
+
         // don't touch the 'dontTouch' fields
         if (!containsField(dontTouch, field)) {
+            printlog("[565657]");
             // forbid the tuple numbers
             for (int i = 0; i < MAX_NUMBER; i++) {
+                printlog("[12123565657]");
                 if (n[i]) {
                     // was a candidate until now => remove candidate now
+                    printlog("[asdf12123565657]");
                     if (!field->value && field->candidates[i]) {
-                        sprintf(buffer, "forbid %u in field %s\n", i + 1, field->name);
+                        printlog("[vbgfdhfasdf12123565657]");
+//                        sprintf(buffer, "forbid %u in field %s\n", i + 1, field->name);
                         logReduction(buffer);
 
+                        printlog("[====vbgfdhfasdf12123565657]");
                         field->candidates[i] = 0;
+                        printlog("[===========vbgfdhfasdf12123565657]");
                         field->candidatesLeft--;
                         progress = 1;
                     }
@@ -340,8 +349,9 @@ int forbidNumbersInOtherFields(Field **container, unsigned *n, Field **dontTouch
         }
     }
 
-    showAllCandidates();
+    //    showAllCandidates();
 
+    printlog("[566]");
     return progress;
 }
 
@@ -460,8 +470,12 @@ FieldsVector *fieldsWithCandidate(Field **container, unsigned n) {
  */
 unsigned equalNumberOfFieldsAndCandidates(FieldsVector *fieldsVector, unsigned *numbers) {
 
+    printf("check if found fields are of tuple dimension of numbers ...\n");
+    printf("fieldsVector: (%d, %d, %d), numbers: (%u, %u, %u)\n", fieldsVector[0], fieldsVector[1], fieldsVector[2], numbers[0], numbers[1], numbers[2]);
+
     do {
         if (*fieldsVector == NULL && *numbers == 0) {
+            printf("YES!\n");
             return 1;
         }
 
@@ -469,6 +483,7 @@ unsigned equalNumberOfFieldsAndCandidates(FieldsVector *fieldsVector, unsigned *
         // However, if the other one is exhausted, then both vectors apparently
         // do not have the same length
         if (*fieldsVector == NULL || *numbers == 0) {
+            printf("   no ...\n");
             return 0;
         }
 
