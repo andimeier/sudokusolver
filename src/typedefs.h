@@ -25,6 +25,8 @@ extern "C" {
     
     typedef struct Container {
         char *name; // the name of the container, e.g. "row 3" or "slash diagonal"
+        unsigned type; // the container type (e.g. 0==row), corresponds with the
+          // "unit index" in unitDefs
         Field **fields; // the fields in this container, in "order of 
           // appearance". This is a vector of MAX_NUMBER fields
     } Container;

@@ -160,6 +160,8 @@ void test_findNakedTuplesInContainer(void) {
 
     for (int i = 0; i < MAX_NUMBER; i++) {
         field = (Field *) xmalloc(sizeof (Field));
+        field->name = strdup("XX");
+
         container[i] = field;
 
         unsigned cand1[9] = {0, 2, 0, 4, 5, 6, 7, 8, 0};
@@ -169,6 +171,7 @@ void test_findNakedTuplesInContainer(void) {
     // let 2 fields contain a naked tuple: 7, 8
     for (int i = 6; i <= 7; i++) {
         field = container[i];
+        field->name = strdup("NA");
 
         unsigned cand1[9] = {0, 0, 0, 0, 0, 0, 7, 8, 0};
         setCandidates(field, cand1);

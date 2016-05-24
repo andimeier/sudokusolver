@@ -121,8 +121,14 @@ int findNakedTuples() {
 
     progress = 0;
 
-    for (int i = 2; i < MAX_TUPLE_DIMENSION; i++) {
-        progress |= findNakedTuplesX(i);
+    for (int dimension = 2; dimension < MAX_TUPLE_DIMENSION; dimension++) {
+
+        // go through all containers and find naked tuples therein
+        Container **containers = allContainers;
+        while (*containers) {
+            progress |= findNakedTuplesInContainer(*containers, dimension);
+            containers++;
+        }
 
         if (progress)
             break;
@@ -139,15 +145,11 @@ int findNakedTuples() {
 int findNakedTuplesX(size_t dimension) {
     Unit *unit;
     int progress; // flag: something has changed
-    unsigned n1, n2;
 
     if (verboseLogging == 2) {
         sprintf(buffer, "[strategy] find naked tuples of dimension %zu ...\n", dimension);
         printlog(buffer);
     }
-
-    // allow for pairs, triples and quadruples
-    assert(dimension <= MAX_TUPLE_DIMENSION);
 
     printf("- yeah: ...\n");
 
@@ -172,61 +174,7 @@ int findNakedTuplesX(size_t dimension) {
 
             printf("iterating into instance %d of container \"%s\", aka %s\n", c, unit->name, unit->theContainers[c].name);
 
-            // check for naked tuples in this container
-            for (n1 = 1; n1 <= MAX_NUMBER; n1++) {
-                for (n2 = 1; n2 <= MAX_NUMBER; n2++) {
-                    unsigned tuple[MAX_NUMBER];
-
-                    printf("??? [kdb] Searching for: naked tuples of dimension %d (%u, %u) in units of type %s, #%d ... \n", (int) dimension, n1, n2, unit->name, c);
-
-                    // build tuple to search for
-                    for (int i = 0; i < MAX_NUMBER; i++) {
-                        tuple[i] = 0;
-                    }
-                    tuple[n1 - 1] = n1;
-                    tuple[n2 - 1] = n2;
-
-
-                    printf("tuple: (%u, %u)\n", tuple[2], tuple[7]);
-
-                    // search for cells with exactly this tuple as
-                    // candidates
-                    Field * foundTupleFields[MAX_TUPLE_DIMENSION + 1];
-                    int countTupleFound = 0;
-                    for (int pos = 0; pos < MAX_NUMBER; pos++) {
-                        unsigned *candidates = container[pos]->candidates;
-                        // check candidates if they match the tuple
-                        if (tuple[2] == 3 && tuple[7] == 8 && u == 2 && c == 0) {
-                            printf("[jhh1] {pass %d of %d} checking position %d of box 0 ... \n", pos, MAX_NUMBER, pos);
-                            showCandidates(container[pos]);
-                        }
-                        if (tuple[3] == 4 && tuple[6] == 7 && u == 2 && c == 5) {
-                            printf("[jhh2] {pass %d of %d} checking position %d of box 0 ... \n", pos, MAX_NUMBER, pos);
-                            showCandidates(container[pos]);
-                        }
-                        if (compareCandidates(candidates, tuple)) {
-                            printf("YEAH found!\n");
-                            foundTupleFields[countTupleFound++] = container[pos];
-                            if (countTupleFound == dimension) {
-                                // terminate list of field pointers
-                                foundTupleFields[countTupleFound] = NULL;
-                                break;
-                            }
-                        } else {
-                            printf("oooh not found!\n");
-                        }
-
-
-                    }
-                    if (countTupleFound == dimension) {
-                        // we found "dimension" places in the container
-                        // containing the tuple => these numbers must be
-                        // distributed among these found fields => forbid
-                        // these numbers in all other fields of the container
-                        progress |= forbidNumbersInOtherFields(container, tuple, foundTupleFields);
-                    }
-                }
-            }
+            progress |= findNakedTuplesInContainer(container, dimension);
         }
     }
 
@@ -494,7 +442,7 @@ unsigned recurseNakedTuples(unsigned maxLevel, FieldsVector *container, unsigned
             if (fieldCandidatesAreSubsetOf(field, numbers)) {
                 sprintf(buffer, "yeah! field candidates of field #%u are a subset of the numbers %u, %u", i, numbers[0], numbers[1]);
                 printlog(buffer);
-                
+
                 // append field to list of found fields
                 FieldsVector *fieldPtr = fieldsContainingCandidates;
                 while (*fieldPtr) {

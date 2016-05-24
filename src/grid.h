@@ -28,8 +28,11 @@ extern "C" {
 
     // units are: rows, cols, boxes. Within one unit, the numbers 1...9 must
     // appear. For a standard Sudoku, there are 3 units (rows, cols, boxes).
-    // More exotic Sudokus may use more unit, e.g. color units.
+    // More exotic Sudokus may use more units, e.g. color units or diagonals.
     extern struct UnitDefs unitDefs;
+
+    // list of all containers
+    extern Container **allContainers;
 
     // init functions
     void setupGrid();

@@ -25,6 +25,7 @@ void freeFields();
 
 UnitDefs unitDefs;
 Field *fields; // the fields of the game board
+Container **allContainers;
 
 void setupGrid() {
     initFields();
@@ -56,6 +57,9 @@ void initFields() {
  */
 void initUnits() {
     Unit *unit;
+    unsigned numberOfContainers;
+
+    numberOfContainers = 0;
 
     // assuming a standard Sudoku, 
     // we have 3 units (row, column, box)
@@ -71,7 +75,9 @@ void initUnits() {
         Container *container = &(unit->theContainers[i]);
         sprintf(buffer, "row %c", (char) ('A' + i));
         container->name = strdup(buffer);
+        container->type = ROWS;
         container->fields = (Field **) xmalloc(sizeof (Field *) * MAX_NUMBER);
+        numberOfContainers++;
     }
 
     // second unit: column
@@ -83,7 +89,9 @@ void initUnits() {
         Container *container = &(unit->theContainers[i]);
         sprintf(buffer, "column %u", i + 1);
         container->name = strdup(buffer);
+        container->type = COLS;
         container->fields = (Field **) xmalloc(sizeof (Field *) * MAX_NUMBER);
+        numberOfContainers++;
     }
 
     // third unit: box
@@ -95,8 +103,32 @@ void initUnits() {
         Container *container = &(unit->theContainers[i]);
         sprintf(buffer, "box %u", i + 1);
         container->name = strdup(buffer);
+        container->type = BOXES;
         container->fields = (Field **) xmalloc(sizeof (Field *) * MAX_NUMBER);
+        numberOfContainers++;
     }
+
+    // init and populate container vector
+    printlog("allocating for containers ...");
+    allContainers = (Container **) xmalloc(sizeof (Container *) * (numberOfContainers + 1));
+    printlog("allocated for containers ...");
+    Container **containersPtr = allContainers;
+    for (int i = 0; i < unitDefs.count; i++) {
+        Container *unitContainers;
+
+        sprintf(buffer, "populating container type %d ...", i);
+        printlog(buffer);
+
+        unitContainers = &(unitDefs.units[i].theContainers);
+        // FIXME gehe durch alle Units und packe alle gefundenen Container
+        // in den ContainerVector ...
+        for (int c = 0; c < unitDefs.units[i].containers; c++) {
+            sprintf(buffer, "  populating container type %d, number %d,  ...", i, c);
+            printlog(buffer);
+            *containersPtr++ = &(unitContainers[c]);
+        }
+    }
+    *containersPtr = NULL;
 }
 
 /**
@@ -113,6 +145,9 @@ void freeUnits() {
         free(unitDefs.units[i].theContainers);
     }
     free(unitDefs.units);
+
+    free(allContainers);
+
 }
 
 /**
@@ -308,9 +343,7 @@ int forbidNumbersInOtherFields(Field **container, unsigned *n, Field **dontTouch
     int progress;
     Field *field;
 
-    printlog("[forbidNumbersInOtherFields] forbid number in container");
     //    showAllCandidates();
-    printlog("end of showing all candidates");
 
     progress = 0; // nothing has changed yet
     if (verboseLogging == 2) {
@@ -322,25 +355,17 @@ int forbidNumbersInOtherFields(Field **container, unsigned *n, Field **dontTouch
     for (int pos = 0; pos < MAX_NUMBER; pos++) {
         field = container[pos];
 
-        printlog("[567]");
-
         // don't touch the 'dontTouch' fields
         if (!containsField(dontTouch, field)) {
-            printlog("[565657]");
             // forbid the tuple numbers
             for (int i = 0; i < MAX_NUMBER; i++) {
-                printlog("[12123565657]");
                 if (n[i]) {
                     // was a candidate until now => remove candidate now
-                    printlog("[asdf12123565657]");
                     if (!field->value && field->candidates[i]) {
-                        printlog("[vbgfdhfasdf12123565657]");
-//                        sprintf(buffer, "forbid %u in field %s\n", i + 1, field->name);
+                        sprintf(buffer, "forbid %u in field %s\n", i + 1, field->name);
                         logReduction(buffer);
 
-                        printlog("[====vbgfdhfasdf12123565657]");
                         field->candidates[i] = 0;
-                        printlog("[===========vbgfdhfasdf12123565657]");
                         field->candidatesLeft--;
                         progress = 1;
                     }
@@ -350,8 +375,6 @@ int forbidNumbersInOtherFields(Field **container, unsigned *n, Field **dontTouch
     }
 
     //    showAllCandidates();
-
-    printlog("[566]");
     return progress;
 }
 
