@@ -30,7 +30,7 @@ extern "C" {
     extern int errors;
 
     // auxiliary functions
-    unsigned findNakedTuplesInContainer(FieldsVector *container, unsigned dimension);
+    unsigned findNakedTuplesInContainer(Container *container, unsigned dimension);
 
 
 #ifdef	__cplusplus

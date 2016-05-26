@@ -199,6 +199,26 @@ void test_equalNumberOfFieldsAndCandidates(void) {
     TEST_ASSERT_EQUAL(1, equalNumberOfFieldsAndCandidates(fieldsVector, numbers));
 }
 
+
+void test_setupGrid(void) {
+    
+    setupGrid();    
+    
+    // test containers
+    TEST_ASSERT_EQUAL(0, strcmp(allContainers[0]->name, "row A"));
+    TEST_ASSERT_EQUAL(0, strcmp(allContainers[1]->name, "row B"));
+    TEST_ASSERT_EQUAL(0, strcmp(allContainers[8]->name, "row I"));
+
+    TEST_ASSERT_EQUAL(0, strcmp(allContainers[9 + 0]->name, "column 1"));
+    TEST_ASSERT_EQUAL(0, strcmp(allContainers[9 + 1]->name, "column 2"));
+    TEST_ASSERT_EQUAL(0, strcmp(allContainers[9 + 8]->name, "column 9"));
+    
+    TEST_ASSERT_EQUAL(0, strcmp(allContainers[18 + 0]->name, "box 1"));
+    TEST_ASSERT_EQUAL(0, strcmp(allContainers[18 + 1]->name, "box 2"));
+    TEST_ASSERT_EQUAL(0, strcmp(allContainers[18 + 8]->name, "box 9"));
+}
+
+
 int main(void) {
     UNITY_BEGIN();
     //RUN_TEST(test_Dummy);
@@ -206,6 +226,7 @@ int main(void) {
     RUN_TEST(test_fieldCandidatesContainAllOf);
     RUN_TEST(test_fieldCandidatesAreSubsetOf);
     RUN_TEST(test_equalNumberOfFieldsAndCandidates);
-    RUN_TEST(test_findNakedTuplesInContainer);
+//    RUN_TEST(test_findNakedTuplesInContainer);
+    RUN_TEST(test_setupGrid);
     return UNITY_END();
 }

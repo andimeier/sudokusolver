@@ -23,7 +23,7 @@ typedef int (*strategy)(void);
 
 // auxiliary functions
 static int findNakedTuplesX(size_t dimension);
-static unsigned recurseNakedTuples(unsigned maxLevel, FieldsVector *container, unsigned level, unsigned *numbers, FieldsVector *fieldsContainingCandidates);
+static unsigned recurseNakedTuples(unsigned maxLevel, Container *container, unsigned level, unsigned *numbers, FieldsVector *fieldsContainingCandidates);
 static int compareCandidates(unsigned *c1, unsigned *c2);
 
 
@@ -126,6 +126,8 @@ int findNakedTuples() {
         // go through all containers and find naked tuples therein
         Container **containers = allContainers;
         while (*containers) {
+            sprintf(buffer, "-- next container: %s", (*containers)->name);
+            printlog(buffer);
             progress |= findNakedTuplesInContainer(*containers, dimension);
             containers++;
         }
@@ -366,7 +368,7 @@ int findPointingTupels() {
  *   3=triples etc.
  * @return progress flag: 1 for "something has changed", 0 for "no change"
  */
-unsigned findNakedTuplesInContainer(FieldsVector *container, unsigned dimension) {
+unsigned findNakedTuplesInContainer(Container *container, unsigned dimension) {
     unsigned progress;
     unsigned *numbers;
     FieldsVector *foundFields;
@@ -407,7 +409,7 @@ unsigned findNakedTuplesInContainer(FieldsVector *container, unsigned dimension)
  * @param fieldsContainingCandidates
  * @return 1 if a naked tuple has been found, 0 otherwise
  */
-unsigned recurseNakedTuples(unsigned maxLevel, FieldsVector *container, unsigned level, unsigned *numbers, FieldsVector *fieldsContainingCandidates) {
+unsigned recurseNakedTuples(unsigned maxLevel, Container *container, unsigned level, unsigned *numbers, FieldsVector *fieldsContainingCandidates) {
 
     if (level > maxLevel) {
         // maximum recursion depth reached => nothing found
@@ -436,9 +438,10 @@ unsigned recurseNakedTuples(unsigned maxLevel, FieldsVector *container, unsigned
         for (unsigned i = 0; i < MAX_NUMBER; i++) {
             Field *field;
 
-            field = container[i];
+            field = container->fields[i];
             sprintf(buffer, "%s field #%u (level %u)", (level == 1) ? "looking at" : "comparing with", i, level);
             printlog(buffer);
+            printlog("[ttt]");
             if (fieldCandidatesAreSubsetOf(field, numbers)) {
                 sprintf(buffer, "yeah! field candidates of field #%u are a subset of the numbers %u, %u", i, numbers[0], numbers[1]);
                 printlog(buffer);
@@ -473,6 +476,8 @@ unsigned recurseNakedTuples(unsigned maxLevel, FieldsVector *container, unsigned
         // no tuple of dimension "level" found => recurse further
         if (recurseNakedTuples(maxLevel, container, level + 1, numbers, fieldsContainingCandidates)) {
             // found a naked tuple! Instantly return
+            sprintf(buffer, "recursion exited with 1, propagate exit from level %d",  level);
+            printlog(buffer);
             return 1;
         }
     }

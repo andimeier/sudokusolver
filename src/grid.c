@@ -25,7 +25,7 @@ void freeFields();
 
 UnitDefs unitDefs;
 Field *fields; // the fields of the game board
-Container **allContainers;
+Container **allContainers; // all containers of the game board
 
 void setupGrid() {
     initFields();
@@ -94,6 +94,12 @@ void initUnits() {
         numberOfContainers++;
     }
 
+    for (int c = 0; c < unitDefs.units[COLS].containers; c++) {
+        // FIXME debugging output:
+        sprintf(buffer, "COLS, next container, name=%s", unitDefs.units[COLS].theContainers[c].name);
+        printlog(buffer);
+    }
+
     // third unit: box
     unit = &(unitDefs.units[BOXES]);
     unit->name = strdup("box");
@@ -108,27 +114,53 @@ void initUnits() {
         numberOfContainers++;
     }
 
-    // init and populate container vector
-    printlog("allocating for containers ...");
+    // init and populate "all containers" vector
     allContainers = (Container **) xmalloc(sizeof (Container *) * (numberOfContainers + 1));
-    printlog("allocated for containers ...");
     Container **containersPtr = allContainers;
+
+    sprintf(buffer, "name of first container ever (should be 'row A') is: %s",
+            unitDefs.units[0].theContainers[0].name);
+    printlog(buffer);
+
     for (int i = 0; i < unitDefs.count; i++) {
-        Container *unitContainers;
+        Container *unitContainer;
 
         sprintf(buffer, "populating container type %d ...", i);
         printlog(buffer);
 
-        unitContainers = &(unitDefs.units[i].theContainers);
+        unitContainer = unitDefs.units[i].theContainers;
+
         // FIXME gehe durch alle Units und packe alle gefundenen Container
         // in den ContainerVector ...
         for (int c = 0; c < unitDefs.units[i].containers; c++) {
+            // FIXME debugging output:
+            sprintf(buffer, "name (should be: row A): %s", unitContainer[c].name);
+            printlog(buffer);
+
             sprintf(buffer, "  populating container type %d, number %d,  ...", i, c);
             printlog(buffer);
-            *containersPtr++ = &(unitContainers[c]);
+            *containersPtr = &(unitContainer[c]);
+            containersPtr++;
         }
     }
     *containersPtr = NULL;
+
+    for (int c = 0; c < unitDefs.units[COLS].containers; c++) {
+        // FIXME debugging output:
+        sprintf(buffer, "COLS, next container, name=%s", unitDefs.units[COLS].theContainers[c].name);
+        printlog(buffer);
+    }
+
+    // DEBUG FIXME remove me, just debugging output:
+    Container **ptr = allContainers;
+    int i = 0;
+    while (*ptr) {
+        sprintf(buffer, "container #%d: %s", i, (*ptr)->name);
+        printlog(buffer);
+        ptr++;
+        i++;
+    }
+    // end of DEBUG FIXME
 }
 
 /**
@@ -573,12 +605,15 @@ int fieldCandidatesAreSubsetOf(Field *field, unsigned *numbers) {
     unsigned *numbersPtr;
     int found;
 
+    printlog("[6jj]");
     if (field->value) {
         // already solved => nothing to do with the candidates
         return 0;
     }
 
+    printlog("[6jj-1]");
     for (int i = 0; i < MAX_NUMBER; i++) {
+        printlog("[6jj-ii]");
         if (field->candidates[i]) {
 
             // check if field candidate is in the numbers vector
@@ -595,10 +630,12 @@ int fieldCandidatesAreSubsetOf(Field *field, unsigned *numbers) {
             if (!found) {
                 // found a field candidate which is not in the given list of
                 // numbers
+                printlog("[6jj-return0]");
                 return 0;
             }
         }
     }
+    printlog("[6jj-return1]");
     return 1;
 }
 

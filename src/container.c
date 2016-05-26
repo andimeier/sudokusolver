@@ -6,16 +6,26 @@
  */
 #include <assert.h>
 #include "container.h"
+#include "grid.h"
 
 void getBoxStartCoordinates(int q, int *qx, int *qy);
-    
 
+static unsigned boxWidth;
+static unsigned boxHeight;
 
 /**
  * sets up containers
  */
 void setupContainers() {
-//    typedef int (*myFuncDef)(int, int);
+    //    typedef int (*myFuncDef)(int, int);
+
+    // at the moment, no other dimensions are possible than a 9x9 Sudoku
+    assert(MAX_NUMBER == 9);
+    
+    if (MAX_NUMBER == 9) {
+        boxWidth = 3;
+        boxHeight = 3;
+    }
 }
 
 
@@ -70,4 +80,52 @@ int getBoxNr(int x, int y) {
     assert(y >= 0 && y < 9);
 
     return (y / 3) * 3 + (x / 3);
+}
+
+/**
+ * determines the index of the row container which contains the field on the
+ * given Sudoku coordinates
+ * 
+ * @param x X coordinate (starting with 0) of the specified field
+ * @param y Y coordinate (starting with 0) of the specified field
+ * @return index of the row container which contains the specified field, 
+ *   or -1 if no such container contains the specified field (which is not
+ *   possible with row containers, but might be possible for other types of
+ *   containers)
+ */
+int determineRowContainer(unsigned x, unsigned y) {
+    return y;
+}
+
+/**
+ * determines the index of the column container which contains the field on the
+ * given Sudoku coordinates
+ * 
+ * @param x X coordinate (starting with 0) of the specified field
+ * @param y Y coordinate (starting with 0) of the specified field
+ * @return index of the column container which contains the specified field, 
+ *   or -1 if no such container contains the specified field (which is not
+ *   possible with column containers, but might be possible for other types of
+ *   containers)
+ */
+int determineColumnContainer(unsigned x, unsigned y) {
+    return x;
+}
+
+/**
+ * determines the index of the box container which contains the field on the
+ * given Sudoku coordinates
+ * 
+ * @param x X coordinate (starting with 0) of the specified field
+ * @param y Y coordinate (starting with 0) of the specified field
+ * @return index of the box container which contains the specified field, 
+ *   or -1 if no such container contains the specified field (which is not
+ *   possible with box containers, but might be possible for other types of
+ *   containers)
+ */
+int determineBoxContainer(unsigned x, unsigned y) {
+    assert(x >= 0 && x < MAX_NUMBER);
+    assert(y >= 0 && y < MAX_NUMBER);
+
+    return (y / boxHeight) * 3 + (x / boxWidth);
 }
