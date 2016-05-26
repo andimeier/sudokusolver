@@ -312,13 +312,14 @@ void setValue(Field *field, unsigned value) {
 /**
  * forbids a number in all neighbor fields of the given field. This is used
  * e.g. after setting the value of a field to eliminate this number from all
- * neighbors.
+ * neighbors. The "neighbors" are determined in all containers containing
+ * the specified field.
  * 
  * @param field
  * @param n
  */
 void forbidNumberInNeighbors(Field *field, unsigned n) {
-    Field **containerFields;
+    Container *container;
 
     assert(n <= MAX_NUMBER);
 
@@ -330,7 +331,7 @@ void forbidNumberInNeighbors(Field *field, unsigned n) {
         printf("[6hshhs]\n");
         Unit *unit = &(unitDefs.units[u]);
         printf("[6hshhs++]\n");
-        containerFields = unit->theContainers[field->unitPositions[u]].fields;
+        container = &(unit->theContainers[field->unitPositions[u]]);
 
         // go through all positions (numbers) of the container and 
         // forbid this number in all other fields of the container
@@ -347,7 +348,7 @@ void forbidNumberInNeighbors(Field *field, unsigned n) {
         preserve[0] = field;
         preserve[1] = NULL;
 
-        forbidNumbersInOtherFields(containerFields, candidates, preserve);
+        forbidNumbersInOtherFields(container, candidates, preserve);
     }
 }
 
@@ -371,7 +372,7 @@ void forbidNumberInNeighbors(Field *field, unsigned n) {
 //   will not be touched. In all other fields in the container, the given 
 //   numbers will be removed as candidates
 
-int forbidNumbersInOtherFields(Field **container, unsigned *n, Field **dontTouch) {
+int forbidNumbersInOtherFields(Container *container, unsigned *n, Field **dontTouch) {
     int progress;
     Field *field;
 
@@ -385,7 +386,7 @@ int forbidNumbersInOtherFields(Field **container, unsigned *n, Field **dontTouch
 
     // walk through entire container
     for (int pos = 0; pos < MAX_NUMBER; pos++) {
-        field = container[pos];
+        field = container->fields[pos];
 
         // don't touch the 'dontTouch' fields
         if (!containsField(dontTouch, field)) {

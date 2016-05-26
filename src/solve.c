@@ -344,7 +344,7 @@ int findPointingTupels() {
                         }
                         tuple[n - 1] = n;
 
-                        progress |= forbidNumbersInOtherFields(unitDefs.units[u2].theContainers[containerIndex].fields, tuple, fieldsVector);
+                        progress |= forbidNumbersInOtherFields(&(unitDefs.units[u2].theContainers[containerIndex]), tuple, fieldsVector);
                     }
                 }
 
@@ -388,6 +388,8 @@ unsigned findNakedTuplesInContainer(Container *container, unsigned dimension) {
 
     if (recurseNakedTuples(dimension, container, 1, numbers, foundFields)) {
         progress = 1;
+    } else {
+        printlog('[1244] returned from recursion');
     }
 
     free(foundFields);
@@ -403,10 +405,10 @@ unsigned findNakedTuplesInContainer(Container *container, unsigned dimension) {
  * as well.
  * 
  * @param maxLevel (beginning with 1)
- * @param fields vector of found fields, terminated with NULL
+ * @param container 
  * @param level (starting with 1)
  * @param numbers numbers vector to be searched for, terminated with 0
- * @param fieldsContainingCandidates
+ * @param fieldsContainingCandidates vector of found fields, terminated with NULL
  * @return 1 if a naked tuple has been found, 0 otherwise
  */
 unsigned recurseNakedTuples(unsigned maxLevel, Container *container, unsigned level, unsigned *numbers, FieldsVector *fieldsContainingCandidates) {
@@ -458,16 +460,20 @@ unsigned recurseNakedTuples(unsigned maxLevel, Container *container, unsigned le
                 if (equalNumberOfFieldsAndCandidates(fieldsContainingCandidates, numbers)) {
                     unsigned progress;
 
-                    // found a naked tuple!
+                    /* found a naked tuple! But we only make progress if - based
+                     * on this naked tuple - candidates can be eliminated... 
+                     * let's see ...
+                     */
                     progress = 0;
 
-                    // eliminate the found numbers of the naked tuple from
-                    // all other field of the same container
-                    // TODO and from other containers if all found fields 
-                    // share the same other container
-                    printf("GOT IT!\n");
+                    /* eliminate the found numbers of the naked tuple from
+                     * all other field of the same container
+                     * TODO and from other containers if all found fields 
+                     * share the same other container
+                     */
+                    printf("GOT IT! forbidding numbers in other fields ...\n");
                     progress |= forbidNumbersInOtherFields(container, numbers, fieldsContainingCandidates);
-                    printlog("[123]");
+                    printlog("[123a]");
                     return progress;
                 }
             }
@@ -475,14 +481,18 @@ unsigned recurseNakedTuples(unsigned maxLevel, Container *container, unsigned le
 
         // no tuple of dimension "level" found => recurse further
         if (recurseNakedTuples(maxLevel, container, level + 1, numbers, fieldsContainingCandidates)) {
+            printlog("recursion returned with progress flag of 1");
             // found a naked tuple! Instantly return
-            sprintf(buffer, "recursion exited with 1, propagate exit from level %d",  level);
+            sprintf(buffer, "recursion exited with 1, propagate exit from level %d", level);
             printlog(buffer);
             return 1;
         }
+        
+        // FIXME DEBUG
+        printlog("recursion returned with progress flag of 0");
     }
 
-    printf("leaving recursion level %d/%d\n", level, maxLevel);
+    printf("leaving recursion level %d/%d, going back one level\n", level, maxLevel);
     return 0;
 }
 
@@ -507,7 +517,7 @@ int solve() {
     currentStrategy = strategies;
     *currentStrategy++ = &checkForSolvedCells;
     *currentStrategy++ = &findHiddenSingles;
-    *currentStrategy++ = &findNakedTuples;
+//    *currentStrategy++ = &findNakedTuples;
     *currentStrategy++ = NULL; // terminate list of strategies
 
 

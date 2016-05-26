@@ -41,7 +41,7 @@ extern "C" {
     // utility functions
     void setValue(Field *field, unsigned value);
     void forbidNumberInNeighbors(Field *field, unsigned n);
-    int forbidNumbersInOtherFields(Field **container, unsigned *n, Field **dontTouch);
+    int forbidNumbersInOtherFields(Container *container, unsigned *n, Field **dontTouch);
     int forbidNumber(Field *field, unsigned n);
     int fieldHasCandidate(Field *field, unsigned n);
     int setUniqueNumber(Field *field);
