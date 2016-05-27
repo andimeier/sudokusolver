@@ -14,10 +14,10 @@
 extern "C" {
 #endif
 
-    // index number of the container types
-#define ROWS 0
-#define COLS 1
-#define BOXES 2
+    // ID values of the container types
+#define ROWS 1
+#define COLS 2
+#define BOXES 3
 
     // number of possible numbers
 #define MAX_NUMBER 9

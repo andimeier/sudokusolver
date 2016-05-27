@@ -37,6 +37,18 @@ int main(int argc, char **argv) {
     char *inputFilename = NULL;
     char *sudoku = NULL;
 
+    // FIXME debugging test code
+    char *alex;
+    alex = (char *) xmalloc(sizeof(char) * 5);
+    strcpy(alex, "Alex");
+    printf("alex1: [%s]\n", alex);
+
+
+    printf("und ...\n");
+    getContainerTypes(1);
+    printf("Vorbei\n");
+
+    
     // if the Sudoku is wider than 26 numbers, we have a memory allocation issue
     // with the field->name (what is right of "Z26"?)
     assert(MAX_NUMBER <= 26);

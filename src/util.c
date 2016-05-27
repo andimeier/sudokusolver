@@ -27,7 +27,7 @@ int *unsigneddup(unsigned const *src, size_t len) {
 
 void *xmalloc(size_t size) {
     void *value = malloc(size);
-    if (value == 0) {
+    if (value == NULL) {
         printf("virtual memory exhausted\n");
         exit(EXIT_FAILURE);
     }

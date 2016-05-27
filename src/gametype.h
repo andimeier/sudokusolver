@@ -18,13 +18,13 @@ extern "C" {
 #endif
 
     // standard Sudoku with rows, columns and boxes
-#define GAME_STANDARD_SUDOKU    0
+#define GAME_STANDARD_SUDOKU    1
 
     // X-Sudoku with rows, columns, boxes and 2 diagonals
-#define GAME_X_SUDOKU  1
+#define GAME_X_SUDOKU  2
 
     // color Sudoku with rows, columns, boxes and colors
-#define GAME_COLOR_SUDOKU  2
+#define GAME_COLOR_SUDOKU  3
 
     unsigned *getContainerTypes(unsigned gameType);
 
