@@ -13,173 +13,62 @@
 #include "log.h"
 #include "util.h"
 #include "container.h"
+#include "gametype.h"
 
 // function prototypes
 void initFields();
-void initUnits();
+void initContainers();
 void initGrid();
-void freeUnits();
-void freeGrid();
 void freeFields();
+void freeContainers();
+void freeGrid();
 
 
-UnitDefs unitDefs;
+//UnitDefs unitDefs;
 Field *fields; // the fields of the game board
-Container **allContainers; // all containers of the game board
+Container *allContainers; // all containers of the game board
+ContainerSet *containerSets; // all container types (e.g. [row, column, box])
+size_t numberOfContainerSets;
+size_t numberOfContainers;
 
 void setupGrid() {
     initFields();
-    initUnits();
+    initContainers();
     initGrid();
 }
 
 void releaseGrid() {
-    freeUnits();
+    freeContainers();
     freeGrid();
     freeFields();
 }
 
 /**
- * init the units
+ * init empty fields, just the memory for the field and candidates, but
+ * with no data, except the field name. This will be done in initGrid().
  */
 void initFields() {
+    Field *field;
+
     fields = (Field *) xmalloc(sizeof (Field) * NUMBER_OF_FIELDS);
 
-    // alloc candidates
     for (int f = 0; f < NUMBER_OF_FIELDS; f++) {
+        field = fields[f];
+
+        field->x = f % MAX_NUMBER;
+        field->y = f / MAX_NUMBER;
+
+        // allocate candidates
         unsigned *candidates = (unsigned *) xmalloc(sizeof (unsigned) * MAX_NUMBER);
-        fields[f].candidates = candidates;
+        field->candidates = candidates;
+
+        // use the ROWS and COLS coordinates as the "name" of the field
+        // reserve space for coordinates up to "Z26" (a theoretical limit of
+        // a 26-number-Sudoku)
+        char *name = (char *) xmalloc(sizeof (char) * 4);
+        sprintf(name, "%c%u", (char) (field->y + (int) 'A'), field->x + 1);
+        field->name = name;
     }
-}
-
-/**
- * init the units (containers)
- */
-void initUnits() {
-    Unit *unit;
-    unsigned numberOfContainers;
-
-    numberOfContainers = 0;
-
-    // assuming a standard Sudoku, 
-    // we have 3 units (row, column, box)
-    unitDefs.units = (Unit *) xmalloc(sizeof (Unit) * 3);
-    unitDefs.count = 3;
-
-    // first unit: row
-    unit = &(unitDefs.units[ROWS]);
-    unit->name = strdup("row");
-    unit->containers = MAX_NUMBER;
-    unit->theContainers = (Container *) xmalloc(sizeof (Container) * unit->containers);
-    for (int i = 0; i < unit->containers; i++) {
-        Container *container = &(unit->theContainers[i]);
-        sprintf(buffer, "row %c", (char) ('A' + i));
-        container->name = strdup(buffer);
-        container->type = ROWS;
-        container->fields = (Field **) xmalloc(sizeof (Field *) * MAX_NUMBER);
-        numberOfContainers++;
-    }
-
-    // second unit: column
-    unit = &(unitDefs.units[COLS]);
-    unit->name = strdup("column");
-    unit->containers = MAX_NUMBER;
-    unit->theContainers = (Container *) xmalloc(sizeof (Container) * unit->containers);
-    for (int i = 0; i < unit->containers; i++) {
-        Container *container = &(unit->theContainers[i]);
-        sprintf(buffer, "column %u", i + 1);
-        container->name = strdup(buffer);
-        container->type = COLS;
-        container->fields = (Field **) xmalloc(sizeof (Field *) * MAX_NUMBER);
-        numberOfContainers++;
-    }
-
-    for (int c = 0; c < unitDefs.units[COLS].containers; c++) {
-        // FIXME debugging output:
-        sprintf(buffer, "COLS, next container, name=%s", unitDefs.units[COLS].theContainers[c].name);
-        printlog(buffer);
-    }
-
-    // third unit: box
-    unit = &(unitDefs.units[BOXES]);
-    unit->name = strdup("box");
-    unit->containers = MAX_NUMBER;
-    unit->theContainers = (Container *) xmalloc(sizeof (Container) * unit->containers);
-    for (int i = 0; i < unit->containers; i++) {
-        Container *container = &(unit->theContainers[i]);
-        sprintf(buffer, "box %u", i + 1);
-        container->name = strdup(buffer);
-        container->type = BOXES;
-        container->fields = (Field **) xmalloc(sizeof (Field *) * MAX_NUMBER);
-        numberOfContainers++;
-    }
-
-    // init and populate "all containers" vector
-    allContainers = (Container **) xmalloc(sizeof (Container *) * (numberOfContainers + 1));
-    Container **containersPtr = allContainers;
-
-    sprintf(buffer, "name of first container ever (should be 'row A') is: %s",
-            unitDefs.units[0].theContainers[0].name);
-    printlog(buffer);
-
-    for (int i = 0; i < unitDefs.count; i++) {
-        Container *unitContainer;
-
-        sprintf(buffer, "populating container type %d ...", i);
-        printlog(buffer);
-
-        unitContainer = unitDefs.units[i].theContainers;
-
-        // FIXME gehe durch alle Units und packe alle gefundenen Container
-        // in den ContainerVector ...
-        for (int c = 0; c < unitDefs.units[i].containers; c++) {
-            // FIXME debugging output:
-            sprintf(buffer, "name (should be: row A): %s", unitContainer[c].name);
-            printlog(buffer);
-
-            sprintf(buffer, "  populating container type %d, number %d,  ...", i, c);
-            printlog(buffer);
-            *containersPtr = &(unitContainer[c]);
-            containersPtr++;
-        }
-    }
-    *containersPtr = NULL;
-
-    for (int c = 0; c < unitDefs.units[COLS].containers; c++) {
-        // FIXME debugging output:
-        sprintf(buffer, "COLS, next container, name=%s", unitDefs.units[COLS].theContainers[c].name);
-        printlog(buffer);
-    }
-
-    // DEBUG FIXME remove me, just debugging output:
-    Container **ptr = allContainers;
-    int i = 0;
-    while (*ptr) {
-        sprintf(buffer, "container #%d: %s", i, (*ptr)->name);
-        printlog(buffer);
-        ptr++;
-        i++;
-    }
-    // end of DEBUG FIXME
-}
-
-/**
- * free units memory
- */
-void freeUnits() {
-
-    for (int i = 0; i < unitDefs.count; i++) {
-        free(unitDefs.units[i].name);
-        for (int n = 0; n < unitDefs.units[i].containers; n++) {
-            free(unitDefs.units[i].theContainers[n].name);
-            free(unitDefs.units[i].theContainers[n].fields);
-        }
-        free(unitDefs.units[i].theContainers);
-    }
-    free(unitDefs.units);
-
-    free(allContainers);
-
 }
 
 /**
@@ -194,10 +83,110 @@ void freeFields() {
     free(fields);
 }
 
+/**
+ * init the container types and containers), but with no link to containing 
+ * fields. This will be done later in initGrid().
+ */
+void initContainers() {
+    ContainerSet **containerSetPtr;
+    unsigned *containerTypes;
+
+    //    getNumberOfContainers(); // in containers.c, das weiss containers!
+
+    // assuming a standard Sudoku, 
+    // we have 3 types of containers (row, column, box)
+
+    containerTypes = getContainerTypes(GAME_STANDARD_SUDOKU);
+    numberOfContainerSets = ulength(containerTypes);
+
+    containerSets = (ContainerSet *) xmalloc(sizeof (ContainerSet) * (numberOfContainerSets + 1));
+    containerSetPtr = containerSets;
+
+    numberOfContainers = 0;
+    while (*containerTypes) {
+        setContainerSet(*containerSetPtr, *containerTypes);
+        numberOfContainers += containerSetPtr->numberOfContainers;
+
+        containerSetPtr++;
+        containerTypes++;
+    }
+
+    // terminate list of container types 
+    *containerSetPtr = NULL;
+
+
+    // init and populate "all containers" vector
+    allContainers = (Container *) xmalloc(sizeof (Container) * (numberOfContainers + 1));
+    Container *containersPtr = allContainers;
+
+    sprintf(buffer, "name of very first container (should be 'row A') is: %s",
+            containerSets[0].containers[0]->name);
+    printlog(buffer);
+
+    //    while () {
+    //        Container *unitContainer;
+    //
+    //        sprintf(buffer, "populating container type %d ...", i);
+    //        printlog(buffer);
+    //
+    //        unitContainer = unitDefs.containerTypes[i].containers;
+    //
+    //        // FIXME gehe durch alle Units und packe alle gefundenen Container
+    //        // in den ContainerVector ...
+    //        for (int c = 0; c < unitDefs.containerTypes[i].numberOfContainers; c++) {
+    //            // FIXME debugging output:
+    //            sprintf(buffer, "name (should be: row A): %s", unitContainer[c].name);
+    //            printlog(buffer);
+    //
+    //            sprintf(buffer, "  populating container type %d, number %d,  ...", i, c);
+    //            printlog(buffer);
+    //            *containersPtr = &(unitContainer[c]);
+    //            containersPtr++;
+    //        }
+    //    }
+
+    // terminate list of containers
+    *containersPtr = NULL;
+
+    // DEBUG FIXME remove me, just debugging output:
+    Container *ptr = allContainers;
+    int i = 0;
+    while (*ptr) {
+        sprintf(buffer, "container #%d: %s", i, ptr->name);
+        printlog(buffer);
+        ptr++;
+        i++;
+    }
+    // end of DEBUG FIXME
+}
+
+/**
+ * free units memory
+ */
+void freeContainers() {
+    Container *containerPtr;
+
+    //    for (int i = 0; i < unitDefs.count; i++) {
+    //        free(unitDefs.containerTypes[i].name);
+    //
+    //        containerPtr = &(unitDefs.containerTypes[i].containers);
+    //        while (*containerPtr) {
+    //            free(containerPtr->name);
+    //            free(containerPtr->fields);
+    //        }
+    //        free(unitDefs.containerTypes[i].containers);
+    //    }
+    //    free(unitDefs.containerTypes);
+
+    free(allContainers);
+
+}
+
 void initGrid() {
     int x, y;
     Field *field;
-    Unit *unit;
+    ContainerSet *containerSet;
+    Container *fieldContainer;
 
     assert(unitDefs.count > 0);
 
@@ -206,8 +195,8 @@ void initGrid() {
     for (int f = 0; f < NUMBER_OF_FIELDS; f++) {
         field = fields + f;
 
-        x = f % MAX_NUMBER;
-        y = f / MAX_NUMBER;
+        x = field->x;
+        y = field->y;
 
         for (int n = 0; n < MAX_NUMBER; n++) {
             field->candidates[n] = n + 1;
@@ -217,64 +206,35 @@ void initGrid() {
         field->value = 0;
         field->initialValue = 0;
 
-        int *unitPositions = (int *) xmalloc(sizeof (int) * unitDefs.count);
+        int *containerIndexes = (int *) xmalloc(sizeof (int) * numberOfContainerSets);
+        int * indexPtr = containerIndexes;
 
-        unitPositions[ROWS] = y;
-        unitDefs.units[ROWS].theContainers[y].fields[x] = field;
+        Container **containers = (int *) xmalloc(sizeof (Container *) * numberOfContainerSets);
+        Container **fieldContainer = containers;
+    
+        containerSet = containerSets;
+        while (*containerSet) {
+            // determine position of field 
+            *indexPtr = containerSet->getContainerIndex(x, y);
 
-        unitPositions[COLS] = x;
-        unitDefs.units[COLS].theContainers[x].fields[y] = field;
+            // add reference to container containing this field
+            if (*indexPtr >= 0) {
+                *fieldContainer = containerSet->containers[*indexPtr];
+            } else {
+                // no container of this type contains this field
+                *fieldContainer = NULL;
+            }
+            
+            // at the same time, add the field to the container which contains
+            // it
+            appendField(containerSet->containers[*indexPtr], field);
 
-        unitPositions[BOXES] = getBoxNr(x, y);
-        unitDefs.units[BOXES].theContainers[unitPositions[BOXES]].fields[y] = field;
-
-        field->unitPositions = unitPositions;
-
-        // use the ROWS and COLS coordinates as the "name" of the field
-        // reserve space for coordinates up to "Z26" (a theoretical limit of
-        // a 26-number-Sudoku)
-        char *name = (char *) xmalloc(sizeof (char) * 4);
-        sprintf(name, "%c%u", (char) (y + (int) 'A'), x + 1);
-        field->name = name;
-    }
-
-    // fill units with pointers to the corresponding fields
-
-    // rows
-    unit = &(unitDefs.units[ROWS]);
-    for (int row = 0; row < unit->containers; row++) {
-        for (int ix = 0; ix < MAX_NUMBER; ix++) {
-            field = fields + row * MAX_NUMBER + ix;
-            assert(field->unitPositions[ROWS] == row);
-
-            unit->theContainers[row].fields[ix] = field;
+            indexPtr++;
+            containerSet++;
+            fieldContainer++;
         }
-    }
 
-    // cols
-    unit = &(unitDefs.units[COLS]);
-    for (int col = 0; col < unit->containers; col++) {
-        for (int ix = 0; ix < MAX_NUMBER; ix++) {
-            field = fields + ix * MAX_NUMBER + col;
-            assert(field->unitPositions[COLS] == col);
-
-            unit->theContainers[col].fields[ix] = field;
-        }
-    }
-
-    // boxes
-    unit = &(unitDefs.units[BOXES]);
-    for (int box = 0; box < unit->containers; box++) {
-        for (int ix = 0; ix < MAX_NUMBER; ix++) {
-
-            getCoordinatesInBox(box, ix, &x, &y);
-            field = fields + y * MAX_NUMBER + x;
-            assert(field->unitPositions[BOXES] == box);
-            assert(field->unitPositions[COLS] == x);
-            assert(field->unitPositions[ROWS] == y);
-
-            unit->theContainers[box].fields[ix] = field;
-        }
+        field->containerIndexes = containerIndexes;
     }
 }
 
@@ -283,7 +243,7 @@ void initGrid() {
  */
 void freeGrid() {
     for (int f = 0; f < NUMBER_OF_FIELDS; f++) {
-        free(fields[f].unitPositions);
+        free(fields[f].containerIndexes);
         free(fields[f].name);
     }
 }
@@ -316,32 +276,36 @@ void setValue(Field *field, unsigned value) {
  * the specified field.
  * 
  * @param field
- * @param n
+ * @param n the number to be forbidden in neighboring fields
  */
 void forbidNumberInNeighbors(Field *field, unsigned n) {
     Container *container;
+    unsigned candidates[MAX_NUMBER];
 
     assert(n <= MAX_NUMBER);
 
     sprintf(buffer, "Forbid number %u in neighbors of field %s ...\n", n, field->name);
     printlog(buffer);
 
+    // go through all positions (numbers) of the container and 
+    // forbid this number in all other fields of the container
+
+    // build tuple to search for (just because forbidNumbersInOtherFields
+    // wants a complete candidates vector)
+    for (int i = 0; i < MAX_NUMBER; i++) {
+        candidates[i] = 0;
+    }
+    candidates[n - 1] = n;
+
+    container = field->containers;
+    while (*container) {
+    }
+    
     // forbid number in all other "neighboring fields"
-    for (int u = 0; u < unitDefs.count; u++) {
+    for (unsigned containerType = 0; containerType < numberOfContainerSets; containerType++) {
         printf("[6hshhs]\n");
-        Unit *unit = &(unitDefs.units[u]);
+        container = field->containers[containerType];
         printf("[6hshhs++]\n");
-        container = &(unit->theContainers[field->unitPositions[u]]);
-
-        // go through all positions (numbers) of the container and 
-        // forbid this number in all other fields of the container
-        unsigned candidates[MAX_NUMBER];
-
-        // build tuple to search for
-        for (int i = 0; i < MAX_NUMBER; i++) {
-            candidates[i] = 0;
-        }
-        candidates[n - 1] = n;
 
         // preserve candidate in "our" field only
         Field * preserve[2];
@@ -575,7 +539,7 @@ int getUniquePositionInContainer(Field **container, unsigned n) {
     for (pos = 0; pos < MAX_NUMBER; pos++) {
         field = container[pos];
         if ((field->value == n) || (!(field->value) && (field->candidates[n - 1] == n))) {
-            printf("Field %d/%d can contain candidate %u\n", field->unitPositions[ROWS], field->unitPositions[COLS], n);
+            printf("Field %d/%d can contain candidate %u\n", field->containerIndexes[ROWS], field->containerIndexes[COLS], n);
             if (!unique) {
                 unique = 1; // first occurrence in the current container
                 foundPos = pos; // remember position, in case it is the only one

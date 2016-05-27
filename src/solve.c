@@ -63,6 +63,7 @@ int checkForSolvedCells() {
 
 int findHiddenSingles() {
     int progress; // flag: something has changed
+    Container *container;
 
     if (verboseLogging == 2)
         printlog("[strategy] find hidden singles ...\n");
@@ -74,37 +75,64 @@ int findHiddenSingles() {
     // several candidates for this cell, but the other candidates can be
     // discarded in this case)
 
-    for (int u = 0; u < unitDefs.count; u++) {
-        Unit *unit = &(unitDefs.units[u]);
 
-        if (verboseLogging == 2) {
-            sprintf(buffer, "??? Searching for: hidden singles in units of type %s ... \n", unit->name);
-            printlog(buffer);
-        }
+    for (unsigned c = 0; c < numberOfContainers; c++) {
+        container = allContainers + c;
 
-        for (int c = 0; c < unit->containers; c++) {
-            for (unsigned n = 1; n <= MAX_NUMBER; n++) {
-                Container *container = &(unit->theContainers[c]);
-                Field **containerFields = container->fields;
-                int pos = getUniquePositionInContainer(containerFields, n);
-                if (pos != -1 && !containerFields[pos]->value) {
-                    // number can only occur in the position pos in this container
-                    if (verboseLogging) {
-                        // TODO sprintf(buffer, "!!! Neue Erkenntnis 2a: In Zeile %d kann %d nur an Position %d vorkommen => (%d/%d) = %d!\n", y + 1, n, x + 1, y + 1, x + 1, n);
-                        // TODO printlog(buffer);
-                    }
-                    setValue(containerFields[pos], n);
-
-                    Field *field = containerFields[pos];
-                    sprintf(buffer, "*** [hidden single] hidden single in unit %s, field %s: %u ... \n", container->name, field->name, n);
-                    printlog(buffer);
-
-                    progress = 1; // Flag "neue Erkenntnis" setzen
+        for (unsigned n = 1; n <= MAX_NUMBER; n++) {
+            Field **containerFields = container->fields;
+            int pos = getUniquePositionInContainer(containerFields, n);
+            if (pos != -1 && !containerFields[pos]->value) {
+                // number can only occur in the position pos in this container
+                if (verboseLogging) {
+                    // TODO sprintf(buffer, "!!! Neue Erkenntnis 2a: In Zeile %d kann %d nur an Position %d vorkommen => (%d/%d) = %d!\n", y + 1, n, x + 1, y + 1, x + 1, n);
+                    // TODO printlog(buffer);
                 }
+                setValue(containerFields[pos], n);
+
+                Field *field = containerFields[pos];
+                sprintf(buffer, "*** [hidden single] hidden single in unit %s, field %s: %u ... \n", container->name, field->name, n);
+                printlog(buffer);
+
+                progress = 1; // Flag "neue Erkenntnis" setzen
             }
         }
-
+        container++;
     }
+
+
+    // OBSOLETE VERSION:
+    //    for (int u = 0; u < unitDefs.count; u++) {
+    //        ContainerSet *unit = &(unitDefs.containerTypes[u]);
+    //
+    //        if (verboseLogging == 2) {
+    //            sprintf(buffer, "??? Searching for: hidden singles in units of type %s ... \n", unit->name);
+    //            printlog(buffer);
+    //        }
+    //
+    //        for (int c = 0; c < unit->numberOfContainers; c++) {
+    //            for (unsigned n = 1; n <= MAX_NUMBER; n++) {
+    //                Container *container = &(unit->containers[c]);
+    //                Field **containerFields = container->fields;
+    //                int pos = getUniquePositionInContainer(containerFields, n);
+    //                if (pos != -1 && !containerFields[pos]->value) {
+    //                    // number can only occur in the position pos in this container
+    //                    if (verboseLogging) {
+    //                        // TODO sprintf(buffer, "!!! Neue Erkenntnis 2a: In Zeile %d kann %d nur an Position %d vorkommen => (%d/%d) = %d!\n", y + 1, n, x + 1, y + 1, x + 1, n);
+    //                        // TODO printlog(buffer);
+    //                    }
+    //                    setValue(containerFields[pos], n);
+    //
+    //                    Field *field = containerFields[pos];
+    //                    sprintf(buffer, "*** [hidden single] hidden single in unit %s, field %s: %u ... \n", container->name, field->name, n);
+    //                    printlog(buffer);
+    //
+    //                    progress = 1; // Flag "neue Erkenntnis" setzen
+    //                }
+    //            }
+    //        }
+    //
+    //    }
 
     return progress;
 }
@@ -137,51 +165,6 @@ int findNakedTuples() {
     }
 
     return progress;
-}
-
-/**
- * find naked tuples (pairs, triples, ...) in the same container
- * @param dimension 2 for pairs, 3 for triples, etc.
- * @return 
- */
-int findNakedTuplesX(size_t dimension) {
-    Unit *unit;
-    int progress; // flag: something has changed
-
-    if (verboseLogging == 2) {
-        sprintf(buffer, "[strategy] find naked tuples of dimension %zu ...\n", dimension);
-        printlog(buffer);
-    }
-
-    printf("- yeah: ...\n");
-
-    progress = 0;
-
-    // search in all unit types (rows, cols, boxes, ...) for a tuple of numbers 
-    // which can only occur on n = size of tuple positions within the unit.
-    // So, even if there would be  several candidates for these cells, the 
-    // tuple numbers must be distributed among these n fields, so we can discard
-    // these tuple candidates in all other cells of the same container
-
-    for (int u = 0; u < unitDefs.count; u++) {
-        unit = &(unitDefs.units[u]);
-        if (verboseLogging == 2) {
-            sprintf(buffer, "??? Searching for: naked tuples of dimension %d in units of type %s ... \n", (int) dimension, unit->name);
-            printlog(buffer);
-        }
-
-        printf("container \"%s\" has %zu instances\n", unit->name, unit->containers);
-        for (int c = 0; c < unit->containers; c++) {
-            Field **container = unit->theContainers[c].fields;
-
-            printf("iterating into instance %d of container \"%s\", aka %s\n", c, unit->name, unit->theContainers[c].name);
-
-            progress |= findNakedTuplesInContainer(container, dimension);
-        }
-    }
-
-    return progress;
-
 }
 
 int findHiddenPairs() {
@@ -238,7 +221,7 @@ int recurseHiddenTuples(unsigned maxLevel, FieldsVector *fields, unsigned level,
  * @return progress flag: 1 for "something has changed", 0 for "no change"
  */
 int findPointingTupels() {
-    Unit *unit;
+    ContainerSet *unit;
     int progress; // flag: something has changed
     unsigned tuple[MAX_NUMBER];
     unsigned n;
@@ -246,112 +229,112 @@ int findPointingTupels() {
     progress = 0;
 
 
-    printf("[pii] starting findPointingTupels ...\n");
-
-    // search in all unit types (rows, cols, boxes, ...) for a tuple of numbers 
-    // which form a "pointing tuple"
-
-    for (int u = 0; u < unitDefs.count; u++) {
-        unit = &(unitDefs.units[u]);
-        if (verboseLogging == 2) {
-            sprintf(buffer, "??? Searching for: pointing tuples in units of type %s ... \n", unit->name);
-            printlog(buffer);
-        }
-
-        printf("container \"%s\" has %zu instances\n", unit->name, unit->containers);
-        for (int c = 0; c < unit->containers; c++) {
-            FieldsVector *container = unit->theContainers[c].fields;
-
-            showAllCandidates();
-            show(0);
-            printf("Alex\n");
-            show(0);
-            sudokuString(0);
-
-            printf("iterating into instance %d of container \"%s\"\n", c, unit->name); // FIXME debugging output
-
-            // check for pointing tuples in this container
-            for (n = 1; n <= MAX_NUMBER; n++) {
-                FieldsVector *fieldsVector;
-
-                // collect all fields which contain this candidate
-                printf("get fields with candidate %u in unit type %s ... \n", n, unit->name); // FIXME debugging output
-                fieldsVector = fieldsWithCandidate(container, n);
-                printf("got fields:\n"); // FIXME debugging output
-                Field **ptr = fieldsVector; // FIXME debugging variable
-                while (*ptr) { // FIXME debugging output
-                    //                    printf("ptr point to address %d\n", (int) *ptr);
-                    printf("  candidate %u is possible in field %d/%d\n", n, (*ptr)->unitPositions[ROWS], (*ptr)->unitPositions[COLS]);
-                    ptr++;
-                }
-
-                printf("[hhh1]\n");
-
-                if (*fieldsVector == NULL) {
-                    // candidate n not found in any free field => skip it
-                    printf("[hhh2]\n");
-                    continue;
-                }
-                printf("[hhh3]\n");
-
-                // for every unit type other than the current one, check if
-                // all fields of the tuple share the same "other" unit instance.
-                // If so, the candidate can be removed from all fields in the
-                // "other" instance except for the fields in the tuple (in the
-                // current container)
-
-                for (int u2 = 0; u2 < unitDefs.count; u2++) {
-                    if (u2 == u) {
-                        // only look in OTHER unit types
-                        printf("[hhh4]\n");
-                        continue;
-                    }
-
-                    printf("[hhh5]\n");
-                    printf("  look at unit %s ...\n", unitDefs.units[u2].name);
-
-                    //                    for (int f2 = 0; f2 < NUMBER_OF_FIELDS; f2++) { // FIXME debugging output
-                    //                        printf("[1234] field #%d: in row %d, col %d, box %d\n", f2, fields[f2].unitPositions[ROWS], fields[f2].unitPositions[COLS], fields[f2].unitPositions[BOXES]);
-                    //                    }
-
-
-                    int containerIndex;
-                    // check if all fields share the same instance of the "other unit"
-                    Field **fieldsPtr;
-                    fieldsPtr = fieldsVector;
-                    containerIndex = (*fieldsPtr)->unitPositions[u2];
-                    printf("the tupel MIGHT be in %s #%d ...\n", unitDefs.units[u2].name, containerIndex);
-                    fieldsPtr++;
-                    while (*fieldsPtr) {
-                        printf("[jjj2] check next position ...\n");
-                        if ((*fieldsPtr)->unitPositions[u2] != containerIndex) {
-                            printf("[jjj3] FOUND SOMETHING => no tupel...\n");
-                            break;
-                        }
-
-                        fieldsPtr++;
-                    }
-
-                    printf("[jjj4] finished\n");
-
-                    // found pointing tuple?
-                    if (!(*fieldsPtr)) {
-                        printf("[lkkk] Found pointing tuple in %s #%d ...) \n", unitDefs.units[u2].name, containerIndex);
-
-                        // prepare tuple
-                        for (int i = 0; i < MAX_NUMBER; i++) {
-                            tuple[i] = 0;
-                        }
-                        tuple[n - 1] = n;
-
-                        progress |= forbidNumbersInOtherFields(&(unitDefs.units[u2].theContainers[containerIndex]), tuple, fieldsVector);
-                    }
-                }
-
-                free(fieldsVector);
-            }
-        }
-    }
+    //    printf("[pii] starting findPointingTupels ...\n");
+    //
+    //    // search in all unit types (rows, cols, boxes, ...) for a tuple of numbers 
+    //    // which form a "pointing tuple"
+    //
+    //    for (int u = 0; u < unitDefs.count; u++) {
+    //        unit = &(unitDefs.containerTypes[u]);
+    //        if (verboseLogging == 2) {
+    //            sprintf(buffer, "??? Searching for: pointing tuples in units of type %s ... \n", unit->name);
+    //            printlog(buffer);
+    //        }
+    //
+    //        printf("container \"%s\" has %zu instances\n", unit->name, unit->numberOfContainers);
+    //        for (int c = 0; c < unit->numberOfContainers; c++) {
+    //            FieldsVector *container = unit->containers[c].fields;
+    //
+    //            showAllCandidates();
+    //            show(0);
+    //            printf("Alex\n");
+    //            show(0);
+    //            sudokuString(0);
+    //
+    //            printf("iterating into instance %d of container \"%s\"\n", c, unit->name); // FIXME debugging output
+    //
+    //            // check for pointing tuples in this container
+    //            for (n = 1; n <= MAX_NUMBER; n++) {
+    //                FieldsVector *fieldsVector;
+    //
+    //                // collect all fields which contain this candidate
+    //                printf("get fields with candidate %u in unit type %s ... \n", n, unit->name); // FIXME debugging output
+    //                fieldsVector = fieldsWithCandidate(container, n);
+    //                printf("got fields:\n"); // FIXME debugging output
+    //                Field **ptr = fieldsVector; // FIXME debugging variable
+    //                while (*ptr) { // FIXME debugging output
+    //                    //                    printf("ptr point to address %d\n", (int) *ptr);
+    //                    printf("  candidate %u is possible in field %d/%d\n", n, (*ptr)->containerIndexes[ROWS], (*ptr)->containerIndexes[COLS]);
+    //                    ptr++;
+    //                }
+    //
+    //                printf("[hhh1]\n");
+    //
+    //                if (*fieldsVector == NULL) {
+    //                    // candidate n not found in any free field => skip it
+    //                    printf("[hhh2]\n");
+    //                    continue;
+    //                }
+    //                printf("[hhh3]\n");
+    //
+    //                // for every unit type other than the current one, check if
+    //                // all fields of the tuple share the same "other" unit instance.
+    //                // If so, the candidate can be removed from all fields in the
+    //                // "other" instance except for the fields in the tuple (in the
+    //                // current container)
+    //
+    //                for (int u2 = 0; u2 < unitDefs.count; u2++) {
+    //                    if (u2 == u) {
+    //                        // only look in OTHER unit types
+    //                        printf("[hhh4]\n");
+    //                        continue;
+    //                    }
+    //
+    //                    printf("[hhh5]\n");
+    //                    printf("  look at unit %s ...\n", unitDefs.containerTypes[u2].name);
+    //
+    //                    //                    for (int f2 = 0; f2 < NUMBER_OF_FIELDS; f2++) { // FIXME debugging output
+    //                    //                        printf("[1234] field #%d: in row %d, col %d, box %d\n", f2, fields[f2].unitPositions[ROWS], fields[f2].unitPositions[COLS], fields[f2].unitPositions[BOXES]);
+    //                    //                    }
+    //
+    //
+    //                    int containerIndex;
+    //                    // check if all fields share the same instance of the "other unit"
+    //                    Field **fieldsPtr;
+    //                    fieldsPtr = fieldsVector;
+    //                    containerIndex = (*fieldsPtr)->containerIndexes[u2];
+    //                    printf("the tupel MIGHT be in %s #%d ...\n", unitDefs.containerTypes[u2].name, containerIndex);
+    //                    fieldsPtr++;
+    //                    while (*fieldsPtr) {
+    //                        printf("[jjj2] check next position ...\n");
+    //                        if ((*fieldsPtr)->containerIndexes[u2] != containerIndex) {
+    //                            printf("[jjj3] FOUND SOMETHING => no tupel...\n");
+    //                            break;
+    //                        }
+    //
+    //                        fieldsPtr++;
+    //                    }
+    //
+    //                    printf("[jjj4] finished\n");
+    //
+    //                    // found pointing tuple?
+    //                    if (!(*fieldsPtr)) {
+    //                        printf("[lkkk] Found pointing tuple in %s #%d ...) \n", unitDefs.containerTypes[u2].name, containerIndex);
+    //
+    //                        // prepare tuple
+    //                        for (int i = 0; i < MAX_NUMBER; i++) {
+    //                            tuple[i] = 0;
+    //                        }
+    //                        tuple[n - 1] = n;
+    //
+    //                        progress |= forbidNumbersInOtherFields(&(unitDefs.containerTypes[u2].containers[containerIndex]), tuple, fieldsVector);
+    //                    }
+    //                }
+    //
+    //                free(fieldsVector);
+    //            }
+    //        }
+    //    }
 
     return progress;
 
@@ -487,7 +470,7 @@ unsigned recurseNakedTuples(unsigned maxLevel, Container *container, unsigned le
             printlog(buffer);
             return 1;
         }
-        
+
         // FIXME DEBUG
         printlog("recursion returned with progress flag of 0");
     }
@@ -517,7 +500,7 @@ int solve() {
     currentStrategy = strategies;
     *currentStrategy++ = &checkForSolvedCells;
     *currentStrategy++ = &findHiddenSingles;
-//    *currentStrategy++ = &findNakedTuples;
+    *currentStrategy++ = &findNakedTuples;
     *currentStrategy++ = NULL; // terminate list of strategies
 
 

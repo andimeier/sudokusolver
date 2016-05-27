@@ -1,33 +1,59 @@
 /**
  * functions related to mapping fields into some sort of containers.
  * A container is any set of fields except a row or a column. Standard
- * containers are "box" (for standard Sudoku), "diagonal" (X-Sudoku) or
- * "color" (for color Sudoku).
+ * containers are "row", "column" and "box" (for standard Sudoku), 
+ * "diagonal" (X-Sudoku) or "color" (for color Sudoku).
  */
 #include <assert.h>
 #include "container.h"
 #include "grid.h"
 
-void getBoxStartCoordinates(int q, int *qx, int *qy);
+static void getBoxStartCoordinates(int q, int *qx, int *qy);
+static void createContainers(char *name, size_t numberOfInstances, char *instanceNames[], ContainerSet *containerType);
 
 static unsigned boxWidth;
 static unsigned boxHeight;
 
 /**
- * sets up containers
+ * sets up containers sets
  */
-void setupContainers() {
+void setupContainerSets() {
     //    typedef int (*myFuncDef)(int, int);
 
     // at the moment, no other dimensions are possible than a 9x9 Sudoku
     assert(MAX_NUMBER == 9);
-    
+
     if (MAX_NUMBER == 9) {
         boxWidth = 3;
         boxHeight = 3;
     }
+
 }
 
+/**
+ * fills the container set placeholder with the characteristics of the 
+ * specified type of container set
+ * 
+ * @param containerSet the container set structure to be filled
+ * @param containerType, e.g. ROWS, COLS or BOXES
+ */
+void setContainerSet(ContainerSet *containerSet, unsigned containerType) {
+
+    assert(containerType >= ROWS && containerType <= BOXES);
+
+    switch (containerType) {
+        case ROWS:
+            createRowContainers(ContainerSet * containerSet);
+            break;
+        case COLS:
+            createColumnContainers(ContainerSet * containerSet);
+            break;
+        case BOXES:
+            createBoxContainers(ContainerSet * containerSet);
+            break;
+    }
+
+}
 
 //-------------------------------------------------------------------
 // Liefert zu dem x-ten Feld eines Quadranten dessen absolute x- und
@@ -129,3 +155,142 @@ int determineBoxContainer(unsigned x, unsigned y) {
 
     return (y / boxHeight) * 3 + (x / boxWidth);
 }
+
+/**
+ * return number of row containers necessary to hold the Sudoku data.
+ * In many cases (like this) the number of containers of this type will be
+ * equal to MAX_NUMBER, but in some cases it might not, e.g. for diagonals
+ * there would be only 2 containers.
+ * @return the number of needed containers of this type
+ */
+unsigned determineRowContainersCount(void) {
+    return MAX_NUMBER;
+}
+
+/**
+ * return number of row containers necessary to hold the Sudoku data.
+ * In many cases (like this) the number of containers of this type will be
+ * equal to MAX_NUMBER, but in some cases it might not, e.g. for diagonals
+ * there would be only 2 containers.
+ * @return the number of needed containers of this type
+ */
+unsigned determineColumnContainersCount(void) {
+    return MAX_NUMBER;
+}
+
+/**
+ * return number of row containers necessary to hold the Sudoku data.
+ * In many cases (like this) the number of containers of this type will be
+ * equal to MAX_NUMBER, but in some cases it might not, e.g. for diagonals
+ * there would be only 2 containers.
+ * @return the number of needed containers of this type
+ */
+unsigned determineBoxContainersCount(void) {
+    return MAX_NUMBER;
+}
+
+/**
+ * creates a container set for rows, along with all needed containers instances
+ * of this type
+ * 
+ * @param the container set struct to be filled with data
+ * @return the number of generated container children of this container set
+ */
+unsigned createRowContainers(ContainerSet *containerSet) {
+    char **instanceNames;
+
+    instanceNames = (char **) xmalloc(sizeof (char *) * MAX_NUMBER);
+
+    for (int i = 0; i < MAX_NUMBER; i++) {
+        sprintf(buffer, "row %c", (char) ('A' + i));
+        instanceNames[i] = strdup(buffer);
+    }
+
+    // check that the number of instance names is equal to the containers
+    // count stated by the auxiliary count function
+    assert(i == determineRowContainersCount());
+
+    // delegate container creation to generic generator function
+    createContainers(strdup("row"), MAX_NUMBER, instanceNames, containerSet);
+
+    containerSet->getContainerIndex = &determineRowContainer;
+
+    // MAX_NUMBER rows have been generated
+    return MAX_NUMBER;
+}
+
+/**
+ * creates a container set for columns, along with all needed containers 
+ * instances of this type
+ * 
+ * @param the container type struct to be filled with data
+ * @return the number of generated container children of this container set
+ */
+unsigned createColumnContainers(ContainerSet *containerSet) {
+    char **instanceNames;
+
+    instanceNames = (char **) xmalloc(sizeof (char *) * MAX_NUMBER);
+
+    for (int i = 0; i < MAX_NUMBER; i++) {
+        sprintf(buffer, "column %u", i + 1);
+        instanceNames[i] = strdup(buffer);
+    }
+
+    // check that the number of instance names is equal to the containers
+    // count stated by the auxiliary count function
+    assert(i == determineColumnContainersCount());
+
+    // delegate container creation to generic generator function
+    createContainers(strdup("column"), MAX_NUMBER, instanceNames, containerSet);
+
+    containerSet->getContainerIndex = &determineColumnContainer;
+
+    // MAX_NUMBER columns have been generated
+    return MAX_NUMBER;
+}
+
+/**
+ * creates a container set for boxes, along with all needed containers 
+ * instances of this type
+ * 
+ * @param the container type struct to be filled with data
+ * @return the number of generated container children of this container set
+ */
+unsigned createBoxContainers(ContainerSet *containerSet) {
+    char **instanceNames;
+
+    instanceNames = (char **) xmalloc(sizeof (char *) * MAX_NUMBER);
+
+    for (int i = 0; i < MAX_NUMBER; i++) {
+        sprintf(buffer, "box %u", i + 1);
+        instanceNames[i] = strdup(buffer);
+    }
+
+    // check that the number of instance names is equal to the containers
+    // count stated by the auxiliary count function
+    assert(i == determineBoxContainersCount());
+
+    // delegate container creation to generic generator function
+    createContainers(strdup("box"), MAX_NUMBER, instanceNames, containerSet);
+
+    containerSet->getContainerIndex = &determineBoxContainer;
+
+    // MAX_NUMBER boxes have been generated
+    return MAX_NUMBER;
+}
+
+void createContainers(char *name, size_t numberOfInstances, char *instanceNames[], ContainerSet *containerSet) {
+
+    containerSet->name = name;
+    containerSet->numberOfContainers = numberOfInstances;
+    containerSet->containers = (Container *) xmalloc(sizeof (Container) * (numberOfInstances + 1));
+    for (int i = 0; i < numberOfInstances; i++) {
+        Container *container = &(containerSet->containers[i]);
+        container->name = instanceNames[i];
+        container->fields = (Field **) xmalloc(sizeof (Field *) * MAX_NUMBER);
+    }
+
+    // numberOfInstances children have been generated
+    return numberOfInstances;
+}
+

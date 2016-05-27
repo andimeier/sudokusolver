@@ -8,12 +8,16 @@
 #ifndef UTIL_H
 #define	UTIL_H
 
+#include "typedefs.h"
+
 #ifdef	__cplusplus
 extern "C" {
 #endif
 
     int *unsigneddup(unsigned const *src, size_t len);
     void *xmalloc(size_t size);
+    unsigned ulength(unsigned *array);
+    void appendField(Field **fields, Field *newField);
             
 #ifdef	__cplusplus
 }

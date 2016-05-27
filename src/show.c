@@ -50,7 +50,7 @@ void show(int showInit) {
                 else
                     buffer[index++] = '|';
 
-                field = unitDefs.units[ROWS].theContainers[y].fields[x];
+                field = containerSets[ROWS].containers[y].fields[x];
 
                 if (field->initialValue)
                     buffer[index++] = (char) (field->initialValue + 48);
@@ -75,7 +75,7 @@ void show(int showInit) {
             else
                 buffer[index++] = '|';
 
-            field = unitDefs.units[ROWS].theContainers[y].fields[x];
+            field = containerSets[ROWS].containers[y].fields[x];
 
             if (field->value)
                 buffer[index++] = (char) (field->value + 48);
@@ -258,7 +258,7 @@ void printSvg(int finalVersion) {
             "	  <line class='thin'  x1='63' y1='0' x2='63' y2='81' />"
             "	  <line class='thin'  x1='72' y1='0' x2='72' y2='81' />", svgfile);
 
-    rows = unitDefs.units[ROWS].theContainers;
+    rows = containerSets[ROWS].containers;
     for (y = 0; y < MAX_NUMBER; y++) {
         for (x = 0; x < MAX_NUMBER; x++) {
             field = rows[y][x];
@@ -299,8 +299,8 @@ char *position(Field * field) {
     if (position == NULL) {
         exit(EXIT_FAILURE);
     }
-    position[0] = (char) (field->unitPositions[ROWS] + 65);
-    position[1] = (char) (field->unitPositions[COLS] + 48);
+    position[0] = (char) (field->containerIndexes[ROWS] + 65);
+    position[1] = (char) (field->containerIndexes[COLS] + 48);
     position[2] = '\0';
     return position;
 }

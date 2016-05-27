@@ -14,25 +14,31 @@
 extern "C" {
 #endif
 
-// index number of the unit types, used in *units
+    // index number of the container types
 #define ROWS 0
 #define COLS 1
 #define BOXES 2
 
-// number of possible numbers
+    // number of possible numbers
 #define MAX_NUMBER 9
 #define NUMBER_OF_FIELDS MAX_NUMBER * MAX_NUMBER
 
     // the fields of the game board
     extern Field *fields;
 
-    // units are: rows, cols, boxes. Within one unit, the numbers 1...9 must
-    // appear. For a standard Sudoku, there are 3 units (rows, cols, boxes).
-    // More exotic Sudokus may use more units, e.g. color units or diagonals.
-    extern struct UnitDefs unitDefs;
+    /*
+     *  container types are: rows, cols, boxes. Within one unit, the numbers 
+     * 1...9 must appear. For a standard Sudoku, there are 3 units (rows, cols,
+     * boxes). More exotic Sudokus may use more units, e.g. color units or 
+     * diagonals.
+     */
+    extern ContainerSet *containerSets; // all container types (e.g. [row, column, box])
 
-    // list of all containers
-    extern Container **allContainers;
+    // all containers of the game board
+    extern Container *allContainers;
+
+    extern size_t numberOfContainerSets;
+    extern size_t numberOfContainers;
 
     // init functions
     void setupGrid();
