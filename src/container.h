@@ -20,10 +20,7 @@ extern "C" {
     int getBoxNr(int x, int y);
 
     void setContainerSet(ContainerSet *containerSet, unsigned containerType);
-    
-    unsigned createRowContainers(ContainerSet *containerSet);
-    unsigned createColumnContainers(ContainerSet *containerSet);
-    
+
     // get container index for the specified field coordinates
     int determineRowContainer(unsigned x, unsigned y);
     int determineColumnContainer(unsigned x, unsigned y);

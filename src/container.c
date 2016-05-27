@@ -7,9 +7,14 @@
 #include <assert.h>
 #include "container.h"
 #include "grid.h"
+#include "log.h"
 
 static void getBoxStartCoordinates(int q, int *qx, int *qy);
 static void createContainers(char *name, size_t numberOfInstances, char *instanceNames[], ContainerSet *containerType);
+
+static unsigned createRowContainers(ContainerSet *containerSet);
+static unsigned createColumnContainers(ContainerSet *containerSet);
+static unsigned createBoxContainers(ContainerSet *containerSet);
 
 static unsigned boxWidth;
 static unsigned boxHeight;
@@ -43,16 +48,15 @@ void setContainerSet(ContainerSet *containerSet, unsigned containerType) {
 
     switch (containerType) {
         case ROWS:
-            createRowContainers(ContainerSet * containerSet);
+            createRowContainers(containerSet);
             break;
         case COLS:
-            createColumnContainers(ContainerSet * containerSet);
+            createColumnContainers(containerSet);
             break;
         case BOXES:
-            createBoxContainers(ContainerSet * containerSet);
+            createBoxContainers(containerSet);
             break;
     }
-
 }
 
 //-------------------------------------------------------------------
@@ -198,10 +202,11 @@ unsigned determineBoxContainersCount(void) {
  */
 unsigned createRowContainers(ContainerSet *containerSet) {
     char **instanceNames;
+    unsigned i;
 
     instanceNames = (char **) xmalloc(sizeof (char *) * MAX_NUMBER);
 
-    for (int i = 0; i < MAX_NUMBER; i++) {
+    for (i = 0; i < MAX_NUMBER; i++) {
         sprintf(buffer, "row %c", (char) ('A' + i));
         instanceNames[i] = strdup(buffer);
     }
@@ -228,10 +233,11 @@ unsigned createRowContainers(ContainerSet *containerSet) {
  */
 unsigned createColumnContainers(ContainerSet *containerSet) {
     char **instanceNames;
+    unsigned i;
 
     instanceNames = (char **) xmalloc(sizeof (char *) * MAX_NUMBER);
 
-    for (int i = 0; i < MAX_NUMBER; i++) {
+    for (i = 0; i < MAX_NUMBER; i++) {
         sprintf(buffer, "column %u", i + 1);
         instanceNames[i] = strdup(buffer);
     }
@@ -258,10 +264,11 @@ unsigned createColumnContainers(ContainerSet *containerSet) {
  */
 unsigned createBoxContainers(ContainerSet *containerSet) {
     char **instanceNames;
+    unsigned i;
 
     instanceNames = (char **) xmalloc(sizeof (char *) * MAX_NUMBER);
 
-    for (int i = 0; i < MAX_NUMBER; i++) {
+    for (i = 0; i < MAX_NUMBER; i++) {
         sprintf(buffer, "box %u", i + 1);
         instanceNames[i] = strdup(buffer);
     }

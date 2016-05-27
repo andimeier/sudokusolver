@@ -72,7 +72,7 @@ extern "C" {
         // the function to determine the index of the container a specified
         // field is placed in (or -1 if the field is in no container of this 
         // type)
-        getContainerIndexFunc *getContainerIndex;
+        getContainerIndexFunc getContainerIndex;
 
         // number of containers of this type in 
         // the Sudoku. Will normally be 9, but can also be something else, 

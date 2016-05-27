@@ -50,7 +50,7 @@ void show(int showInit) {
                 else
                     buffer[index++] = '|';
 
-                field = containerSets[ROWS].containers[y].fields[x];
+                field = containerSets[ROWS].containers[y]->fields[x];
 
                 if (field->initialValue)
                     buffer[index++] = (char) (field->initialValue + 48);
@@ -75,7 +75,7 @@ void show(int showInit) {
             else
                 buffer[index++] = '|';
 
-            field = containerSets[ROWS].containers[y].fields[x];
+            field = containerSets[ROWS].containers[y]->fields[x];
 
             if (field->value)
                 buffer[index++] = (char) (field->value + 48);

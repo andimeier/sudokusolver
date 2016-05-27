@@ -53,7 +53,7 @@ void initFields() {
     fields = (Field *) xmalloc(sizeof (Field) * NUMBER_OF_FIELDS);
 
     for (int f = 0; f < NUMBER_OF_FIELDS; f++) {
-        field = fields[f];
+        field = fields + f;
 
         field->x = f % MAX_NUMBER;
         field->y = f / MAX_NUMBER;
@@ -88,7 +88,7 @@ void freeFields() {
  * fields. This will be done later in initGrid().
  */
 void initContainers() {
-    ContainerSet **containerSetPtr;
+    ContainerSet *containerSetPtr;
     unsigned *containerTypes;
 
     //    getNumberOfContainers(); // in containers.c, das weiss containers!
@@ -99,24 +99,26 @@ void initContainers() {
     containerTypes = getContainerTypes(GAME_STANDARD_SUDOKU);
     numberOfContainerSets = ulength(containerTypes);
 
-    containerSets = (ContainerSet *) xmalloc(sizeof (ContainerSet) * (numberOfContainerSets + 1));
+    assert(numberOfContainerSets > 0);
+
+    containerSets = (ContainerSet *) xmalloc(sizeof (ContainerSet) * (numberOfContainerSets));
     containerSetPtr = containerSets;
 
     numberOfContainers = 0;
     while (*containerTypes) {
-        setContainerSet(*containerSetPtr, *containerTypes);
+        setContainerSet(containerSetPtr, *containerTypes);
         numberOfContainers += containerSetPtr->numberOfContainers;
 
         containerSetPtr++;
         containerTypes++;
     }
 
-    // terminate list of container types 
-    *containerSetPtr = NULL;
+    assert(numberOfContainers > 0);
+
 
 
     // init and populate "all containers" vector
-    allContainers = (Container *) xmalloc(sizeof (Container) * (numberOfContainers + 1));
+    allContainers = (Container *) xmalloc(sizeof (Container) * (numberOfContainers));
     Container *containersPtr = allContainers;
 
     sprintf(buffer, "name of very first container (should be 'row A') is: %s",
@@ -145,19 +147,16 @@ void initContainers() {
     //        }
     //    }
 
-    // terminate list of containers
-    *containersPtr = NULL;
-
-    // DEBUG FIXME remove me, just debugging output:
-    Container *ptr = allContainers;
-    int i = 0;
-    while (*ptr) {
-        sprintf(buffer, "container #%d: %s", i, ptr->name);
-        printlog(buffer);
-        ptr++;
-        i++;
-    }
-    // end of DEBUG FIXME
+    //    // DEBUG FIXME remove me, just debugging output:
+    //    Container *ptr = allContainers;
+    //    int i = 0;
+    //    while (*ptr) {
+    //        sprintf(buffer, "container #%d: %s", i, ptr->name);
+    //        printlog(buffer);
+    //        ptr++;
+    //        i++;
+    //    }
+    //    // end of DEBUG FIXME
 }
 
 /**
@@ -186,9 +185,8 @@ void initGrid() {
     int x, y;
     Field *field;
     ContainerSet *containerSet;
-    Container *fieldContainer;
-
-    assert(unitDefs.count > 0);
+    Container **containers;
+    Container **fieldContainer;
 
     // Initialisierung:
     // zunaechst sind ueberall alle Zahlen moeglich
@@ -209,13 +207,14 @@ void initGrid() {
         int *containerIndexes = (int *) xmalloc(sizeof (int) * numberOfContainerSets);
         int * indexPtr = containerIndexes;
 
-        Container **containers = (int *) xmalloc(sizeof (Container *) * numberOfContainerSets);
-        Container **fieldContainer = containers;
-    
-        containerSet = containerSets;
-        while (*containerSet) {
+        containers = (int *) xmalloc(sizeof (Container *) * numberOfContainerSets);
+        fieldContainer = containers;
+
+        for (unsigned i = 0; i < numberOfContainerSets; i++) {
+            containerSet = containerSets + i;
+
             // determine position of field 
-            *indexPtr = containerSet->getContainerIndex(x, y);
+            *indexPtr = (containerSet->getContainerIndex)(x, y);
 
             // add reference to container containing this field
             if (*indexPtr >= 0) {
@@ -224,7 +223,7 @@ void initGrid() {
                 // no container of this type contains this field
                 *fieldContainer = NULL;
             }
-            
+
             // at the same time, add the field to the container which contains
             // it
             appendField(containerSet->containers[*indexPtr], field);
@@ -297,14 +296,10 @@ void forbidNumberInNeighbors(Field *field, unsigned n) {
     }
     candidates[n - 1] = n;
 
-    container = field->containers;
-    while (*container) {
-    }
-    
     // forbid number in all other "neighboring fields"
     for (unsigned containerType = 0; containerType < numberOfContainerSets; containerType++) {
         printf("[6hshhs]\n");
-        container = field->containers[containerType];
+        container = field->containers + containerType;
         printf("[6hshhs++]\n");
 
         // preserve candidate in "our" field only
