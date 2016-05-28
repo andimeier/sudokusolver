@@ -16,21 +16,21 @@ extern "C" {
 
     // forward declaration
     typedef struct Container Container;
-    
+
     typedef struct Field {
         unsigned x; // X position on the game board, starting with 0 (doubled
-          // by the position in the container set "COLS")
+        // by the position in the container set "COLS")
         unsigned y; // Y position on the game board, starting with 0 (doubled
-          // by the position in the container set "ROWS")
+        // by the position in the container set "ROWS")
         int *containerIndexes; // indexes of the several containers. In any 
         // container, an index of -1 means that this number is not part of any 
         // instance of this container type (this can be the case in the unit 
         // "diagonal"))
         Container **containers; // containers containing this field. The order 
-          // of containers corresponds to the order of the "container sets".
-          // Note that any member of this vector can be NULL, indicating that
-          // this field is not part of any container of this container type.
-          // Possible in e.g. diagonal containers.
+        // of containers corresponds to the order of the "container sets".
+        // Note that any member of this vector can be NULL, indicating that
+        // this field is not part of any container of this container type.
+        // Possible in e.g. diagonal containers.
         unsigned *candidates;
         unsigned initialValue;
         unsigned candidatesLeft;
@@ -57,6 +57,24 @@ extern "C" {
     typedef int (*getContainerIndexFunc)(unsigned x, unsigned y);
 
     /**
+     * fill an instance of a container in a container set. The 
+     * 
+     * @param index container index of the child (starting with 0). For example,
+     *   for row containers, the index holds the number of the row.
+     */
+    typedef void (*fillContainerInstanceFunc)(Container *container, unsigned type, unsigned index);
+
+    /**
+     * creates and returns the name of a child container instance in a 
+     * container set. Depending on the given index, the result can be a name
+     * like 'row 1' or 'box 9'.
+     * 
+     * @param index container index of the child (starting with 0). For example,
+     *   for row containers, the index specifies the number of the row.
+     */
+    typedef char * (*getContainerNameFunc)(unsigned index);
+
+    /**
      * a container set is a set of (a class of) areas containing all Sudoku
      * numbers uniquely. Examples of a container set are: row, column, box,
      * diagonal, etc.
@@ -69,11 +87,20 @@ extern "C" {
         // singular form, e.g. 'row'
         char *name;
 
+        // the container type (e.g. 1==row)
+        unsigned type;
+
         // the function to determine the index of the container a specified
         // field is placed in (or -1 if the field is in no container of this 
         // type)
         getContainerIndexFunc getContainerIndex;
 
+        // the function to fill an instance of a child container 
+        fillContainerInstanceFunc fillContainerInstance;
+
+        // the function to retrieve the container instance name (e.g. 'row 2')
+        getContainerNameFunc getContainerName;
+        
         // number of containers of this type in 
         // the Sudoku. Will normally be 9, but can also be something else, 
         // e.g. 2 for "diagonal"
@@ -84,13 +111,6 @@ extern "C" {
         Container **containers;
 
     } ContainerSet;
-
-    // TODO can be ditched, use *ContainerType instead (vector of container types))
-
-    typedef struct UnitDefs {
-        struct ContainerSet *containerSets;
-        size_t count;
-    } UnitDefs;
 
     typedef Field * FieldsVector;
 

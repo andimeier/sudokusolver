@@ -106,6 +106,7 @@ void initContainers() {
 
     numberOfContainers = 0;
     while (*containerTypes) {
+        // set container set (holding no containers yet)
         setContainerSet(containerSetPtr, *containerTypes);
         numberOfContainers += containerSetPtr->numberOfContainers;
 
@@ -121,38 +122,22 @@ void initContainers() {
     allContainers = (Container *) xmalloc(sizeof (Container) * (numberOfContainers));
     Container *containersPtr = allContainers;
 
-    //    while () {
-    //        Container *unitContainer;
-    //
-    //        sprintf(buffer, "populating container type %d ...", i);
-    //        printlog(buffer);
-    //
-    //        unitContainer = unitDefs.containerTypes[i].containers;
-    //
-    //        // FIXME gehe durch alle Units und packe alle gefundenen Container
-    //        // in den ContainerVector ...
-    //        for (int c = 0; c < unitDefs.containerTypes[i].numberOfContainers; c++) {
-    //            // FIXME debugging output:
-    //            sprintf(buffer, "name (should be: row A): %s", unitContainer[c].name);
-    //            printlog(buffer);
-    //
-    //            sprintf(buffer, "  populating container type %d, number %d,  ...", i, c);
-    //            printlog(buffer);
-    //            *containersPtr = &(unitContainer[c]);
-    //            containersPtr++;
-    //        }
-    //    }
-
-    //    // DEBUG FIXME remove me, just debugging output:
-    //    Container *ptr = allContainers;
-    //    int i = 0;
-    //    while (*ptr) {
-    //        sprintf(buffer, "container #%d: %s", i, ptr->name);
-    //        printlog(buffer);
-    //        ptr++;
-    //        i++;
-    //    }
-    //    // end of DEBUG FIXME
+    /*
+     * go through all container sets and generate all child containers for each
+     * container set in turn
+     */
+    for (unsigned set = 0; set < numberOfContainerSets; set++) {
+        ContainerSet *containerSet = containerSets[set];
+        
+        // generate the corresponding child containers
+        for (unsigned containerIndex = 0; containerIndex < containerSet->numberOfContainers; containerIndex++) {
+            containersPtr->name = containerSet->getContainerName(containerIndex);
+            containersPtr->type = containerSet->type;
+            
+            // link to container set
+            containerSet->containers[containerIndex] = containersPtr;
+        }
+    }
 }
 
 /**
