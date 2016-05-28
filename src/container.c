@@ -12,7 +12,7 @@
 #include "util.h"
 
 static void getBoxStartCoordinates(int q, int *qx, int *qy);
-static void createContainers(char *name, size_t numberOfInstances, char *instanceNames[], ContainerSet *containerType);
+static void createContainers(unsigned type, char *name, size_t numberOfInstances, char *instanceNames[], ContainerSet *containerType);
 
 static unsigned createRowContainers(ContainerSet *containerSet);
 static unsigned createColumnContainers(ContainerSet *containerSet);
@@ -60,60 +60,6 @@ void setContainerSet(ContainerSet *containerSet, unsigned containerType) {
             break;
     }
 }
-
-/**
- * fills a row container instance in a row container set. 
- * 
- * @param container the container structure to be filled
- * @param index the position of the child container in the parent container set,
- *   starting with 0
- */
-void fillRowContainerInstance(Container *container, unsigned type, unsigned index) {
-
-    assert(index >= 0 && index <= MAX_NUMBER);
-
-    sprintf(buffer, "row %u", index + 1);
-    container->name = strdup(buffer);
-    container->type = type;
-
-    container->fields = (Field **) xmalloc(sizeof (Field *) * MAX_NUMBER);
-} 
-
-/**
- * fills a row container instance in a row container set. 
- * 
- * @param container the container structure to be filled
- * @param index the position of the child container in the parent container set,
- *   starting with 0
- */
-void fillColumnContainerInstance(Container *container, unsigned type, unsigned index) {
-
-    assert(index >= 0 && index <= MAX_NUMBER);
-
-    sprintf(buffer, "column %u", index + 1);
-    container->name = strdup(buffer);
-    container->type = type;
-
-    container->fields = (Field **) xmalloc(sizeof (Field *) * MAX_NUMBER);
-} 
-
-/**
- * fills a row container instance in a row container set. 
- * 
- * @param container the container structure to be filled
- * @param index the position of the child container in the parent container set,
- *   starting with 0
- */
-void fillBoxContainerInstance(Container *container, unsigned type, unsigned index) {
-
-    assert(index >= 0 && index <= MAX_NUMBER);
-
-    sprintf(buffer, "row %u", index + 1);
-    container->name = strdup(buffer);
-    container->type = type;
-
-    container->fields = (Field **) xmalloc(sizeof (Field *) * MAX_NUMBER);
-} 
 
 char *getRowName(unsigned index) {
     assert(index >= 0 && index < 26);
@@ -285,11 +231,6 @@ unsigned createRowContainers(ContainerSet *containerSet) {
     unsigned i;
 
     instanceNames = (char **) xmalloc(sizeof (char *) * MAX_NUMBER);
-    containers = (Container **) xmalloc(sizeof (Container *) * (MAX_NUMBER + 1));
-
-    // terminate list of containers (although the containers themselves are
-    // not yet linked)
-    *(containers + MAX_NUMBER) = NULL;
 
     for (i = 0; i < MAX_NUMBER; i++) {
         sprintf(buffer, "row %c", (char) ('A' + i));
@@ -304,7 +245,6 @@ unsigned createRowContainers(ContainerSet *containerSet) {
     createContainers(ROWS, strdup("row"), MAX_NUMBER, instanceNames, containerSet);
 
     containerSet->getContainerIndex = &determineRowContainer;
-    containerSet->fillContainerInstance = &fillRowContainerInstance;
     containerSet->getContainerName = &getRowName;
 
     // MAX_NUMBER rows have been generated
@@ -337,7 +277,6 @@ unsigned createColumnContainers(ContainerSet *containerSet) {
     createContainers(COLS, strdup("column"), MAX_NUMBER, instanceNames, containerSet);
 
     containerSet->getContainerIndex = &determineColumnContainer;
-    containerSet->fillContainerInstance = &generateColumnContainerInstance;
     containerSet->getContainerName = &getColumnName;
 
     // MAX_NUMBER columns have been generated
@@ -370,7 +309,6 @@ unsigned createBoxContainers(ContainerSet *containerSet) {
     createContainers(BOXES, strdup("box"), MAX_NUMBER, instanceNames, containerSet);
 
     containerSet->getContainerIndex = &determineBoxContainer;
-    containerSet->fillContainerInstance = &generateBoxContainerInstance;
     containerSet->getContainerName = &getBoxName;
 
     // MAX_NUMBER boxes have been generated
@@ -384,13 +322,3 @@ void createContainers(unsigned type, char *name, size_t numberOfInstances, char 
     containerSet->numberOfContainers = numberOfInstances;
     containerSet->containers = (Container **) xmalloc(sizeof (Container *) * (numberOfInstances + 1));
 }
-
-void linkContainerToSet(ContainerSet *set, Container *container) {
-
-    // TODO FIXME link containers to container set
-    Container *container = &(containerSet->containers[i]);
-    container->name = instanceNames[i];
-    container->fields = (Field **) xmalloc(sizeof (Field *) * MAX_NUMBER);
-    *(set->containers);
-}
-

@@ -57,14 +57,6 @@ extern "C" {
     typedef int (*getContainerIndexFunc)(unsigned x, unsigned y);
 
     /**
-     * fill an instance of a container in a container set. The 
-     * 
-     * @param index container index of the child (starting with 0). For example,
-     *   for row containers, the index holds the number of the row.
-     */
-    typedef void (*fillContainerInstanceFunc)(Container *container, unsigned type, unsigned index);
-
-    /**
      * creates and returns the name of a child container instance in a 
      * container set. Depending on the given index, the result can be a name
      * like 'row 1' or 'box 9'.
@@ -94,9 +86,6 @@ extern "C" {
         // field is placed in (or -1 if the field is in no container of this 
         // type)
         getContainerIndexFunc getContainerIndex;
-
-        // the function to fill an instance of a child container 
-        fillContainerInstanceFunc fillContainerInstance;
 
         // the function to retrieve the container instance name (e.g. 'row 2')
         getContainerNameFunc getContainerName;

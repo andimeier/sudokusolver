@@ -116,8 +116,6 @@ void initContainers() {
 
     assert(numberOfContainers > 0);
 
-
-
     // init and populate "all containers" vector
     allContainers = (Container *) xmalloc(sizeof (Container) * (numberOfContainers));
     Container *containersPtr = allContainers;
@@ -127,12 +125,13 @@ void initContainers() {
      * container set in turn
      */
     for (unsigned set = 0; set < numberOfContainerSets; set++) {
-        ContainerSet *containerSet = containerSets[set];
+        ContainerSet *containerSet = &(containerSets[set]);
         
         // generate the corresponding child containers
         for (unsigned containerIndex = 0; containerIndex < containerSet->numberOfContainers; containerIndex++) {
             containersPtr->name = containerSet->getContainerName(containerIndex);
             containersPtr->type = containerSet->type;
+            containersPtr->fields = (Field **) xmalloc(sizeof (Field *) * MAX_NUMBER);
             
             // link to container set
             containerSet->containers[containerIndex] = containersPtr;
