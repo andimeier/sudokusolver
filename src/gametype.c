@@ -5,6 +5,7 @@
 #include "grid.h"
 #include "gametype.h"
 #include "log.h"
+#include "util.h"
 
         
 unsigned *getContainerTypes(unsigned gameType) {
