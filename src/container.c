@@ -5,9 +5,11 @@
  * "diagonal" (X-Sudoku) or "color" (for color Sudoku).
  */
 #include <assert.h>
+#include <string.h>
 #include "container.h"
 #include "grid.h"
 #include "log.h"
+#include "util.h"
 
 static void getBoxStartCoordinates(int q, int *qx, int *qy);
 static void createContainers(char *name, size_t numberOfInstances, char *instanceNames[], ContainerSet *containerType);
