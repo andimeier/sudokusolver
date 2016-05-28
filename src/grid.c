@@ -190,14 +190,14 @@ void initGrid() {
         containers = (int *) xmalloc(sizeof (Container *) * numberOfContainerSets);
         fieldContainer = containers;
 
-        for (unsigned i = 0; i < numberOfContainerSets; i++) {
-            containerSet = containerSets + i;
+        for (unsigned set = 0; set < numberOfContainerSets; set++) {
+            containerSet = containerSets + set;
 
             // determine position of field 
             *indexPtr = (containerSet->getContainerIndex)(x, y);
 
             // add reference to container containing this field
-            if (*indexPtr >= 0) {
+            if (*indexPtr != -1) {
                 *fieldContainer = containerSet->containers[*indexPtr];
             } else {
                 // no container of this type contains this field
