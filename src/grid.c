@@ -32,6 +32,7 @@ size_t numberOfContainerSets;
 size_t numberOfContainers;
 
 void setupGrid() {
+
     initFields();
     initContainers();
     initGrid();
@@ -49,6 +50,7 @@ void releaseGrid() {
  */
 void initFields() {
     Field *field;
+    unsigned *candidates;
 
     fields = (Field *) xmalloc(sizeof (Field) * NUMBER_OF_FIELDS);
 
@@ -59,16 +61,18 @@ void initFields() {
         field->y = f / MAX_NUMBER;
 
         // allocate candidates
-        unsigned *candidates = (unsigned *) xmalloc(sizeof (unsigned) * MAX_NUMBER);
-        field->candidates = candidates;
+        candidates = (unsigned *) xmalloc(sizeof (unsigned) * MAX_NUMBER);
+        //        field->candidates = candidates;
+        //        field->candidates = NULL;
 
-        // use the ROWS and COLS coordinates as the "name" of the field
-        // reserve space for coordinates up to "Z26" (a theoretical limit of
-        // a 26-number-Sudoku)
-        char *name = (char *) xmalloc(sizeof (char) * 4);
-        sprintf(name, "%c%u", (char) (field->y + (int) 'A'), field->x + 1);
-        field->name = name;
+        //        // use the ROWS and COLS coordinates as the "name" of the field
+        //        // reserve space for coordinates up to "Z26" (a theoretical limit of
+        //        // a 26-number-Sudoku)
+//        char *name = (char *) xmalloc(sizeof (char) * 4);
+        sprintf(field->name, "%c%u", (char) (field->y + (int) 'A'), field->x + 1);
+//        field->name = name;
     }
+    printlog("Finished initializing fields");
 }
 
 /**

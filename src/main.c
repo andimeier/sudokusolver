@@ -44,9 +44,9 @@ int main(int argc, char **argv) {
     printf("alex1: [%s]\n", alex);
 
 
-    printf("und ...\n");
-    getContainerTypes(1);
-    printf("Vorbei\n");
+//    printf("und ...\n");
+//    getContainerTypes(1);
+//    printf("Vorbei\n");
 
     
     // if the Sudoku is wider than 26 numbers, we have a memory allocation issue
