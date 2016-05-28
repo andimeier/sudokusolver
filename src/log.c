@@ -1,5 +1,5 @@
 /* 
- * File:   show.c
+ * File:   log.c
  * Author: aurez
  *
  * Created on 04. April 2016, 21:01

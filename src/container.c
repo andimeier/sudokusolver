@@ -158,6 +158,8 @@ int determineColumnContainer(unsigned x, unsigned y) {
 int determineBoxContainer(unsigned x, unsigned y) {
     assert(x >= 0 && x < MAX_NUMBER);
     assert(y >= 0 && y < MAX_NUMBER);
+    assert(boxHeight > 0);
+    assert(boxWidth > 0);
 
     return (y / boxHeight) * 3 + (x / boxWidth);
 }

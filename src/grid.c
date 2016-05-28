@@ -62,15 +62,12 @@ void initFields() {
 
         // allocate candidates
         candidates = (unsigned *) xmalloc(sizeof (unsigned) * MAX_NUMBER);
-        //        field->candidates = candidates;
-        //        field->candidates = NULL;
+        field->candidates = candidates;
 
-        //        // use the ROWS and COLS coordinates as the "name" of the field
-        //        // reserve space for coordinates up to "Z26" (a theoretical limit of
-        //        // a 26-number-Sudoku)
-//        char *name = (char *) xmalloc(sizeof (char) * 4);
+        // use the ROWS and COLS coordinates as the "name" of the field
+        // reserve space for coordinates up to "Z26" (a theoretical limit of
+        // a 26-number-Sudoku)
         sprintf(field->name, "%c%u", (char) (field->y + (int) 'A'), field->x + 1);
-//        field->name = name;
     }
     printlog("Finished initializing fields");
 }
@@ -95,16 +92,15 @@ void initContainers() {
     ContainerSet *containerSetPtr;
     unsigned *containerTypes;
 
-    //    getNumberOfContainers(); // in containers.c, das weiss containers!
-
     // assuming a standard Sudoku, 
     // we have 3 types of containers (row, column, box)
-
     containerTypes = getContainerTypes(GAME_STANDARD_SUDOKU);
     numberOfContainerSets = ulength(containerTypes);
 
     assert(numberOfContainerSets > 0);
 
+    setupContainerSets();
+    
     containerSets = (ContainerSet *) xmalloc(sizeof (ContainerSet) * (numberOfContainerSets));
     containerSetPtr = containerSets;
 
@@ -124,10 +120,6 @@ void initContainers() {
     // init and populate "all containers" vector
     allContainers = (Container *) xmalloc(sizeof (Container) * (numberOfContainers));
     Container *containersPtr = allContainers;
-
-    sprintf(buffer, "name of very first container (should be 'row A') is: %s",
-            containerSets[0].containers[0]->name);
-    printlog(buffer);
 
     //    while () {
     //        Container *unitContainer;

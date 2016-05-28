@@ -12,15 +12,6 @@
 #include "acquire.h"
 
 /*
-Fehlende Strategien:
-
-1. versteckte Paare finden
-wenn in einer row/col/quadrant nur zwei Zellen gibt, wo x und y vorkommen koennen, sind das Paare - auch, wenn
-diese beiden Zellen auch fuer einen Haufen anderer Zahlen vorgesehen sind (standard.1232a.sudoku)
-
-2. Wenn in einer Reihe x und y nur an 2 Positionen im gleichen Quadranten vorkommen koennen, koennen diese im restlichen
-Quadranten nicht mehr vorkommen. (standard.1424a.sudoku)
-
 Umwandlung des Formats "sudokusolver" ("_3___1___+__6____5_+5_____983+_8___63_2+____5____+9_38___6_+714_____9+_2____8__+___4___3_")
 in das hier erwartete:
   
@@ -37,18 +28,6 @@ int main(int argc, char **argv) {
     char *inputFilename = NULL;
     char *sudoku = NULL;
 
-    // FIXME debugging test code
-    char *alex;
-    alex = (char *) xmalloc(sizeof(char) * 5);
-    strcpy(alex, "Alex");
-    printf("alex1: [%s]\n", alex);
-
-
-//    printf("und ...\n");
-//    getContainerTypes(1);
-//    printf("Vorbei\n");
-
-    
     // if the Sudoku is wider than 26 numbers, we have a memory allocation issue
     // with the field->name (what is right of "Z26"?)
     assert(MAX_NUMBER <= 26);
@@ -115,7 +94,7 @@ int main(int argc, char **argv) {
     setupGrid();
 
     if (inputFilename && !readSudoku(inputFilename)) {
-        exit(EXIT_FAILURE); // Oje ... stopp!
+        exit(EXIT_FAILURE);
     }
 
     if (sudoku && !importSudoku(sudoku)) {

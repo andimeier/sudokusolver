@@ -1,5 +1,5 @@
 /* 
- * File:   type.h
+ * File:   gametype.h
  * Author: alex
  *
  * functions related to different types of Sudoku games (Standard Sudoku,
