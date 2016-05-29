@@ -168,14 +168,14 @@ void initGrid() {
     Container **containers;
     Container **fieldContainer;
 
-    // Initialisierung:
-    // zunaechst sind ueberall alle Zahlen moeglich
+    // init all fields (set all candidates, link to container, etc.)
     for (int f = 0; f < NUMBER_OF_FIELDS; f++) {
         field = fields + f;
 
         x = field->x;
         y = field->y;
 
+        // allow all candidates for the field
         for (int n = 0; n < MAX_NUMBER; n++) {
             field->candidates[n] = n + 1;
         }
@@ -189,7 +189,7 @@ void initGrid() {
 
         containers = (int *) xmalloc(sizeof (Container *) * numberOfContainerSets);
         fieldContainer = containers;
-
+        
         /*
          * for each field, determine its position in the respective containers,
          * register the link between field and container in the container sets,
@@ -285,7 +285,7 @@ void forbidNumberInNeighbors(Field *field, unsigned n) {
     // forbid number in all other "neighboring fields"
     for (unsigned containerType = 0; containerType < numberOfContainerSets; containerType++) {
         printf("[6hshhs]\n");
-        container = field->containers + containerType;
+        container = field->containers[containerType];
         printf("[6hshhs++]\n");
 
         // preserve candidate in "our" field only
@@ -650,7 +650,8 @@ int isFinished() {
 /**
  * set all candidates for all fields initially.
  * The purpose of this function is to determine the candidates for all fields
- * initially (the fields' values have already been set before).
+ * which have an initial value (the fields' values have already been set 
+ * before).
  */
 void initCandidates() {
     int f;
