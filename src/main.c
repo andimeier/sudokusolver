@@ -107,7 +107,7 @@ int main(int argc, char **argv) {
     }
 
     for (int f = 0; f < NUMBER_OF_FIELDS; f++) {
-        printf("[1234-2] field #%d: in row %d, col %d, box %d\n", f, fields[f].containerIndexes[ROWS], fields[f].containerIndexes[COLS], fields[f].containerIndexes[BOXES]);
+        printf("[1234-2] field #%d: in %s, %s, %s\n", f, fields[f].containers[0]->name, fields[f].containers[1]->name, fields[f].containers[2]->name);
     }
 
     result = solve();

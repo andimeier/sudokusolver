@@ -190,10 +190,15 @@ void initGrid() {
         containers = (int *) xmalloc(sizeof (Container *) * numberOfContainerSets);
         fieldContainer = containers;
 
+        /*
+         * for each field, determine its position in the respective containers,
+         * register the link between field and container in the container sets,
+         * as well as in the field (back reference to container)
+         */
         for (unsigned set = 0; set < numberOfContainerSets; set++) {
             containerSet = containerSets + set;
 
-            // determine position of field 
+            // determine container index of field 
             *indexPtr = (containerSet->getContainerIndex)(x, y);
 
             // add reference to container containing this field
@@ -213,7 +218,8 @@ void initGrid() {
             fieldContainer++;
         }
 
-        field->containerIndexes = containerIndexes;
+        field->containerIndexes = containerIndexes; // FIXME property field.containerIndexes needed at all?
+        field->containers = containers;
     }
 }
 
