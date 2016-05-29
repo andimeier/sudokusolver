@@ -522,7 +522,7 @@ int getUniquePositionInContainer(Field **container, unsigned n) {
     for (pos = 0; pos < MAX_NUMBER; pos++) {
         field = container[pos];
         if ((field->value == n) || (!(field->value) && (field->candidates[n - 1] == n))) {
-            printf("Field %d/%d can contain candidate %u\n", field->containerIndexes[ROWS], field->containerIndexes[COLS], n);
+            printf("Field %s can contain candidate %u\n", field->name, n);
             if (!unique) {
                 unique = 1; // first occurrence in the current container
                 foundPos = pos; // remember position, in case it is the only one

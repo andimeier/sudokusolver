@@ -143,6 +143,7 @@ int findHiddenSingles() {
  */
 int findNakedTuples() {
     int progress;
+    Container *container;
 
     if (verboseLogging == 2)
         printlog("[strategy] find naked tuples ...\n");
@@ -152,12 +153,11 @@ int findNakedTuples() {
     for (int dimension = 2; dimension < MAX_TUPLE_DIMENSION; dimension++) {
 
         // go through all containers and find naked tuples therein
-        Container **containers = allContainers;
-        while (*containers) {
-            sprintf(buffer, "-- next container: %s", (*containers)->name);
+        for (int c = 0; c < numberOfContainerSets; c++) {
+            container = &(allContainers[c]);
+            sprintf(buffer, "-- next container: %s", container->name);
             printlog(buffer);
-            progress |= findNakedTuplesInContainer(*containers, dimension);
-            containers++;
+            progress |= findNakedTuplesInContainer(container, dimension);
         }
 
         if (progress)
