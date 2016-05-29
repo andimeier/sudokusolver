@@ -8,6 +8,7 @@
 #include <stdlib.h>
 #include <memory.h>
 #include "unity.h"
+#include "global.h"
 #include "solve.h"
 #include "util.h"
 #include "grid.h"
