@@ -6,6 +6,7 @@
  */
 #include <assert.h>
 #include <string.h>
+#include "global.h"
 #include "container.h"
 #include "grid.h"
 #include "log.h"

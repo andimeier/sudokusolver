@@ -4,6 +4,7 @@
 #include <ctype.h>
 #include <assert.h>
 #include <unistd.h>
+#include "global.h"
 #include "solve.h"
 #include "grid.h"
 #include "util.h"

@@ -9,6 +9,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
+#include "global.h"
 #include "grid.h"
 #include "log.h"
 #include "util.h"
@@ -300,25 +301,23 @@ void forbidNumberInNeighbors(Field *field, unsigned n) {
 }
 
 
-//-------------------------------------------------------------------
-// "Isoliert" pairs/triples/quads in einem Container: die candidates, die
-// in diesen beiden Zellen moeglich sein, koennen im restlichen
-// Container nicht mehr vorkommen
-// Return-Wert:
-//   1 ... mind. 1 Nummer in der restlichen Spalte oder dem restlichen
-//         Quadranten wurde verboten, wir "sind weitergekommen"
-//   0 ... Isolieren der Zwillinge hat keine Aenderung im Sudoku bewirkt
-// TODO im Moment gehen nur Zwillinge, trotz des Funktionsnamens!
-//
-// @param n ... tuple of candidates to be removed from "other fields". This
-//   is a vector of MAX_NUMBER numbers, each position stands for the respective
-//   candidate, e.g. an array of [ 0, 2, 0, 0, 5, 6, 0, 0, 0 ] means that
-//   the candidates 2, 5 and 6 shall be removed from all "other fields" (fields
-//   other than those in parameter dontTouch)
-// @param dontTouch ... NULL terminated list of Field pointers. These fields
-//   will not be touched. In all other fields in the container, the given 
-//   numbers will be removed as candidates
-
+/**
+ * eliminates candidates in all fields of a container - except in the specified
+ * fields. This it typically needed after identifying a naked pair, where the
+ * candidates of the naked pair can be removed from all other fields in the 
+ * same container.
+ *  
+ * @param container container in which candidates should be eliminated
+ * @param n ... tuple of candidates to be removed from "other fields". This
+ *   is a vector of MAX_NUMBER numbers, each position stands for the respective
+ *   candidate, e.g. an array of [ 0, 2, 0, 0, 5, 6, 0, 0, 0 ] means that
+ *   the candidates 2, 5 and 6 shall be removed from all "other fields" (fields
+ *   other than those in parameter dontTouch)
+ * @param dontTouch ... NULL terminated list of Field pointers. These fields
+ *   will not be touched. In all other fields in the container, the given 
+ *   numbers will be removed as candidates
+ * @return progress flag: 1 if something has changed, 0 if nothing has changed
+ */
 int forbidNumbersInOtherFields(Container *container, unsigned *n, Field **dontTouch) {
     int progress;
     Field *field;
@@ -540,54 +539,6 @@ int getUniquePositionInContainer(Field **container, unsigned n) {
 }
 
 /**
- * checks if the possible candidates for a field are a subset of the given 
- * numbers. If the field is already solved, returns 0.
- * 
- * @param field pointer to field for which the candidates should be checked
- * @param numbers vector of numbers, terminated with 0
- * @return 1 if the field's candidates are a (strict or non-strict) subset of
- *   the given numbers vector. 0 if they are not or if the field is already
- *   solved.
- */
-int fieldCandidatesAreSubsetOf(Field *field, unsigned *numbers) {
-    unsigned *numbersPtr;
-    int found;
-
-    printlog("[6jj]");
-    if (field->value) {
-        // already solved => nothing to do with the candidates
-        return 0;
-    }
-
-    printlog("[6jj-1]");
-    for (int i = 0; i < MAX_NUMBER; i++) {
-        printlog("[6jj-ii]");
-        if (field->candidates[i]) {
-
-            // check if field candidate is in the numbers vector
-            found = 0;
-            numbersPtr = numbers;
-            while (*numbersPtr) {
-                if (*numbersPtr == field->candidates[i]) {
-                    found = 1;
-                    break;
-                }
-                numbersPtr++;
-            }
-
-            if (!found) {
-                // found a field candidate which is not in the given list of
-                // numbers
-                printlog("[6jj-return0]");
-                return 0;
-            }
-        }
-    }
-    printlog("[6jj-return1]");
-    return 1;
-}
-
-/**
  * checks if the possible candidates for a field contain all of the given 
  * numbers. If the field is already solved, returns 0.
  * 
@@ -616,19 +567,6 @@ int fieldCandidatesContainAllOf(Field *field, unsigned *numbers) {
 
     return 1;
 }
-
-/**
- * @return 1 if the field is in the field list, 0 if it is not
- */
-int containsField(Field **list, Field * field) {
-    for (int i = 0; list[i] != NULL; i++) {
-        if (field == list[i])
-            return 1;
-
-    }
-    return 0;
-}
-
 
 
 //-------------------------------------------------------------------

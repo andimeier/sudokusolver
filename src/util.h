@@ -18,7 +18,9 @@ extern "C" {
     void *xmalloc(size_t size);
     unsigned ulength(unsigned *array);
     void appendField(Field **fields, Field *newField);
-            
+    int containsField(Field **list, Field * field);
+    int fieldCandidatesAreSubsetOf(Field *field, unsigned *numbers);
+
 #ifdef	__cplusplus
 }
 #endif

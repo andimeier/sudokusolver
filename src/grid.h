@@ -19,10 +19,6 @@ extern "C" {
 #define COLS 2
 #define BOXES 3
 
-    // number of possible numbers
-#define MAX_NUMBER 9
-#define NUMBER_OF_FIELDS MAX_NUMBER * MAX_NUMBER
-
     // the fields of the game board
     extern Field *fields;
 
@@ -54,8 +50,6 @@ extern "C" {
     FieldsVector *fieldsWithCandidate(FieldsVector *container, unsigned n);
     unsigned equalNumberOfFieldsAndCandidates(FieldsVector *fieldsVector, unsigned *numbers);
     int getUniquePositionInContainer(Field **container, unsigned n);
-    int fieldCandidatesAreSubsetOf(Field *field, unsigned *numbers);
-    int containsField(Field **list, Field * field);
     int isFinished();
     void cleanUpCandidates();
 

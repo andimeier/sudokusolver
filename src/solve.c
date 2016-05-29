@@ -8,6 +8,7 @@
 #include <string.h>
 #include <stdlib.h>
 #include <assert.h>
+#include "global.h"
 #include "solve.h"
 #include "show.h"
 #include "grid.h"
