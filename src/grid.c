@@ -146,7 +146,7 @@ void initContainers() {
  * free units memory
  */
 void freeContainers() {
-    Container *containerPtr;
+    //Container *containerPtr;
 
     //    for (int i = 0; i < unitDefs.count; i++) {
     //        free(unitDefs.containerTypes[i].name);
@@ -190,7 +190,7 @@ void initGrid() {
         int *containerIndexes = (int *) xmalloc(sizeof (int) * numberOfContainerSets);
         int * indexPtr = containerIndexes;
 
-        containers = (int *) xmalloc(sizeof (Container *) * numberOfContainerSets);
+        containers = (Container **) xmalloc(sizeof (Container *) * numberOfContainerSets);
         fieldContainer = containers;
         
         /*
@@ -473,7 +473,6 @@ FieldsVector *fieldsWithCandidate(Field **container, unsigned n) {
 unsigned equalNumberOfFieldsAndCandidates(FieldsVector *fieldsVector, unsigned *numbers) {
 
     printf("check if found fields are of tuple dimension of numbers ...\n");
-    printf("fieldsVector: (%d, %d, %d), numbers: (%u, %u, %u)\n", fieldsVector[0], fieldsVector[1], fieldsVector[2], numbers[0], numbers[1], numbers[2]);
 
     do {
         if (*fieldsVector == NULL && *numbers == 0) {

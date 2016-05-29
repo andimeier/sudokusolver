@@ -23,20 +23,11 @@
 typedef int (*strategy)(void);
 
 // auxiliary functions
-static int findNakedTuplesX(size_t dimension);
 static unsigned recurseNakedTuples(unsigned maxLevel, Container *container, unsigned level, unsigned *numbers, FieldsVector *fieldsContainingCandidates);
 static int compareCandidates(unsigned *c1, unsigned *c2);
 
  // number of errors in the algorithm
 int errors;
-
-/*
- * log level: 
- *   0 ... no verbose logging
- *   1 ... log changes
- *   2 ... log even considerations
- */
-int verboseLogging; 
 
 /**
  * check for cells having only one candidate left and set their value (and
@@ -47,7 +38,6 @@ int verboseLogging;
 int checkForSolvedCells() {
     int f;
     Field *field;
-    int value;
     int progress; // Flag: in einer Iteration wurde zumindest eine Erkenntnis gewonnen
 
     if (verboseLogging == 2)
@@ -59,7 +49,6 @@ int checkForSolvedCells() {
 
     for (f = 0; f < NUMBER_OF_FIELDS; f++) {
         field = fields + f;
-        value = field->value;
 
         if (field->candidatesLeft == 1 && !field->value) {
             setUniqueNumber(field);
@@ -236,10 +225,10 @@ int recurseHiddenTuples(unsigned maxLevel, FieldsVector *fields, unsigned level,
  * @return progress flag: 1 for "something has changed", 0 for "no change"
  */
 int findPointingTupels() {
-    ContainerSet *unit;
+    //ContainerSet *unit;
     int progress; // flag: something has changed
-    unsigned tuple[MAX_NUMBER];
-    unsigned n;
+    //unsigned tuple[MAX_NUMBER];
+    //unsigned n;
 
     progress = 0;
 

@@ -8,6 +8,7 @@
 #include <string.h>
 #include "global.h"
 #include "grid.h"
+#include "log.h"
 
 
 static FILE *logfile;
@@ -15,9 +16,20 @@ static FILE *logfile;
 // general buffer for string operations
 char buffer[1000];
 
-int verboseLogging;
+/*
+ * log level: 
+ *   0 ... no verbose logging
+ *   1 ... log changes
+ *   2 ... log even considerations
+ */
+int verboseLogging; 
 
-    
+
+/**
+ * show the remaining candidates for the specified field
+ * 
+ * @param field the field for which the candidates should be printed
+ */   
 void showCandidates(Field *field) {
     char candidates[MAX_NUMBER + 1];
 
@@ -29,6 +41,9 @@ void showCandidates(Field *field) {
     printf("candidates for field %s are: %s\n", field->name, candidates);
 }
 
+/**
+ * show the remaining candidates of all fields
+ */
 void showAllCandidates() {
     char candidates[MAX_NUMBER + 1];
     Field *field;
@@ -54,6 +69,7 @@ void showAllCandidates() {
 
 /**
  * log a "reduction" event (candidates could be removed)
+ * 
  * @param msg
  */
 void logReduction(char *msg) {
@@ -62,20 +78,31 @@ void logReduction(char *msg) {
 
 /**
  * log a "found a number" event
+ * 
  * @param msg
  */
 void logNewNumber(char *msg) {
     printf("+++ %s\n", msg);
 }
 
+
+/**
+ * open log file for writing
+ * 
+ * @param outputFilename filename of log file (file will be overwritten if it 
+ *   exists already)
+ */
 void openLogFile(char *outputFilename) {
     logfile = fopen(outputFilename, "w");
 }
 
-//-------------------------------------------------------------------
 
+/**
+ * log a message to printlog file or to stdout
+ *
+ * @param text text to be logged. A newline character will be appended.
+ */
 void printlog(char *text) {
-    // printlog a message to printlog file or to stdout
 
     if (logfile) {
         fputs(text, logfile);
@@ -85,8 +112,10 @@ void printlog(char *text) {
     }
 }
 
-//-------------------------------------------------------------------
 
+/**
+ * close the log file
+ */
 void closeLogFile() {
     if (logfile)
         fclose(logfile);

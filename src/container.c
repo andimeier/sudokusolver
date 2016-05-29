@@ -4,6 +4,7 @@
  * containers are "row", "column" and "box" (for standard Sudoku), 
  * "diagonal" (X-Sudoku) or "color" (for color Sudoku).
  */
+#include <stdio.h>
 #include <assert.h>
 #include <string.h>
 #include "global.h"
@@ -12,7 +13,6 @@
 #include "log.h"
 #include "util.h"
 
-static void getBoxStartCoordinates(int q, int *qx, int *qy);
 static void createContainers(unsigned type, char *name, size_t numberOfInstances, char *instanceNames[], ContainerSet *containerType);
 
 static unsigned createRowContainers(ContainerSet *containerSet);

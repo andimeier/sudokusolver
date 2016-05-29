@@ -11,6 +11,7 @@
 #include <string.h>
 #include "global.h"
 #include "util.h"
+#include "log.h"
 
 /**
  * copies all numbers from one array to another.
