@@ -538,7 +538,7 @@ int solve() {
 
         // loop through all strategies
         currentStrategy = strategies;
-        while (currentStrategy) {
+        while (*currentStrategy) {
             progress |= (**currentStrategy)();
 
             if (progress) {
