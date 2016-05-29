@@ -57,7 +57,7 @@ extern "C" {
     int fieldCandidatesAreSubsetOf(Field *field, unsigned *numbers);
     int containsField(Field **list, Field * field);
     int isFinished();
-    void initCandidates();
+    void cleanUpCandidates();
 
 
 #ifdef	__cplusplus

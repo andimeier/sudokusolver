@@ -513,7 +513,7 @@ int solve() {
 
     printf("[4s65f]\n");
 
-    initCandidates();
+    cleanUpCandidates();
 
     // main loop, only enter if Sudoku has been solved or if we got stuck and
     // are unable to solve the Sudoku

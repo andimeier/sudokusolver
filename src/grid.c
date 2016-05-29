@@ -135,6 +135,8 @@ void initContainers() {
             
             // link to container set
             containerSet->containers[containerIndex] = containersPtr;
+            
+            containersPtr++;
         }
     }
 }
@@ -648,12 +650,14 @@ int isFinished() {
 }
 
 /**
- * set all candidates for all fields initially.
+ * set all candidates for all fields initially by eliminating all candidates
+ * in the neighborhood of solved fields. This is done for all fields.
+ * 
  * The purpose of this function is to determine the candidates for all fields
  * which have an initial value (the fields' values have already been set 
  * before).
  */
-void initCandidates() {
+void cleanUpCandidates() {
     int f;
     Field *field;
 
@@ -667,6 +671,7 @@ void initCandidates() {
         }
     }
 
+    // FIXME debugging output
     printlog("Initial candidates are:\n");
     showAllCandidates();
 }
