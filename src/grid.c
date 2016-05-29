@@ -213,7 +213,7 @@ void initGrid() {
 
             // at the same time, add the field to the container which contains
             // it
-            appendField(containerSet->containers[*indexPtr], field);
+            appendField(containerSet->containers[*indexPtr]->fields, field);
 
             indexPtr++;
             containerSet++;

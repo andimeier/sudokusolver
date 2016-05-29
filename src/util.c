@@ -56,7 +56,7 @@ unsigned ulength(unsigned *array) {
 /**
  * append a Field reference to a NULL-terminated list of references to Fields.
  * 
- * @param fields the already existing list of field references
+ * @param fields already existing list of field references
  * @param newField the field reference to be added to the end of the list
  */
 void appendField(Field **fields, Field *newField) {
@@ -65,7 +65,9 @@ void appendField(Field **fields, Field *newField) {
     ptr = fields;
     
     // search end of current list
-    while (*ptr++);
+    while (*ptr) {
+        ptr++;
+    }
     
     // extend list
     *ptr++ = newField;
