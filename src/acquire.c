@@ -1,3 +1,8 @@
+/**
+ * Acquire Sudoku from any source.
+ * E.g. from file.
+ * Or from command line string.
+ */
 #include <stdio.h>
 #include "typedefs.h"
 #include "global.h"
@@ -6,13 +11,14 @@
 #include "acquire.h"
 
 
-//-------------------------------------------------------------------
-// Lies das Sudoku aus einem File ein.
-// Zeilen, die mit '#' beginnen, werden ignoriert.
-// Leere Felder werden durch Leerzeichen oder Punkte repraesentiert.
-//   1 ... ok, Sudoku wurde eingelesen
-//   0 ... Fehler beim Lesen
-
+/**
+ * read Sudoku from file.
+ * Ignore lines starting with '#'.
+ * Space or dot will be interpreted as emtpy fields.
+ * 
+ * @param inputFilename
+ * @return success flag: 1 if Sudoku could be read successfully, 0 if not
+ */
 int readSudoku(char *inputFilename) {
     char line[201];
     int linecount;
@@ -33,13 +39,13 @@ int readSudoku(char *inputFilename) {
         return 0;
     }
 
-    // Sudoku initialisieren
+    // initialize Sudoku
     for (f = 0; f < NUMBER_OF_FIELDS; f++) {
         fields[f].initialValue = 0;
     }
 
-    // Sudoku einlesen
-    ok = 1; // optimistische Grundannahme
+    // read Sudoku
+    ok = 1; // optimistic preassumption
 
     linecount = 0;
     y = 0;
@@ -55,8 +61,10 @@ int readSudoku(char *inputFilename) {
         if (line[0] != '#') {
             printf("... is a data line and contains row %d ...\n", y);
 
-            // alle Zeichen der Zeile durchgehen, das sollten nur Ziffern 
-            // und Leerzeichen sein
+            /*
+             * go through all chars of the line, should be only digits and 
+             * spaces
+             */
             if (y >= MAX_NUMBER) {
                 printlog("Error reading the Sudoku from file: too many data rows.");
                 ok = 0; // oops
@@ -78,7 +86,7 @@ int readSudoku(char *inputFilename) {
             }
             y++;
         } else {
-            // eine Kommentarzeile
+            // a comment line => ignore it
         }
     }
     printf("Sudoku read\n");

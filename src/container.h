@@ -16,9 +16,6 @@ extern "C" {
 
     void setupContainerSets();
     
-    void getCoordinatesInBox(int q, int position, int *x, int *y);
-    int getBoxNr(int x, int y);
-
     void setContainerSet(ContainerSet *containerSet, unsigned containerType);
 
     // get container index for the specified field coordinates

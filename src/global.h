@@ -1,11 +1,8 @@
 /* 
- * File:   gametype.h
+ * File:   global.h
  * Author: alex
  *
- * functions related to different types of Sudoku games (Standard Sudoku,
- * X-Sudoku, Color Sudoku, ...)
- * 
- * Created on 02. Mai 2016, 20:31
+ * global characteristics of the Sudoku
  */
 
 #ifndef GLOBAL_H

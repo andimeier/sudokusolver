@@ -12,14 +12,6 @@
 #include "log.h"
 #include "acquire.h"
 
-/*
-Umwandlung des Formats "sudokusolver" ("_3___1___+__6____5_+5_____983+_8___63_2+____5____+9_38___6_+714_____9+_2____8__+___4___3_")
-in das hier erwartete:
-  
-  cat FILE.txt | sed -e 's/+/\n/g' -e 's/_/0/g' | ./solve_sudoku.exe
-
- */
-
 void printUsage();
 
 int main(int argc, char **argv) {

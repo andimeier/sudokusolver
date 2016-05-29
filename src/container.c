@@ -62,6 +62,13 @@ void setContainerSet(ContainerSet *containerSet, unsigned containerType) {
     }
 }
 
+/**
+ * get the name of a row container
+ * 
+ * @param index index of the row container = number of row
+ * @return a newly allocated string representing the "label" of the row 
+ *   container, e.g. "row 2"
+ */
 char *getRowName(unsigned index) {
     assert(index >= 0 && index < 26);
     
@@ -69,6 +76,13 @@ char *getRowName(unsigned index) {
     return strdup(buffer);
 }
 
+/**
+ * get the name of a column container
+ * 
+ * @param index index of the column container = number of colum
+ * @return a newly allocated string representing the "label" of the column
+ *   container, e.g. "column 2"
+ */
 char *getColumnName(unsigned index) {
     assert(index >= 0 && index < 26);
     
@@ -76,6 +90,13 @@ char *getColumnName(unsigned index) {
     return strdup(buffer);
 }
 
+/**
+ * get the name of a box container
+ * 
+ * @param index index of the box container = number of box
+ * @return a newly allocated string representing the "label" of the box 
+ *   container, e.g. "box 2"
+ */
 char *getBoxName(unsigned index) {
     assert(index >= 0 && index < 26);
     
@@ -83,59 +104,6 @@ char *getBoxName(unsigned index) {
     return strdup(buffer);
 }
 
-
-//-------------------------------------------------------------------
-// Liefert zu dem x-ten Feld eines Quadranten dessen absolute x- und
-// y-Koordinaten im Sudoku
-// Parameter:
-//   q ... Nummer des Quadranten (0..8)
-//   position ... Position innerhalb des Quadranten (0..8, wobei 0..2
-//     in der ersten Zeile des Quadranten sind)
-//   x ... absolute X-Koordinate (0..8), wird zurueckgeliefert
-//   y ... absolute Y-Koordinate (0..8), wird zurueckgeliefert
-
-void getCoordinatesInBox(int q, int position, int *x, int *y) {
-    int qx, qy;
-
-    assert(q >= 0 && q < 9);
-    assert(position >= 0 && position < 9);
-
-    getBoxStartCoordinates(q, &qx, &qy);
-
-    *x = qx + (position % 3);
-    *y = qy + (position / 3);
-}
-
-
-//-------------------------------------------------------------------
-// Rechnet aus Quadrantenkoordinaten in absolute Koordinaten um.
-// Parameter:
-//   q ... Nummer (0..8) des Quadranten
-//   qx ... X-Koordinate des linken oberen Ecks des Quadranten
-//   qx ... Y-Koordinate des linken oberen Ecks des Quadranten
-
-void getBoxStartCoordinates(int q, int *qx, int *qy) {
-    *qx = (q % 3) * 3;
-    *qy = (q / 3) * 3;
-}
-
-
-//-------------------------------------------------------------------
-// Liefert die Nummer des Quadranten, in dem das Feld mit den
-// Koordinaten x/y steht
-// Quadranten sind von 0 bis 8 durchnummeriert, dh so angeordnet:
-// Q0 Q1 Q3
-// Q3 Q4 Q5
-// Q6 Q7 Q8
-// Jeder Quadrant ist eine 3x3-Matrix
-
-int getBoxNr(int x, int y) {
-
-    assert(x >= 0 && x < 9);
-    assert(y >= 0 && y < 9);
-
-    return (y / 3) * 3 + (x / 3);
-}
 
 /**
  * determines the index of the row container which contains the field on the
@@ -224,7 +192,7 @@ unsigned determineBoxContainersCount(void) {
  * creates a container set for rows, along with all needed containers instances
  * of this type
  * 
- * @param the container set struct to be filled with data
+ * @param the container set structure to be filled with data
  * @return the number of generated container children of this container set
  */
 unsigned createRowContainers(ContainerSet *containerSet) {
@@ -256,7 +224,7 @@ unsigned createRowContainers(ContainerSet *containerSet) {
  * creates a container set for columns, along with all needed containers 
  * instances of this type
  * 
- * @param the container type struct to be filled with data
+ * @param the container set structure to be filled with data
  * @return the number of generated container children of this container set
  */
 unsigned createColumnContainers(ContainerSet *containerSet) {
@@ -288,7 +256,7 @@ unsigned createColumnContainers(ContainerSet *containerSet) {
  * creates a container set for boxes, along with all needed containers 
  * instances of this type
  * 
- * @param the container type struct to be filled with data
+ * @param the container set structure to be filled with data
  * @return the number of generated container children of this container set
  */
 unsigned createBoxContainers(ContainerSet *containerSet) {
@@ -316,6 +284,17 @@ unsigned createBoxContainers(ContainerSet *containerSet) {
     return MAX_NUMBER;
 }
 
+/**
+ * generic function for creating a container set
+ * 
+ * @param type the type of container set, e.g. ROWS or COLS or BOXES
+ * @param name name of the container set, e.g. "row"
+ * @param numberOfInstances the number of container instance (child containers).
+ *   For a container set ROWS, this is the number of rows.
+ * @param instanceNames list of strings representing the name of each child 
+ *   container, respectively
+ * @param containerSet the container set structure to be filled with data
+ */
 void createContainers(unsigned type, char *name, size_t numberOfInstances, char *instanceNames[], ContainerSet *containerSet) {
 
     containerSet->name = name;

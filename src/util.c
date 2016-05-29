@@ -1,7 +1,9 @@
 /* 
- * File:   solve.c
+ * File:   util.c
  * Author: aurez
  *
+ * Grid- and Sudoku-agnostic utility functions
+ * 
  * Created on 04. April 2016, 21:01
  */
 #include <stdio.h>
@@ -140,4 +142,3 @@ int fieldCandidatesAreSubsetOf(Field *field, unsigned *numbers) {
     printlog("[6jj-return1]");
     return 1;
 }
-

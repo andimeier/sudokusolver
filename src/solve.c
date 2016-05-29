@@ -27,15 +27,23 @@ static int findNakedTuplesX(size_t dimension);
 static unsigned recurseNakedTuples(unsigned maxLevel, Container *container, unsigned level, unsigned *numbers, FieldsVector *fieldsContainingCandidates);
 static int compareCandidates(unsigned *c1, unsigned *c2);
 
+ // number of errors in the algorithm
+int errors;
 
-int errors; // number of errors in the algorithm
-int verboseLogging; // 0 ... no verbose logging, 1 ... log changes, 2 ... log even considerations
+/*
+ * log level: 
+ *   0 ... no verbose logging
+ *   1 ... log changes
+ *   2 ... log even considerations
+ */
+int verboseLogging; 
 
-//-------------------------------------------------------------------
-// check for cells having only one candidate left and set their value (and
-// thus eliminate this value in neighboring fields)
-// @return 1 ... something has changed, 0 ... nothing changed
-
+/**
+ * check for cells having only one candidate left and set their value (and
+ * thus eliminate this value in neighboring fields)
+ * 
+ * @return 1 ... something has changed, 0 ... nothing changed
+ */
 int checkForSolvedCells() {
     int f;
     Field *field;
@@ -62,6 +70,11 @@ int checkForSolvedCells() {
     return progress;
 }
 
+/**
+ * strategy "find hidden singles"
+ * 
+ * @return 1 if something has changed, 0 if not
+ */
 int findHiddenSingles() {
     int progress; // flag: something has changed
     Container *container;
@@ -140,7 +153,8 @@ int findHiddenSingles() {
 
 /**
  * find naked tuples (pairs, triples, ...) in the same container
- * @return 
+ * 
+ * @return 1 if something has changed, 0 if not
  */
 int findNakedTuples() {
     int progress;
@@ -491,9 +505,6 @@ unsigned recurseNakedTuples(unsigned maxLevel, Container *container, unsigned le
 }
 
 
-//FieldsVector **containersContainingAllFields(FieldsVector *fields) {
-//}
-
 /**
  * The working horse. Try to solve the Sudoku.
  * 
@@ -569,6 +580,10 @@ int solve() {
 
 /**
  * compare two lists of candidates and check if they are equal
+ * 
+ * @param c1 first list of unsigned numbers (candidates)
+ * @param c2 second list of unsigned numbers (candidates)
+ * @return 1 if both are equal, 0 if they are not
  */
 int compareCandidates(unsigned *c1, unsigned *c2) {
     for (int n = 0; n < MAX_NUMBER; n++) {
@@ -579,4 +594,3 @@ int compareCandidates(unsigned *c1, unsigned *c2) {
     // both are equal
     return 1;
 }
-
