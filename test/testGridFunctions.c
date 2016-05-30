@@ -39,11 +39,32 @@ void setCandidates(Field *field, unsigned *cands) {
     }
 }
 
+/**
+ * creates a Field object with the given field name and the given candidates
+ * 
+ * @param name name of the field, e.g. "A2"
+ * @param value if not 0, the field is solved and the candidates will be ignored
+ * @param candidates
+ * @return the created field
+ */
+Field *createField(char *name, unsigned value, unsigned *candidates) {
+    Field *field;
+
+    field = (Field *) xmalloc(sizeof (Field));
+    strcpy(field->name, name);
+
+    if (value) {
+        field->value = value;
+        field->candidatesLeft = 0;
+    } else {
+        setCandidates(field, candidates);
+    }
+}
+
 unsigned * uintdup(unsigned *dest, unsigned const *src, size_t len) {
     memcpy(dest, src, len * sizeof (unsigned));
     return dest;
 }
-
 
 void test_Dummy(void) {
     TEST_ASSERT_EQUAL(2, 240);
@@ -156,7 +177,6 @@ void test_fieldCandidatesAreSubsetOf(void) {
 }
 
 void test_findNakedTuplesInContainer(void) {
-    Field *field;
     Container *container;
 
     container = (Container *) xmalloc(sizeof (Container));
@@ -164,22 +184,14 @@ void test_findNakedTuplesInContainer(void) {
     container->fields = (Field **) xmalloc(sizeof (Field *) * MAX_NUMBER);
 
     for (int i = 0; i < MAX_NUMBER; i++) {
-        field = (Field *) xmalloc(sizeof (Field));
-        strcmp(field->name, "XX");
-
-        container->fields[i] = field;
-
         unsigned cand1[9] = {0, 2, 0, 4, 5, 6, 7, 8, 0};
-        setCandidates(field, cand1);
+        container->fields[i] = createField("XX", 0, cand1);
     }
 
     // let 2 fields contain a naked tuple: 7, 8
     for (int i = 6; i <= 7; i++) {
-        field = container->fields[i];
-        strcmp(field->name, "NA");
-
         unsigned cand1[9] = {0, 0, 0, 0, 0, 0, 7, 8, 0};
-        setCandidates(field, cand1);
+        container->fields[i] = createField("NA", 0, cand1);
     }
 
     TEST_ASSERT_EQUAL(1, findNakedTuplesInContainer(container, 2));
@@ -192,65 +204,52 @@ void test_findNakedTuplesInContainer(void) {
 void test_findNakedTuplesInContainer2(void) {
     Field *field;
     Container *container;
-    char buffer[20];
+    char name[20];
 
     container = (Container *) xmalloc(sizeof (Container));
     container->name = strdup("box 1");
     container->fields = (Field **) xmalloc(sizeof (Field *) * MAX_NUMBER);
-    
+
     for (int i = 0; i < MAX_NUMBER; i++) {
         field = (Field *) xmalloc(sizeof (Field));
-        sprintf(buffer, "%c%u", (char) (i % 3), i / 3);
-        strcpy(field->name, buffer);
+        sprintf(name, "%c%u", (char) (i % 3), i / 3);
 
         // unsolved fields
         if (i == 1) {
-            // unsolved fields
             unsigned cand1[9] = {0, 2, 0, 0, 5, 0, 0, 8, 0};
-            setCandidates(field, cand1);
+            field = createField(name, 0, cand1);
         }
         if (i == 5) {
-            // unsolved fields
             unsigned cand2[9] = {0, 2, 0, 0, 5, 0, 0, 0, 0};
-            setCandidates(field, cand2);
+            field = createField(name, 0, cand2);
         }
         if (i == 6) {
-            // unsolved fields
             unsigned cand3[9] = {0, 0, 3, 0, 0, 0, 0, 8, 0};
-            setCandidates(field, cand3);
+            field = createField(name, 0, cand3);
         }
         if (i == 8) {
-            // unsolved fields
             unsigned cand4[9] = {0, 0, 3, 0, 0, 0, 0, 8, 0};
-            setCandidates(field, cand4);
+            field = createField(name, 0, cand4);
         }
 
         // already solved fields
         if (i == 0) {
-            field->value = 4;
-            field->candidatesLeft = 0;
+            field = createField(name, 4, NULL);
         }
         if (i == 2) {
-            field->value = 9;
-            field->candidatesLeft = 0;
+            field = createField(name, 9, NULL);
         }
         if (i == 3) {
-            field->value = 6;
-            field->candidatesLeft = 0;
+            field = createField(name, 6, NULL);
         }
         if (i == 4) {
-            field->value = 1;
-            field->candidatesLeft = 0;
+            field = createField(name, 1, NULL);
         }
         if (i == 7) {
-            field->value = 7;
-            field->candidatesLeft = 0;
+            field = createField(name, 7, NULL);
         }
 
         container->fields[i] = field;
-
-        unsigned cand1[9] = {0, 2, 0, 4, 5, 6, 7, 8, 0};
-        setCandidates(field, cand1);
     }
 
     TEST_ASSERT_EQUAL(1, findNakedTuplesInContainer(container, 2));
@@ -301,7 +300,7 @@ int main(void) {
     RUN_TEST(test_fieldCandidatesAreSubsetOf);
     RUN_TEST(test_equalNumberOfFieldsAndCandidates);
     RUN_TEST(test_findNakedTuplesInContainer);
-//    RUN_TEST(test_findNakedTuplesInContainer2);
-//    RUN_TEST(test_setupGrid);
+    //    RUN_TEST(test_findNakedTuplesInContainer2);
+    //    RUN_TEST(test_setupGrid);
     return UNITY_END();
 }
