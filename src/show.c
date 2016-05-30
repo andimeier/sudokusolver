@@ -267,7 +267,7 @@ void printSvg(int finalVersion) {
             "	  <line class='thin'  x1='63' y1='0' x2='63' y2='81' />"
             "	  <line class='thin'  x1='72' y1='0' x2='72' y2='81' />", svgfile);
 
-    rows = containerSets[ROWS].containers;
+    rows = containerSets[0].containers;
     for (y = 0; y < MAX_NUMBER; y++) {
         for (x = 0; x < MAX_NUMBER; x++) {
             field = rows[y][x];

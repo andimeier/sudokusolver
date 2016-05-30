@@ -44,7 +44,6 @@ unsigned * uintdup(unsigned *dest, unsigned const *src, size_t len) {
     return dest;
 }
 
-#ifdef BUGGY_TRY_TO_REVIVE_TESTS
 
 void test_Dummy(void) {
     TEST_ASSERT_EQUAL(2, 240);
@@ -158,15 +157,17 @@ void test_fieldCandidatesAreSubsetOf(void) {
 
 void test_findNakedTuplesInContainer(void) {
     Field *field;
-    FieldsVector *container;
+    Container *container;
 
-    container = (Field **) xmalloc(sizeof (Field *) * MAX_NUMBER);
+    container = (Container *) xmalloc(sizeof (Container));
+    container->name = strdup("row 3");
+    container->fields = (Field **) xmalloc(sizeof (Field *) * MAX_NUMBER);
 
     for (int i = 0; i < MAX_NUMBER; i++) {
         field = (Field *) xmalloc(sizeof (Field));
-        field->name = strdup("XX");
+        strcmp(field->name, "XX");
 
-        container[i] = field;
+        container->fields[i] = field;
 
         unsigned cand1[9] = {0, 2, 0, 4, 5, 6, 7, 8, 0};
         setCandidates(field, cand1);
@@ -174,8 +175,8 @@ void test_findNakedTuplesInContainer(void) {
 
     // let 2 fields contain a naked tuple: 7, 8
     for (int i = 6; i <= 7; i++) {
-        field = container[i];
-        field->name = strdup("NA");
+        field = container->fields[i];
+        strcmp(field->name, "NA");
 
         unsigned cand1[9] = {0, 0, 0, 0, 0, 0, 7, 8, 0};
         setCandidates(field, cand1);
@@ -183,6 +184,8 @@ void test_findNakedTuplesInContainer(void) {
 
     TEST_ASSERT_EQUAL(1, findNakedTuplesInContainer(container, 2));
 }
+
+#ifdef BUGGY_TRY_TO_REVIVE_TESTS
 
 #endif
 
@@ -294,11 +297,11 @@ int main(void) {
     UNITY_BEGIN();
     //RUN_TEST(test_Dummy);
     //RUN_TEST(test_Dummy2);
-//    RUN_TEST(test_fieldCandidatesContainAllOf);
-//    RUN_TEST(test_fieldCandidatesAreSubsetOf);
+    RUN_TEST(test_fieldCandidatesContainAllOf);
+    RUN_TEST(test_fieldCandidatesAreSubsetOf);
     RUN_TEST(test_equalNumberOfFieldsAndCandidates);
-    //    RUN_TEST(test_findNakedTuplesInContainer);
-    RUN_TEST(test_findNakedTuplesInContainer2);
+    RUN_TEST(test_findNakedTuplesInContainer);
+//    RUN_TEST(test_findNakedTuplesInContainer2);
 //    RUN_TEST(test_setupGrid);
     return UNITY_END();
 }
