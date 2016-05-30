@@ -157,7 +157,7 @@ int findNakedTuples() {
     for (int dimension = 2; dimension < MAX_TUPLE_DIMENSION; dimension++) {
 
         // go through all containers and find naked tuples therein
-        for (unsigned c = 0; c < numberOfContainerSets; c++) {
+        for (unsigned c = 0; c < numberOfContainers; c++) {
             container = &(allContainers[c]);
             sprintf(buffer, "-- next container: %s", container->name);
             printlog(buffer);
@@ -422,6 +422,13 @@ unsigned recurseNakedTuples(unsigned maxLevel, Container *container, unsigned le
         numbers[level - 1] = number;
         sprintf(buffer, "number vector is now (%u, %u, %u), level=%u", numbers[0], numbers[1], numbers[1] ? numbers[2] : 0, level);
         printlog(buffer);
+        
+        // FIXME breakpoint for a specific naked tuple: box1: C1/C3 contain naked pair 3/8 =>
+        // forbid in 8 in A2
+        if ((number == 3 || number == 8) && !strcmp(container->name, "box 1") ) {
+            sprintf(buffer, "[7d75] WE ARE IN box 1, number: %u", number);
+            printlog(buffer);
+        }
 
         // loop through all fields of the container
         for (unsigned i = 0; i < MAX_NUMBER; i++) {

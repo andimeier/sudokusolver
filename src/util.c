@@ -110,15 +110,12 @@ int fieldCandidatesAreSubsetOf(Field *field, unsigned *numbers) {
     unsigned *numbersPtr;
     int found;
 
-    printlog("[6jj]");
     if (field->value) {
         // already solved => nothing to do with the candidates
         return 0;
     }
 
-    printlog("[6jj-1]");
     for (int i = 0; i < MAX_NUMBER; i++) {
-        printlog("[6jj-ii]");
         if (field->candidates[i]) {
 
             // check if field candidate is in the numbers vector
@@ -135,11 +132,9 @@ int fieldCandidatesAreSubsetOf(Field *field, unsigned *numbers) {
             if (!found) {
                 // found a field candidate which is not in the given list of
                 // numbers
-                printlog("[6jj-return0]");
                 return 0;
             }
         }
     }
-    printlog("[6jj-return1]");
     return 1;
 }
