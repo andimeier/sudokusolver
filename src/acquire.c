@@ -147,3 +147,18 @@ int importSudoku(char *sudoku) {
 
     return 1;
 }
+
+
+/**
+ * parse Sudoku string 409176000610389040...
+ * 
+ * @param sudoku the Sudoku string: all numbers concatenated in one string
+ *   or - if maxNumber > 9 - characters beginning with 'A', concatenated in
+ *   one string // FIXME characters not implenented
+ * @param maxNumber maximum number in the Sudoku = width of Sudoku = height
+ *   of Sudoku (will be 9 for a standard Sudoku)
+ * @return 
+ */
+int parseSudokuString(char *sudoku, int maxNumber) {
+    // FIXME not used yet, should be the common function which readSudoku and importSudoku uses
+}
