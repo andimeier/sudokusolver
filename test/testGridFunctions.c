@@ -59,6 +59,8 @@ Field *createField(char *name, unsigned value, unsigned *candidates) {
     } else {
         setCandidates(field, candidates);
     }
+    
+    return field;
 }
 
 unsigned * uintdup(unsigned *dest, unsigned const *src, size_t len) {
