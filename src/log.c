@@ -102,7 +102,6 @@ void openLogFile(char *outputFilename) {
  * @param text text to be logged. A newline character will be appended.
  */
 void printlog(char *text) {
-    return;
     
     if (logfile) {
         fputs(text, logfile);

@@ -232,7 +232,6 @@ void initGrid() {
 void freeGrid() {
     for (int f = 0; f < NUMBER_OF_FIELDS; f++) {
         free(fields[f].containerIndexes);
-        free(fields[f].name);
     }
 }
 

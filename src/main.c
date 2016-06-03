@@ -64,6 +64,7 @@ int main(int argc, char **argv) {
     // FIXME hardcoded example sudoku just to make the exec work without parameters (for GDB))
     if (!inputFilename) {
         inputFilename = strdup("examples/naked-pair.sudoku");
+        logLevel = LOGLEVEL_VERBOSE;
     }
 
     // first positional parameter is a Sudoku string
