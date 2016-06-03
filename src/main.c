@@ -20,7 +20,7 @@ int main(int argc, char **argv) {
     char *outputFilename = NULL; // filename of printlog file
     char *inputFilename = NULL;
     char *sudoku = NULL;
-    
+
     // if the Sudoku is wider than 26 numbers, we have a memory allocation issue
     // with the field->name (what is right of "Z26"?)
     assert(MAX_NUMBER <= 26);
@@ -65,7 +65,6 @@ int main(int argc, char **argv) {
     if (!inputFilename) {
         inputFilename = strdup("examples/naked-pair.sudoku");
         logLevel = LOGLEVEL_VERBOSE;
-        logLevel = LOGLEVEL_ERRORS;
     }
 
     // first positional parameter is a Sudoku string
@@ -114,9 +113,9 @@ int main(int argc, char **argv) {
     printSvg(1);
 
     if (result) {
-        logVerbose("-----------------------------------------------");
-        logVerbose("         FERTIG, SUDOKU WURDE GELOEST!");
-        logVerbose("-----------------------------------------------");
+        logAlways("-----------------------------------------------");
+        logAlways("         FERTIG, SUDOKU WURDE GELOEST!");
+        logAlways("-----------------------------------------------");
         sudokuString(1);
     } else {
 
@@ -125,11 +124,11 @@ int main(int argc, char **argv) {
             if (fields[f].value)
                 numbersFound++;
 
-        logVerbose("-----------------------------------------------");
-        logVerbose("      Sudoku konnte nicht geloest werden!");
+        logAlways("-----------------------------------------------");
+        logAlways("      Sudoku konnte nicht geloest werden!");
         sprintf(buffer, "      %d von %d Zellen wurden gefunden.", numbersFound, NUMBER_OF_FIELDS);
-        logVerbose(buffer);
-        logVerbose("-----------------------------------------------");
+        logAlways(buffer);
+        logAlways("-----------------------------------------------");
         sudokuString(0);
     }
 

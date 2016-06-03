@@ -139,7 +139,7 @@ int findNakedTuples() {
 
     progress = 0;
 
-    for (int dimension = 2; dimension < MAX_TUPLE_DIMENSION; dimension++) {
+    for (int dimension = 2; dimension <= MAX_TUPLE_DIMENSION; dimension++) {
 
         // go through all containers and find naked tuples therein
         for (unsigned c = 0; c < numberOfContainers; c++) {

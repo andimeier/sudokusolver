@@ -26,6 +26,7 @@ extern "C" {
     extern unsigned logLevel;
     void logVerbose(char *text);
     void logError(char *text);
+    void logAlways(char *text);
     void logReduction(char *msg);
     void logNewNumber(char *msg);
 

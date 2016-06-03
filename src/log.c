@@ -62,7 +62,7 @@ void showAllCandidates() {
         candidates[MAX_NUMBER] = '\0';
 
         sprintf(buffer, "candidates for field %s are: %s", field->name, candidates);
-        printlog(buffer);
+        logVerbose(buffer);
     }
 }
 
@@ -138,6 +138,15 @@ void logError(char *text) {
     if (logLevel < LOGLEVEL_ERRORS)
         return;
 
+    printlog(text);
+}
+
+/**
+ * log a message to printlog file or to stdout
+ *
+ * @param text text to be logged. A newline character will be appended.
+ */
+void logAlways(char *text) {
     printlog(text);
 }
 
