@@ -26,7 +26,7 @@ typedef int (*strategy)(void);
 static unsigned recurseNakedTuples(unsigned maxLevel, Container *container, unsigned level, unsigned *numbers, FieldsVector *fieldsContainingCandidates);
 static int compareCandidates(unsigned *c1, unsigned *c2);
 
- // number of errors in the algorithm
+// number of errors in the algorithm
 int errors;
 
 /**
@@ -422,10 +422,10 @@ unsigned recurseNakedTuples(unsigned maxLevel, Container *container, unsigned le
         numbers[level - 1] = number;
         sprintf(buffer, "number vector is now (%u, %u, %u), level=%u", numbers[0], numbers[1], numbers[1] ? numbers[2] : 0, level);
         printlog(buffer);
-        
-        // FIXME breakpoint for a specific naked tuple: box1: C1/C3 contain naked pair 3/8 =>
+
+        // FIXME breakpoint for naked-pair.sudoku: for a specific naked tuple: box1: C1/C3 contain naked pair 3/8 =>
         // forbid in 8 in A2
-        if ((number == 3 || number == 8) && !strcmp(container->name, "box 1") ) {
+        if ((number == 3 || number == 8) && !strcmp(container->name, "box 1")) {
             sprintf(buffer, "[7d75] WE ARE IN box 1, number: %u", number);
             printlog(buffer);
         }
@@ -437,10 +437,10 @@ unsigned recurseNakedTuples(unsigned maxLevel, Container *container, unsigned le
             field = container->fields[i];
 
             // FIXME: debugging function:
-            if (level == 2) {
-                sprintf(buffer, "[6yyyk] comparing fields %s and %s in %s (level 2)", fieldsContainingCandidates[0]->name, field->name, container->name);
-                printlog(buffer);
-            }
+//            if (level == 2) {
+//                sprintf(buffer, "[6yyyk] comparing fields %s and %s in %s (level 2)", fieldsContainingCandidates[0]->name, field->name, container->name);
+//                printlog(buffer);
+//            }
             // end of debugging function
 
             sprintf(buffer, "[6yyyj] %s field %s (#%u in %s) (level %u)", (level == 1) ? "looking at" : "comparing with", field->name, i, container->name, level);
@@ -480,15 +480,15 @@ unsigned recurseNakedTuples(unsigned maxLevel, Container *container, unsigned le
                     printlog("[123a]");
                     return progress;
                 }
+            }
 
-                // no tuple of dimension "level" found => recurse further
-                if (recurseNakedTuples(maxLevel, container, level + 1, numbers, fieldsContainingCandidates)) {
-                    printlog("recursion returned with progress flag of 1");
-                    // found a naked tuple! Instantly return
-                    sprintf(buffer, "recursion exited with 1, propagate exit from level %d", level);
-                    printlog(buffer);
-                    return 1;
-                }
+            // no tuple of dimension "level" found => recurse further
+            if (recurseNakedTuples(maxLevel, container, level + 1, numbers, fieldsContainingCandidates)) {
+                printlog("recursion returned with progress flag of 1");
+                // found a naked tuple! Instantly return
+                sprintf(buffer, "recursion exited with 1, propagate exit from level %d", level);
+                printlog(buffer);
+                return 1;
             }
         }
 
@@ -499,7 +499,6 @@ unsigned recurseNakedTuples(unsigned maxLevel, Container *container, unsigned le
     printf("leaving recursion level %d/%d, going back one level\n", level, maxLevel);
     return 0;
 }
-
 
 /**
  * The working horse. Try to solve the Sudoku.

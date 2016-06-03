@@ -59,7 +59,7 @@ Field *createField(char *name, unsigned value, unsigned *candidates) {
     } else {
         setCandidates(field, candidates);
     }
-    
+
     return field;
 }
 
@@ -187,13 +187,17 @@ void test_findNakedTuplesInContainer(void) {
 
     for (int i = 0; i < MAX_NUMBER; i++) {
         unsigned cand1[9] = {0, 2, 0, 4, 5, 6, 7, 8, 0};
-        container->fields[i] = createField("XX", 0, cand1);
+        char name[5];
+        sprintf(name, "XX%u", i);
+        container->fields[i] = createField(name, 0, cand1);
     }
 
     // let 2 fields contain a naked tuple: 7, 8
     for (int i = 6; i <= 7; i++) {
         unsigned cand1[9] = {0, 0, 0, 0, 0, 0, 7, 8, 0};
-        container->fields[i] = createField("NA", 0, cand1);
+        char name[5];
+        sprintf(name, "NA%u", i);
+        container->fields[i] = createField(name, 0, cand1);
     }
 
     TEST_ASSERT_EQUAL(1, findNakedTuplesInContainer(container, 2));
@@ -296,13 +300,11 @@ void test_setupGrid(void) {
 
 int main(void) {
     UNITY_BEGIN();
-    //RUN_TEST(test_Dummy);
-    //RUN_TEST(test_Dummy2);
     RUN_TEST(test_fieldCandidatesContainAllOf);
     RUN_TEST(test_fieldCandidatesAreSubsetOf);
     RUN_TEST(test_equalNumberOfFieldsAndCandidates);
     RUN_TEST(test_findNakedTuplesInContainer);
-    //    RUN_TEST(test_findNakedTuplesInContainer2);
-    //    RUN_TEST(test_setupGrid);
+    RUN_TEST(test_findNakedTuplesInContainer2);
+//        RUN_TEST(test_setupGrid);
     return UNITY_END();
 }
