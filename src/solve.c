@@ -40,7 +40,7 @@ int checkForSolvedCells() {
     Field *field;
     int progress; // Flag: in einer Iteration wurde zumindest eine Erkenntnis gewonnen
 
-    logVerbose("[strategy] check for solved cells ...\n");
+    logVerbose("[strategy] check for solved cells ...");
 
     progress = 0;
 
@@ -67,7 +67,7 @@ int findHiddenSingles() {
     int progress; // flag: something has changed
     Container *container;
 
-    logVerbose("[strategy] find hidden singles ...\n");
+    logVerbose("[strategy] find hidden singles ...");
 
     progress = 0;
 
@@ -88,7 +88,7 @@ int findHiddenSingles() {
                 setValue(containerFields[pos], n);
 
                 Field *field = containerFields[pos];
-                sprintf(buffer, "*** [hidden single] hidden single in unit %s, field %s: %u ... \n", container->name, field->name, n);
+                sprintf(buffer, "*** [hidden single] hidden single in unit %s, field %s: %u ... ", container->name, field->name, n);
                 logVerbose(buffer);
 
                 progress = 1; // Flag "neue Erkenntnis" setzen
@@ -113,7 +113,7 @@ int findHiddenSingles() {
     //                    setValue(containerFields[pos], n);
     //
     //                    Field *field = containerFields[pos];
-    //                    sprintf(buffer, "*** [hidden single] hidden single in unit %s, field %s: %u ... \n", container->name, field->name, n);
+    //                    sprintf(buffer, "*** [hidden single] hidden single in unit %s, field %s: %u ... ", container->name, field->name, n);
     //                    logVerbose(buffer);
     //
     //                    progress = 1; // Flag "neue Erkenntnis" setzen
@@ -135,7 +135,7 @@ int findNakedTuples() {
     int progress;
     Container *container;
 
-    logVerbose("[strategy] find naked tuples ...\n");
+    logVerbose("[strategy] find naked tuples ...");
 
     progress = 0;
 
@@ -387,7 +387,7 @@ unsigned recurseNakedTuples(unsigned maxLevel, Container *container, unsigned le
         return 0;
     }
 
-    sprintf(buffer, "Entering recursion level %u/%u ...\n", level, maxLevel);
+    sprintf(buffer, "Entering recursion level %u/%u ...", level, maxLevel);
     logVerbose(buffer);
 
 
@@ -461,7 +461,7 @@ unsigned recurseNakedTuples(unsigned maxLevel, Container *container, unsigned le
                      * TODO and from other containers if all found fields 
                      * share the same other container
                      */
-                    sprintf(buffer, "GOT IT! forbidding numbers in %s for \"other\" fields...\n", container->name);
+                    sprintf(buffer, "GOT IT! forbidding numbers in %s for \"other\" fields...", container->name);
                     logVerbose(buffer);
 
                     progress |= forbidNumbersInOtherFields(container, numbers, fieldsContainingCandidates);
@@ -522,7 +522,7 @@ int solve() {
     do {
         iteration++;
         progress = 0; // nothing changed in this iteration (no wonder - has just started)
-        sprintf(buffer, "----- Beginne Iteration %d -----\n", iteration);
+        sprintf(buffer, "----- Beginne Iteration %d -----", iteration);
         logVerbose(buffer);
 
 

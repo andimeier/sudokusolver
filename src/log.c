@@ -16,6 +16,8 @@ static FILE *logfile;
 // general buffer for string operations
 char buffer[1000];
 
+static char buffer2[1000];
+
 unsigned logLevel = LOGLEVEL_ERRORS; // 0 ... no logging, 1 ... solved cells, 2 ... changes, 9 ... debug
 
 
@@ -32,7 +34,7 @@ void showCandidates(Field *field) {
     }
     candidates[MAX_NUMBER] = '\0';
 
-    sprintf(buffer, "candidates for field %s are: %s\n", field->name, candidates);
+    sprintf(buffer, "candidates for field %s are: %s", field->name, candidates);
     logVerbose(buffer);
 }
 
@@ -47,7 +49,7 @@ void showAllCandidates() {
         field = fields + f;
 
         if (field->value) {
-            sprintf(buffer, "candidates for field %s ... value %u\n", field->name, field->value);
+            sprintf(buffer, "candidates for field %s ... value %u", field->name, field->value);
             logVerbose(buffer);
             
             continue;
@@ -59,7 +61,7 @@ void showAllCandidates() {
         }
         candidates[MAX_NUMBER] = '\0';
 
-        sprintf(buffer, "candidates for field %s are: %s\n", field->name, candidates);
+        sprintf(buffer, "candidates for field %s are: %s", field->name, candidates);
         printlog(buffer);
     }
 }
@@ -70,8 +72,8 @@ void showAllCandidates() {
  * @param msg
  */
 void logReduction(char *msg) {
-    sprintf(buffer, "--- %s\n", msg);
-    printlog(buffer);
+    sprintf(buffer2, "[REDUCTION] --- %s", msg);
+    printlog(buffer2);
 }
 
 /**
@@ -80,8 +82,8 @@ void logReduction(char *msg) {
  * @param msg
  */
 void logNewNumber(char *msg) {
-    sprintf(buffer, "+++ %s\n", msg);
-    printlog(buffer);
+    sprintf(buffer2, "+++ %s", msg);
+    printlog(buffer2);
 }
 
 

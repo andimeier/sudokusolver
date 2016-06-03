@@ -28,14 +28,14 @@ int readSudoku(char *inputFilename) {
     int f;
     FILE *file;
 
-    sprintf(buffer, "Reading Sudoku from file %s ...\n", inputFilename);
+    sprintf(buffer, "Reading Sudoku from file %s ...", inputFilename);
     logVerbose(buffer);
 
     // open file
     file = fopen(inputFilename, "r");
 
     if (!file) {
-        sprintf(buffer, "Error opening Sudoku file %s\n", inputFilename);
+        sprintf(buffer, "Error opening Sudoku file %s", inputFilename);
         printlog(buffer);
         return 0;
     }
@@ -57,11 +57,11 @@ int readSudoku(char *inputFilename) {
         }
         linecount++;
 
-        sprintf(buffer, "Next line read: %s ...\n", line);
+        sprintf(buffer, "Next line read: %s ...", line);
         logVerbose(buffer);
 
         if (line[0] != '#') {
-            sprintf(buffer, "... is a data line and contains row %d ...\n", y);
+            sprintf(buffer, "... is a data line and contains row %d ...", y);
             logVerbose(buffer);
 
             /*
@@ -73,7 +73,7 @@ int readSudoku(char *inputFilename) {
                 ok = 0; // oops
                 break;
             }
-            sprintf(buffer, "Storing line %d ...\n", y);
+            sprintf(buffer, "Storing line %d ...", y);
             logVerbose(buffer);
             for (x = 0; x < MAX_NUMBER; x++) {
                 c = line[x];
@@ -82,7 +82,7 @@ int readSudoku(char *inputFilename) {
                 } else if ((c == ' ') || (c == '.') || (c == '_')) {
                     fields[y * MAX_NUMBER + x].initialValue = 0;
                 } else {
-                    sprintf(buffer, "Error reading the Sudoku from file: illegal character ('%c') in line %d at position %d.\n", c, x + 1, linecount);
+                    sprintf(buffer, "Error reading the Sudoku from file: illegal character ('%c') in line %d at position %d.", c, x + 1, linecount);
                     printlog(buffer);
                     ok = 0; // oops, this was no number
                     break;
@@ -93,7 +93,7 @@ int readSudoku(char *inputFilename) {
             // a comment line => ignore it
         }
     }
-    logVerbose("Sudoku read\n");
+    logVerbose("Sudoku read");
 
     fclose(file);
 
@@ -102,14 +102,14 @@ int readSudoku(char *inputFilename) {
         ok = 0;
     }
 
-    logVerbose("Copy original grid ...\n");
+    logVerbose("Copy original grid ...");
 
     // copy original grid
     for (f = 0; f < NUMBER_OF_FIELDS; f++) {
         fields[f].value = fields[f].initialValue;
     }
 
-    logVerbose("Initial values filled.\n");
+    logVerbose("Initial values filled.");
 
     return ok;
 }
@@ -138,8 +138,8 @@ int importSudoku(char *sudoku) {
         } else if ((c == ' ') || (c == '.') || (c == '_')) {
             fields[f].initialValue = 0;
         } else {
-            sprintf(buffer, "Error parsing the Sudoku input: illegal character ('%c') at position %d.\n", c, f);
-            printlog(buffer);
+            sprintf(buffer, "Error parsing the Sudoku input: illegal character ('%c') at position %d.", c, f);
+            logError(buffer);
             return 0;
         }
     }

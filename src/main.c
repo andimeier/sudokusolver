@@ -65,6 +65,7 @@ int main(int argc, char **argv) {
     if (!inputFilename) {
         inputFilename = strdup("examples/naked-pair.sudoku");
         logLevel = LOGLEVEL_VERBOSE;
+        logLevel = LOGLEVEL_ERRORS;
     }
 
     // first positional parameter is a Sudoku string
@@ -103,7 +104,7 @@ int main(int argc, char **argv) {
     }
 
     for (int f = 0; f < NUMBER_OF_FIELDS; f++) {
-        sprintf(buffer, "[1234-2] field #%d: in %s, %s, %s\n", f, fields[f].containers[0]->name, fields[f].containers[1]->name, fields[f].containers[2]->name);
+        sprintf(buffer, "[1234-2] field #%d: in %s, %s, %s", f, fields[f].containers[0]->name, fields[f].containers[1]->name, fields[f].containers[2]->name);
         logVerbose(buffer);
     }
 
@@ -113,9 +114,9 @@ int main(int argc, char **argv) {
     printSvg(1);
 
     if (result) {
-        printlog("-----------------------------------------------");
-        printlog("         FERTIG, SUDOKU WURDE GELOEST!");
-        printlog("-----------------------------------------------");
+        logVerbose("-----------------------------------------------");
+        logVerbose("         FERTIG, SUDOKU WURDE GELOEST!");
+        logVerbose("-----------------------------------------------");
         sudokuString(1);
     } else {
 
@@ -124,17 +125,17 @@ int main(int argc, char **argv) {
             if (fields[f].value)
                 numbersFound++;
 
-        printlog("-----------------------------------------------");
-        printlog("      Sudoku konnte nicht geloest werden!");
+        logVerbose("-----------------------------------------------");
+        logVerbose("      Sudoku konnte nicht geloest werden!");
         sprintf(buffer, "      %d von %d Zellen wurden gefunden.", numbersFound, NUMBER_OF_FIELDS);
-        printlog(buffer);
-        printlog("-----------------------------------------------");
+        logVerbose(buffer);
+        logVerbose("-----------------------------------------------");
         sudokuString(0);
     }
 
     if (errors) {
-        sprintf(buffer, "Es sind %d FEHLER aufgetreten!\n", errors);
-        printlog(buffer);
+        sprintf(buffer, "Es sind %d FEHLER aufgetreten!", errors);
+        logError(buffer);
     }
 
 

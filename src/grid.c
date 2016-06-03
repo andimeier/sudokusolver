@@ -271,8 +271,8 @@ void forbidNumberInNeighbors(Field *field, unsigned n) {
 
     assert(n <= MAX_NUMBER);
 
-    sprintf(buffer, "Forbid number %u in neighbors of field %s ...\n", n, field->name);
-    printlog(buffer);
+    sprintf(buffer, "Forbid number %u in neighbors of field %s ...", n, field->name);
+    logVerbose(buffer);
 
     // go through all positions (numbers) of the container and 
     // forbid this number in all other fields of the container
@@ -334,7 +334,7 @@ int forbidNumbersInOtherFields(Container *container, unsigned *n, Field **dontTo
                 if (n[i]) {
                     // was a candidate until now => remove candidate now
                     if (!field->value && field->candidates[i]) {
-                        sprintf(buffer, "forbid %u in field %s\n", i + 1, field->name);
+                        sprintf(buffer, "forbid %u in field %s", i + 1, field->name);
                         logReduction(buffer);
 
                         field->candidates[i] = 0;
@@ -453,12 +453,12 @@ FieldsVector *fieldsWithCandidate(Field **container, unsigned n) {
  */
 unsigned equalNumberOfFieldsAndCandidates(FieldsVector *fieldsVector, unsigned *numbers) {
 
-    sprintf(buffer, "check if found fields are of tuple dimension of numbers ...\n");
+    sprintf(buffer, "check if found fields are of tuple dimension of numbers ...");
     logVerbose(buffer);
 
     do {
         if (*fieldsVector == NULL && *numbers == 0) {
-            logVerbose("YES!\n");
+            logVerbose("YES!");
             return 1;
         }
 
@@ -466,7 +466,7 @@ unsigned equalNumberOfFieldsAndCandidates(FieldsVector *fieldsVector, unsigned *
         // However, if the other one is exhausted, then both vectors apparently
         // do not have the same length
         if (*fieldsVector == NULL || *numbers == 0) {
-            logVerbose("   no ...\n");
+            logVerbose("   no ...");
             return 0;
         }
 
@@ -491,7 +491,7 @@ int getUniquePositionInContainer(Field **container, unsigned n) {
     Field *field;
 
     assert(n >= 1 && n <= MAX_NUMBER);
-    sprintf(buffer, "Looking for unique position of %u in container ...\n", n);
+    sprintf(buffer, "Looking for unique position of %u in container ...", n);
     logVerbose(buffer);
 
     for (pos = 0; pos < MAX_NUMBER; pos++) { // FIXME debugging output
@@ -503,7 +503,7 @@ int getUniquePositionInContainer(Field **container, unsigned n) {
     for (pos = 0; pos < MAX_NUMBER; pos++) {
         field = container[pos];
         if ((field->value == n) || (!(field->value) && (field->candidates[n - 1] == n))) {
-            sprintf(buffer, "Field %s can contain candidate %u\n", field->name, n);
+            sprintf(buffer, "Field %s can contain candidate %u", field->name, n);
             logVerbose(buffer);
             
             if (!unique) {
@@ -543,7 +543,7 @@ int fieldCandidatesContainAllOf(Field *field, unsigned *numbers) {
         if (!field->candidates[*numbers - 1]) {
             // if any candidate is found which is not in "numbers", the field's
             // candidates are no subset of "numbers"
-            sprintf(buffer, "number %u not found in candidates (%u)\n", *numbers, field->candidates[*numbers - 1]);
+            sprintf(buffer, "number %u not found in candidates (%u)", *numbers, field->candidates[*numbers - 1]);
             logVerbose(buffer);
             return 0;
         }
@@ -588,13 +588,13 @@ void cleanUpCandidates() {
         field = fields + f;
 
         if (field->value) {
-            sprintf(buffer, "Set value of field %s (#%d) to %u\n", field->name, f, field->value);
-            printlog(buffer);
+            sprintf(buffer, "Set value of field %s (#%d) to %u", field->name, f, field->value);
+            logVerbose(buffer);
             setValue(field, field->value);
         }
     }
 
     // FIXME debugging output
-    printlog("Initial candidates are:\n");
+    logVerbose("Initial candidates are:");
     showAllCandidates();
 }

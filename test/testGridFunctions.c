@@ -152,7 +152,7 @@ void test_fieldCandidatesAreSubsetOf(void) {
     unsigned numb2[3] = {2, 0};
     uintdup(numbers, numb2, 2);
 
-    sprintf(buffer, "numbers: %u-%u-%u\n", numbers[0], numbers[1], numbers[2]);
+    sprintf(buffer, "numbers: %u-%u-%u", numbers[0], numbers[1], numbers[2]);
     logVerbose(buffer);
     TEST_ASSERT_EQUAL(0, fieldCandidatesAreSubsetOf(&field, numbers));
 
@@ -263,7 +263,7 @@ void test_findNakedPairsInContainer2(void) {
     TEST_ASSERT_EQUAL(1, findNakedTuplesInContainer(container, 2));
 }
 
-void test_findNakedPairsInContainer3(void) {
+void test_findNakedPairsInContainer4(void) {
     Container *container;
 
     container = (Container *) xmalloc(sizeof (Container));
@@ -355,7 +355,7 @@ int main(void) {
     RUN_TEST(test_equalNumberOfFieldsAndCandidates);
     RUN_TEST(test_findNakedPairsInContainer);
     RUN_TEST(test_findNakedPairsInContainer2);
-    RUN_TEST(test_findNakedPairsInContainer3);
+    RUN_TEST(test_findNakedPairsInContainer4);
     RUN_TEST(test_findNakedTriplesInContainer);
 //        RUN_TEST(test_setupGrid);
     return UNITY_END();
