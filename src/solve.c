@@ -355,6 +355,8 @@ unsigned findNakedTuplesInContainer(Container *container, unsigned dimension) {
     foundFields[0] = NULL;
 
     testCounter++;
+    sprintf(buffer, "~~~ testCounter: %d ~~~", testCounter);
+    logVerbose(buffer);
 
     if (recurseNakedTuples(dimension, container, 1, numbers, foundFields)) {
         progress = 1;
@@ -383,6 +385,7 @@ unsigned findNakedTuplesInContainer(Container *container, unsigned dimension) {
  */
 unsigned recurseNakedTuples(unsigned maxLevel, Container *container, unsigned level, unsigned *numbers, FieldsVector *fieldsContainingCandidates) {
 
+    assert(level >= 1);
     assert(level == 1 || (level >= 2 && numbers[level - 2] != 0));
 
     if (level > maxLevel) {
@@ -407,12 +410,15 @@ unsigned recurseNakedTuples(unsigned maxLevel, Container *container, unsigned le
     logVerbose(buffer);
 
     for (unsigned number = ((level > 1) ? (numbers[level - 2] + 1) : 1); number <= MAX_NUMBER; number++) {
+        //    for (unsigned number = 1; number <= MAX_NUMBER; number++) {
         // try next number
         numbers[level - 1] = number;
         sprintf(buffer, "number vector is now (%u, %u, %u), level=%u", numbers[0], numbers[1], numbers[1] ? numbers[2] : 0, level);
         logVerbose(buffer);
 
         testCounter++;
+        sprintf(buffer, "~~~ testCounter: %d ~~~", testCounter);
+        logVerbose(buffer);
         if (testCounter >= 364) {
             testCounter = testCounter;
         }
@@ -431,10 +437,10 @@ unsigned recurseNakedTuples(unsigned maxLevel, Container *container, unsigned le
             field = container->fields[i];
 
             // FIXME: debugging function:
-//            if (level == 2) {
-//                sprintf(buffer, "[6yyyk] comparing fields %s and %s in %s (level 2)", fieldsContainingCandidates[0]->name, field->name, container->name);
-//                logVerbose(buffer);
-//            }
+            //            if (level == 2) {
+            //                sprintf(buffer, "[6yyyk] comparing fields %s and %s in %s (level 2)", fieldsContainingCandidates[0]->name, field->name, container->name);
+            //                logVerbose(buffer);
+            //            }
             // end of debugging function
 
             sprintf(buffer, "[6yyyj] %s field %s (#%u in %s) (level %u)", (level == 1) ? "looking at" : "comparing with", field->name, i, container->name, level);
@@ -480,13 +486,18 @@ unsigned recurseNakedTuples(unsigned maxLevel, Container *container, unsigned le
                 }
             }
 
-            // no tuple of dimension "level" found => recurse further
-            if (recurseNakedTuples(maxLevel, container, level + 1, numbers, fieldsContainingCandidates)) {
-                logVerbose("recursion returned with progress flag of 1");
-                // found a naked tuple! Instantly return
-                sprintf(buffer, "recursion exited with 1, propagate exit from level %d", level);
-                logVerbose(buffer);
-                return 1;
+            // no tuple of dimension "level" found
+            // only recurse further if the last number is not already the
+            // maximum number because then no greater number could be
+            // possible, so the recursion would not yield any result anyway
+            if (numbers[level - 1] < MAX_NUMBER) {
+                if (recurseNakedTuples(maxLevel, container, level + 1, numbers, fieldsContainingCandidates)) {
+                    logVerbose("recursion returned with progress flag of 1");
+                    // found a naked tuple! Instantly return
+                    sprintf(buffer, "recursion exited with 1, propagate exit from level %d", level);
+                    logVerbose(buffer);
+                    return 1;
+                }
             }
         }
 
