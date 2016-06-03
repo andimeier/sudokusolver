@@ -29,6 +29,9 @@ static int compareCandidates(unsigned *c1, unsigned *c2);
 // number of errors in the algorithm
 int errors;
 
+// FIXME remove this test counter
+int testCounter = 0;
+
 /**
  * check for cells having only one candidate left and set their value (and
  * thus eliminate this value in neighboring fields)
@@ -351,6 +354,8 @@ unsigned findNakedTuplesInContainer(Container *container, unsigned dimension) {
     numbers[0] = 0;
     foundFields[0] = NULL;
 
+    testCounter++;
+
     if (recurseNakedTuples(dimension, container, 1, numbers, foundFields)) {
         progress = 1;
     } else {
@@ -378,7 +383,7 @@ unsigned findNakedTuplesInContainer(Container *container, unsigned dimension) {
  */
 unsigned recurseNakedTuples(unsigned maxLevel, Container *container, unsigned level, unsigned *numbers, FieldsVector *fieldsContainingCandidates) {
 
-    assert(level == 1 || numbers[level - 2] != 0);
+    assert(level == 1 || (level >= 2 && numbers[level - 2] != 0));
 
     if (level > maxLevel) {
         // maximum recursion depth reached => nothing found
@@ -407,6 +412,11 @@ unsigned recurseNakedTuples(unsigned maxLevel, Container *container, unsigned le
         sprintf(buffer, "number vector is now (%u, %u, %u), level=%u", numbers[0], numbers[1], numbers[1] ? numbers[2] : 0, level);
         logVerbose(buffer);
 
+        testCounter++;
+        if (testCounter >= 364) {
+            testCounter = testCounter;
+        }
+
         // FIXME breakpoint for naked-pair.sudoku: for a specific naked tuple: box1: C1/C3 contain naked pair 3/8 =>
         // forbid in 8 in A2
         if ((number == 3 || number == 8) && !strcmp(container->name, "box 1")) {
@@ -421,10 +431,10 @@ unsigned recurseNakedTuples(unsigned maxLevel, Container *container, unsigned le
             field = container->fields[i];
 
             // FIXME: debugging function:
-            //            if (level == 2) {
-            //                sprintf(buffer, "[6yyyk] comparing fields %s and %s in %s (level 2)", fieldsContainingCandidates[0]->name, field->name, container->name);
-            //                logVerbose(buffer);
-            //            }
+//            if (level == 2) {
+//                sprintf(buffer, "[6yyyk] comparing fields %s and %s in %s (level 2)", fieldsContainingCandidates[0]->name, field->name, container->name);
+//                logVerbose(buffer);
+//            }
             // end of debugging function
 
             sprintf(buffer, "[6yyyj] %s field %s (#%u in %s) (level %u)", (level == 1) ? "looking at" : "comparing with", field->name, i, container->name, level);
@@ -483,6 +493,10 @@ unsigned recurseNakedTuples(unsigned maxLevel, Container *container, unsigned le
         // FIXME DEBUG
         logVerbose("recursion returned with progress flag of 0");
     }
+
+    // take back extensions of the vectors from the current level
+    numbers[level - 1] = 0;
+    fieldsContainingCandidates[level - 1] = NULL;
 
     sprintf(buffer, "leaving recursion level %d/%d, going back one level\n", level, maxLevel);
     logVerbose(buffer);
