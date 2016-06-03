@@ -287,9 +287,7 @@ void forbidNumberInNeighbors(Field *field, unsigned n) {
 
     // forbid number in all other "neighboring fields"
     for (unsigned containerType = 0; containerType < numberOfContainerSets; containerType++) {
-        printf("[6hshhs]\n");
         container = field->containers[containerType];
-        printf("[6hshhs++]\n");
 
         // preserve candidate in "our" field only
         Field * preserve[2];
@@ -325,10 +323,6 @@ int forbidNumbersInOtherFields(Container *container, unsigned *n, Field **dontTo
     //    showAllCandidates();
 
     progress = 0; // nothing has changed yet
-    if (verboseLogging == 2) {
-        // TODO sprintf(buffer, "Isoliere Tupel (%d/%d) und (%d/%d): %s/%s\n", y1 + 1, x1 + 1, y2 + 1, x1 + 1, possibilities[y1][x1], possibilities[y2][x2]);
-        // TODO printlog(buffer);
-    }
 
     // walk through entire container
     for (int pos = 0; pos < MAX_NUMBER; pos++) {
@@ -368,15 +362,7 @@ int forbidNumber(Field *field, unsigned n) {
     assert(n >= 1 && n <= MAX_NUMBER);
 
     if (field->candidates[n - 1]) {
-        if (verboseLogging == 2) {
-            // TODO sprintf(buffer, "Vorher: (%d/%d) possibilities=%s\n", y + 1, x + 1, possibilities[y][x]);
-            printlog(buffer);
-        }
         field->candidates[n - 1] = 0;
-        if (verboseLogging == 2) {
-            // TODO sprintf(buffer, "Nachher: (%d/%d) possibilities=%s)\n", y + 1, x + 1, possibilities[y][x]);
-            printlog(buffer);
-        }
         field->candidatesLeft--;
         if (field->candidatesLeft == 1) {
             // nur noch eine einzige Zahl ist moeglich => ausfuellen!
@@ -418,10 +404,6 @@ int setUniqueNumber(Field *field) {
     unsigned *candidates = field->candidates;
     for (n = 1; n <= MAX_NUMBER; n++) {
         if (candidates[n - 1]) {
-            if (verboseLogging == 2) {
-                // TODO sprintf(buffer, "Aha, nur mehr eine Moeglichkeit in Feld %s (possibilities: %s): %d\n", field->name, possibilities[y][x], n);
-                // TODO printlog(buffer);
-            }
             setValue(field, n);
             break;
         }
@@ -472,11 +454,12 @@ FieldsVector *fieldsWithCandidate(Field **container, unsigned n) {
  */
 unsigned equalNumberOfFieldsAndCandidates(FieldsVector *fieldsVector, unsigned *numbers) {
 
-    printf("check if found fields are of tuple dimension of numbers ...\n");
+    sprintf(buffer, "check if found fields are of tuple dimension of numbers ...\n");
+    logVerbose(buffer);
 
     do {
         if (*fieldsVector == NULL && *numbers == 0) {
-            printf("YES!\n");
+            logVerbose("YES!\n");
             return 1;
         }
 
@@ -484,7 +467,7 @@ unsigned equalNumberOfFieldsAndCandidates(FieldsVector *fieldsVector, unsigned *
         // However, if the other one is exhausted, then both vectors apparently
         // do not have the same length
         if (*fieldsVector == NULL || *numbers == 0) {
-            printf("   no ...\n");
+            logVerbose("   no ...\n");
             return 0;
         }
 
@@ -509,7 +492,8 @@ int getUniquePositionInContainer(Field **container, unsigned n) {
     Field *field;
 
     assert(n >= 1 && n <= MAX_NUMBER);
-    printf("Looking for unique position of %u in container ...\n", n);
+    sprintf(buffer, "Looking for unique position of %u in container ...\n", n);
+    logVerbose(buffer);
 
     for (pos = 0; pos < MAX_NUMBER; pos++) { // FIXME debugging output
         showCandidates(container[pos]);
@@ -520,7 +504,9 @@ int getUniquePositionInContainer(Field **container, unsigned n) {
     for (pos = 0; pos < MAX_NUMBER; pos++) {
         field = container[pos];
         if ((field->value == n) || (!(field->value) && (field->candidates[n - 1] == n))) {
-            printf("Field %s can contain candidate %u\n", field->name, n);
+            sprintf(buffer, "Field %s can contain candidate %u\n", field->name, n);
+            logVerbose(buffer);
+            
             if (!unique) {
                 unique = 1; // first occurrence in the current container
                 foundPos = pos; // remember position, in case it is the only one
@@ -558,7 +544,8 @@ int fieldCandidatesContainAllOf(Field *field, unsigned *numbers) {
         if (!field->candidates[*numbers - 1]) {
             // if any candidate is found which is not in "numbers", the field's
             // candidates are no subset of "numbers"
-            printf("Oops! number %u not found in candidates (%u)\n", *numbers, field->candidates[*numbers - 1]);
+            sprintf(buffer, "number %u not found in candidates (%u)\n", *numbers, field->candidates[*numbers - 1]);
+            logVerbose(buffer);
             return 0;
         }
         numbers++;

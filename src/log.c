@@ -16,13 +16,7 @@ static FILE *logfile;
 // general buffer for string operations
 char buffer[1000];
 
-/*
- * log level: 
- *   0 ... no verbose logging
- *   1 ... log changes
- *   2 ... log even considerations
- */
-int verboseLogging; 
+unsigned logLevel = LOGLEVEL_ERRORS; // 0 ... no logging, 1 ... solved cells, 2 ... changes, 9 ... debug
 
 
 /**
@@ -38,7 +32,8 @@ void showCandidates(Field *field) {
     }
     candidates[MAX_NUMBER] = '\0';
 
-    printf("candidates for field %s are: %s\n", field->name, candidates);
+    sprintf(buffer, "candidates for field %s are: %s\n", field->name, candidates);
+    logVerbose(buffer);
 }
 
 /**
@@ -52,7 +47,9 @@ void showAllCandidates() {
         field = fields + f;
 
         if (field->value) {
-            printf("candidates for field %s ... value %u\n", field->name, field->value);
+            sprintf(buffer, "candidates for field %s ... value %u\n", field->name, field->value);
+            logVerbose(buffer);
+            
             continue;
         }
 
@@ -73,7 +70,8 @@ void showAllCandidates() {
  * @param msg
  */
 void logReduction(char *msg) {
-    printf("--- %s\n", msg);
+    sprintf(buffer, "--- %s\n", msg);
+    printlog(buffer);
 }
 
 /**
@@ -82,7 +80,8 @@ void logReduction(char *msg) {
  * @param msg
  */
 void logNewNumber(char *msg) {
-    printf("+++ %s\n", msg);
+    sprintf(buffer, "+++ %s\n", msg);
+    printlog(buffer);
 }
 
 
@@ -103,13 +102,42 @@ void openLogFile(char *outputFilename) {
  * @param text text to be logged. A newline character will be appended.
  */
 void printlog(char *text) {
-
+    return;
+    
     if (logfile) {
         fputs(text, logfile);
     } else {
         // no printlog file => write to stdout
         puts(text);
     }
+}
+
+
+/**
+ * log a message to printlog file or to stdout
+ *
+ * @param text text to be logged. A newline character will be appended.
+ */
+void logVerbose(char *text) {
+
+    if (logLevel < LOGLEVEL_VERBOSE)
+        return;
+    
+    printlog(text);
+}
+
+
+/**
+ * log a message to printlog file or to stdout
+ *
+ * @param text text to be logged. A newline character will be appended.
+ */
+void logError(char *text) {
+
+    if (logLevel < LOGLEVEL_ERRORS)
+        return;
+
+    printlog(text);
 }
 
 

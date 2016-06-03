@@ -18,7 +18,7 @@
 #include "log.h"
 
 // search for pairs, triples and quadruples, not more
-#define MAX_TUPLE_DIMENSION 4
+#define MAX_TUPLE_DIMENSION 2
 
 typedef int (*strategy)(void);
 
@@ -40,8 +40,7 @@ int checkForSolvedCells() {
     Field *field;
     int progress; // Flag: in einer Iteration wurde zumindest eine Erkenntnis gewonnen
 
-    if (verboseLogging == 2)
-        printlog("[strategy] check for solved cells ...\n");
+    logVerbose("[strategy] check for solved cells ...\n");
 
     progress = 0;
 
@@ -68,8 +67,7 @@ int findHiddenSingles() {
     int progress; // flag: something has changed
     Container *container;
 
-    if (verboseLogging == 2)
-        printlog("[strategy] find hidden singles ...\n");
+    logVerbose("[strategy] find hidden singles ...\n");
 
     progress = 0;
 
@@ -87,15 +85,11 @@ int findHiddenSingles() {
             int pos = getUniquePositionInContainer(containerFields, n);
             if (pos != -1 && !containerFields[pos]->value) {
                 // number can only occur in the position pos in this container
-                if (verboseLogging) {
-                    // TODO sprintf(buffer, "!!! Neue Erkenntnis 2a: In Zeile %d kann %d nur an Position %d vorkommen => (%d/%d) = %d!\n", y + 1, n, x + 1, y + 1, x + 1, n);
-                    // TODO printlog(buffer);
-                }
                 setValue(containerFields[pos], n);
 
                 Field *field = containerFields[pos];
                 sprintf(buffer, "*** [hidden single] hidden single in unit %s, field %s: %u ... \n", container->name, field->name, n);
-                printlog(buffer);
+                logVerbose(buffer);
 
                 progress = 1; // Flag "neue Erkenntnis" setzen
             }
@@ -108,10 +102,6 @@ int findHiddenSingles() {
     //    for (int u = 0; u < unitDefs.count; u++) {
     //        ContainerSet *unit = &(unitDefs.containerTypes[u]);
     //
-    //        if (verboseLogging == 2) {
-    //            sprintf(buffer, "??? Searching for: hidden singles in units of type %s ... \n", unit->name);
-    //            printlog(buffer);
-    //        }
     //
     //        for (int c = 0; c < unit->numberOfContainers; c++) {
     //            for (unsigned n = 1; n <= MAX_NUMBER; n++) {
@@ -120,15 +110,11 @@ int findHiddenSingles() {
     //                int pos = getUniquePositionInContainer(containerFields, n);
     //                if (pos != -1 && !containerFields[pos]->value) {
     //                    // number can only occur in the position pos in this container
-    //                    if (verboseLogging) {
-    //                        // TODO sprintf(buffer, "!!! Neue Erkenntnis 2a: In Zeile %d kann %d nur an Position %d vorkommen => (%d/%d) = %d!\n", y + 1, n, x + 1, y + 1, x + 1, n);
-    //                        // TODO printlog(buffer);
-    //                    }
     //                    setValue(containerFields[pos], n);
     //
     //                    Field *field = containerFields[pos];
     //                    sprintf(buffer, "*** [hidden single] hidden single in unit %s, field %s: %u ... \n", container->name, field->name, n);
-    //                    printlog(buffer);
+    //                    logVerbose(buffer);
     //
     //                    progress = 1; // Flag "neue Erkenntnis" setzen
     //                }
@@ -149,8 +135,7 @@ int findNakedTuples() {
     int progress;
     Container *container;
 
-    if (verboseLogging == 2)
-        printlog("[strategy] find naked tuples ...\n");
+    logVerbose("[strategy] find naked tuples ...\n");
 
     progress = 0;
 
@@ -160,7 +145,7 @@ int findNakedTuples() {
         for (unsigned c = 0; c < numberOfContainers; c++) {
             container = &(allContainers[c]);
             sprintf(buffer, "-- next container: %s", container->name);
-            printlog(buffer);
+            logVerbose(buffer);
             progress |= findNakedTuplesInContainer(container, dimension);
         }
 
@@ -240,10 +225,6 @@ int findPointingTupels() {
     //
     //    for (int u = 0; u < unitDefs.count; u++) {
     //        unit = &(unitDefs.containerTypes[u]);
-    //        if (verboseLogging == 2) {
-    //            sprintf(buffer, "??? Searching for: pointing tuples in units of type %s ... \n", unit->name);
-    //            printlog(buffer);
-    //        }
     //
     //        printf("container \"%s\" has %zu instances\n", unit->name, unit->numberOfContainers);
     //        for (int c = 0; c < unit->numberOfContainers; c++) {
@@ -373,7 +354,7 @@ unsigned findNakedTuplesInContainer(Container *container, unsigned dimension) {
     if (recurseNakedTuples(dimension, container, 1, numbers, foundFields)) {
         progress = 1;
     } else {
-        printlog("[1244] returned from recursion");
+        logVerbose("[1244] returned from recursion");
     }
 
     free(foundFields);
@@ -402,11 +383,13 @@ unsigned recurseNakedTuples(unsigned maxLevel, Container *container, unsigned le
     if (level > maxLevel) {
         // maximum recursion depth reached => nothing found
         sprintf(buffer, "maximum recursion depth of %u reached.", maxLevel);
-        printlog(buffer);
+        logVerbose(buffer);
         return 0;
     }
 
-    printf("Entering recursion level %u/%u ...\n", level, maxLevel);
+    sprintf(buffer, "Entering recursion level %u/%u ...\n", level, maxLevel);
+    logVerbose(buffer);
+
 
     // prepare list terminations *after* current list item
     numbers[level] = 0;
@@ -414,20 +397,21 @@ unsigned recurseNakedTuples(unsigned maxLevel, Container *container, unsigned le
 
     // iterate through all numbers of this level, starting with number of 
     // previous iteration level plus 1. Thus, the numbers are in ascending
-    // order and the numbers are not repeating themselves
+    // order and the numbers are not repeating themselvesb
     sprintf(buffer, "start iteration level %d, numbers= (%u, %u, %u)", level, numbers[0], numbers[1], numbers[2]);
-    printlog(buffer);
-    for (unsigned number = ((level == 1) ? 1 : (numbers[level - 2] + 1)); number <= MAX_NUMBER; number++) {
+    logVerbose(buffer);
+
+    for (unsigned number = ((level > 1) ? (numbers[level - 2] + 1) : 1); number <= MAX_NUMBER; number++) {
         // try next number
         numbers[level - 1] = number;
         sprintf(buffer, "number vector is now (%u, %u, %u), level=%u", numbers[0], numbers[1], numbers[1] ? numbers[2] : 0, level);
-        printlog(buffer);
+        logVerbose(buffer);
 
         // FIXME breakpoint for naked-pair.sudoku: for a specific naked tuple: box1: C1/C3 contain naked pair 3/8 =>
         // forbid in 8 in A2
         if ((number == 3 || number == 8) && !strcmp(container->name, "box 1")) {
             sprintf(buffer, "[7d75] WE ARE IN box 1, number: %u", number);
-            printlog(buffer);
+            logVerbose(buffer);
         }
 
         // loop through all fields of the container
@@ -437,14 +421,14 @@ unsigned recurseNakedTuples(unsigned maxLevel, Container *container, unsigned le
             field = container->fields[i];
 
             // FIXME: debugging function:
-//            if (level == 2) {
-//                sprintf(buffer, "[6yyyk] comparing fields %s and %s in %s (level 2)", fieldsContainingCandidates[0]->name, field->name, container->name);
-//                printlog(buffer);
-//            }
+            //            if (level == 2) {
+            //                sprintf(buffer, "[6yyyk] comparing fields %s and %s in %s (level 2)", fieldsContainingCandidates[0]->name, field->name, container->name);
+            //                logVerbose(buffer);
+            //            }
             // end of debugging function
 
             sprintf(buffer, "[6yyyj] %s field %s (#%u in %s) (level %u)", (level == 1) ? "looking at" : "comparing with", field->name, i, container->name, level);
-            printlog(buffer);
+            logVerbose(buffer);
 
             /*
              * if the candidates consist solely of numbers found in "numbers", 
@@ -455,7 +439,9 @@ unsigned recurseNakedTuples(unsigned maxLevel, Container *container, unsigned le
             if (fieldCandidatesAreSubsetOf(field, numbers)) {
                 sprintf(buffer, "yeah! field candidates of field %s (#%u in %s) are a subset of the numbers %u, %u",
                         field->name, i, container->name, numbers[0], numbers[1]);
-                printlog(buffer);
+                logVerbose(buffer);
+
+                //    if (level > 1) return 0;
 
                 // append field to list of found fields
                 appendField(fieldsContainingCandidates, field);
@@ -475,28 +461,31 @@ unsigned recurseNakedTuples(unsigned maxLevel, Container *container, unsigned le
                      * TODO and from other containers if all found fields 
                      * share the same other container
                      */
-                    printf("GOT IT! forbidding numbers in %s for \"other\" fields...\n", container->name);
+                    sprintf(buffer, "GOT IT! forbidding numbers in %s for \"other\" fields...\n", container->name);
+                    logVerbose(buffer);
+
                     progress |= forbidNumbersInOtherFields(container, numbers, fieldsContainingCandidates);
-                    printlog("[123a]");
+                    logVerbose("[123a]");
                     return progress;
                 }
             }
 
             // no tuple of dimension "level" found => recurse further
             if (recurseNakedTuples(maxLevel, container, level + 1, numbers, fieldsContainingCandidates)) {
-                printlog("recursion returned with progress flag of 1");
+                logVerbose("recursion returned with progress flag of 1");
                 // found a naked tuple! Instantly return
                 sprintf(buffer, "recursion exited with 1, propagate exit from level %d", level);
-                printlog(buffer);
+                logVerbose(buffer);
                 return 1;
             }
         }
 
         // FIXME DEBUG
-        printlog("recursion returned with progress flag of 0");
+        logVerbose("recursion returned with progress flag of 0");
     }
 
-    printf("leaving recursion level %d/%d, going back one level\n", level, maxLevel);
+    sprintf(buffer, "leaving recursion level %d/%d, going back one level\n", level, maxLevel);
+    logVerbose(buffer);
     return 0;
 }
 
@@ -524,11 +513,7 @@ int solve() {
     iteration = 0;
     errors = 0; // no errors yet
 
-    printf("[4sf]\n");
-
     printSvg(0);
-
-    printf("[4s65f]\n");
 
     cleanUpCandidates();
 
@@ -537,10 +522,8 @@ int solve() {
     do {
         iteration++;
         progress = 0; // nothing changed in this iteration (no wonder - has just started)
-        if (verboseLogging == 2) {
-            sprintf(buffer, "----- Beginne Iteration %d -----\n", iteration);
-            printlog(buffer);
-        }
+        sprintf(buffer, "----- Beginne Iteration %d -----\n", iteration);
+        logVerbose(buffer);
 
 
         // loop through all strategies

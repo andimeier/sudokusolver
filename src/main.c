@@ -20,7 +20,7 @@ int main(int argc, char **argv) {
     char *outputFilename = NULL; // filename of printlog file
     char *inputFilename = NULL;
     char *sudoku = NULL;
-
+    
     // if the Sudoku is wider than 26 numbers, we have a memory allocation issue
     // with the field->name (what is right of "Z26"?)
     assert(MAX_NUMBER <= 26);
@@ -31,10 +31,10 @@ int main(int argc, char **argv) {
     while ((c = getopt(argc, argv, "f:hvVl:s:")) != -1)
         switch (c) {
             case 'v':
-                verboseLogging = 1;
+                logLevel = LOGLEVEL_VERBOSE;
                 break;
             case 'V':
-                verboseLogging = 2;
+                logLevel = LOGLEVEL_VERBOSE;
                 break;
             case 's':
                 svgFilename = optarg;
@@ -96,13 +96,14 @@ int main(int argc, char **argv) {
         exit(EXIT_FAILURE);
     }
 
-    if (verboseLogging) {
-        printlog("Initial Sudoku:");
+    if (logLevel >= LOGLEVEL_VERBOSE) {
+        logVerbose("Initial Sudoku:");
         show(0);
     }
 
     for (int f = 0; f < NUMBER_OF_FIELDS; f++) {
-        printf("[1234-2] field #%d: in %s, %s, %s\n", f, fields[f].containers[0]->name, fields[f].containers[1]->name, fields[f].containers[2]->name);
+        sprintf(buffer, "[1234-2] field #%d: in %s, %s, %s\n", f, fields[f].containers[0]->name, fields[f].containers[1]->name, fields[f].containers[2]->name);
+        logVerbose(buffer);
     }
 
     result = solve();

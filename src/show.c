@@ -192,8 +192,7 @@ void sudokuString(int showInit) {
  * FIXME description is wrong/obsolete:
  * if parameter final is truish, the specified svg filename will be used,
  * otherwise an indexed file name will be used to store intermediate
- * versions of the grid. This will only happen if verboseLogging is turned
- * on.
+ * versions of the grid. This will only happen if logLevel is verbose.
  * 
  * @param finalVersion 
  * If 1, The parameter index specifies the suffix to be used in the filename
@@ -232,9 +231,9 @@ void printSvg(int finalVersion) {
         strcat(filename, suffix);
     }
 
-    if (verboseLogging) {
+    if (logLevel >= LOGLEVEL_VERBOSE) {
         sprintf(buffer, "Writing SVG file [%s]", filename);
-        printlog(buffer);
+        logVerbose(buffer);
     }
 
     svgfile = fopen(filename, "w");

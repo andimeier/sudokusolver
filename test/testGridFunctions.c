@@ -13,6 +13,7 @@
 #include "util.h"
 #include "grid.h"
 #include "typedefs.h"
+#include "log.h"
 
 // prototypes
 unsigned * uintdup(unsigned *dest, unsigned const *src, size_t len);
@@ -151,7 +152,8 @@ void test_fieldCandidatesAreSubsetOf(void) {
     unsigned numb2[3] = {2, 0};
     uintdup(numbers, numb2, 2);
 
-    printf("numbers: %u-%u-%u\n", numbers[0], numbers[1], numbers[2]);
+    sprintf(buffer, "numbers: %u-%u-%u\n", numbers[0], numbers[1], numbers[2]);
+    logVerbose(buffer);
     TEST_ASSERT_EQUAL(0, fieldCandidatesAreSubsetOf(&field, numbers));
 
     unsigned cand2[9] = {0, 0, 0, 0, 5, 0, 0, 0, 0};
@@ -178,7 +180,7 @@ void test_fieldCandidatesAreSubsetOf(void) {
     free(candidates);
 }
 
-void test_findNakedTuplesInContainer(void) {
+void test_findNakedPairsInContainer(void) {
     Container *container;
 
     container = (Container *) xmalloc(sizeof (Container));
@@ -207,7 +209,7 @@ void test_findNakedTuplesInContainer(void) {
 
 #endif
 
-void test_findNakedTuplesInContainer2(void) {
+void test_findNakedPairsInContainer2(void) {
     Field *field;
     Container *container;
     char name[20];
@@ -261,6 +263,54 @@ void test_findNakedTuplesInContainer2(void) {
     TEST_ASSERT_EQUAL(1, findNakedTuplesInContainer(container, 2));
 }
 
+void test_findNakedPairsInContainer3(void) {
+    Container *container;
+
+    container = (Container *) xmalloc(sizeof (Container));
+    container->name = strdup("row 4");
+    container->fields = (Field **) xmalloc(sizeof (Field *) * MAX_NUMBER);
+
+    // no naked tuples
+    for (int i = 0; i < MAX_NUMBER; i++) {
+        unsigned cand1[9] = {0, 2, 0, 4, 5, 6, 7, 8, 0};
+        char name[5];
+        sprintf(name, "XX%u", i);
+        container->fields[i] = createField(name, 0, cand1);
+    }
+
+    TEST_ASSERT_EQUAL(0, findNakedTuplesInContainer(container, 2));
+}
+
+
+void test_findNakedTriplesInContainer(void) {
+    Container *container;
+
+    container = (Container *) xmalloc(sizeof (Container));
+    container->name = strdup("row 5");
+    container->fields = (Field **) xmalloc(sizeof (Field *) * MAX_NUMBER);
+
+    for (int i = 0; i < MAX_NUMBER; i++) {
+        unsigned cand1[9] = {0, 2, 0, 4, 5, 6, 7, 8, 0};
+        char name[5];
+        sprintf(name, "XX%u", i);
+        container->fields[i] = createField(name, 0, cand1);
+    }
+
+    // let 2 fields contain a naked tuple: 7, 8
+    for (int i = 2; i <= 4; i++) {
+        unsigned cand1[9] = {0, 0, 0, 0, 0, 6, 7, 8, 0};
+        char name[5];
+        sprintf(name, "NA%u", i);
+        container->fields[i] = createField(name, 0, cand1);
+    }
+
+    // no pairs
+    TEST_ASSERT_EQUAL(0, findNakedTuplesInContainer(container, 2));
+    
+    // but a triple!
+    TEST_ASSERT_EQUAL(1, findNakedTuplesInContainer(container, 3));
+}
+
 void test_equalNumberOfFieldsAndCandidates(void) {
     FieldsVector *fieldsVector;
     unsigned *numbers;
@@ -303,8 +353,10 @@ int main(void) {
     RUN_TEST(test_fieldCandidatesContainAllOf);
     RUN_TEST(test_fieldCandidatesAreSubsetOf);
     RUN_TEST(test_equalNumberOfFieldsAndCandidates);
-    RUN_TEST(test_findNakedTuplesInContainer);
-    RUN_TEST(test_findNakedTuplesInContainer2);
+    RUN_TEST(test_findNakedPairsInContainer);
+    RUN_TEST(test_findNakedPairsInContainer2);
+    RUN_TEST(test_findNakedPairsInContainer3);
+    RUN_TEST(test_findNakedTriplesInContainer);
 //        RUN_TEST(test_setupGrid);
     return UNITY_END();
 }

@@ -28,7 +28,8 @@ int readSudoku(char *inputFilename) {
     int f;
     FILE *file;
 
-    printf("Reading Sudoku from file %s ...\n", inputFilename);
+    sprintf(buffer, "Reading Sudoku from file %s ...\n", inputFilename);
+    logVerbose(buffer);
 
     // open file
     file = fopen(inputFilename, "r");
@@ -56,10 +57,12 @@ int readSudoku(char *inputFilename) {
         }
         linecount++;
 
-        printf("Next line read: %s ...\n", line);
+        sprintf(buffer, "Next line read: %s ...\n", line);
+        logVerbose(buffer);
 
         if (line[0] != '#') {
-            printf("... is a data line and contains row %d ...\n", y);
+            sprintf(buffer, "... is a data line and contains row %d ...\n", y);
+            logVerbose(buffer);
 
             /*
              * go through all chars of the line, should be only digits and 
@@ -70,7 +73,8 @@ int readSudoku(char *inputFilename) {
                 ok = 0; // oops
                 break;
             }
-            printf("Storing line %d ...\n", y);
+            sprintf(buffer, "Storing line %d ...\n", y);
+            logVerbose(buffer);
             for (x = 0; x < MAX_NUMBER; x++) {
                 c = line[x];
                 if ((c >= '0') && (c <= (char) (MAX_NUMBER + (int) '0'))) {
@@ -89,23 +93,23 @@ int readSudoku(char *inputFilename) {
             // a comment line => ignore it
         }
     }
-    printf("Sudoku read\n");
+    logVerbose("Sudoku read\n");
 
     fclose(file);
 
     if (ok && y != MAX_NUMBER) {
-        printlog("Error reading the Sudoku from file: too few data rows.");
+        logError("Error reading the Sudoku from file: too few data rows.");
         ok = 0;
     }
 
-    printf("Copy original grid ...\n");
+    logVerbose("Copy original grid ...\n");
 
     // copy original grid
     for (f = 0; f < NUMBER_OF_FIELDS; f++) {
         fields[f].value = fields[f].initialValue;
     }
 
-    printf("Initial values filled.\n");
+    logVerbose("Initial values filled.\n");
 
     return ok;
 }

@@ -14,23 +14,29 @@
 extern "C" {
 #endif
 
-    void showCandidates(Field *field);
-    void showAllCandidates();
+#define LOGLEVEL_ERRORS   0
+#define LOGLEVEL_SOLVED_CELLS   1
+#define LOGLEVEL_CHANGES    2
+#define LOGLEVEL_VERBOSE    9
 
+    extern char buffer[1000];
+
+
+    // one of the LOGLEVEL_* constants
+    extern unsigned logLevel;
+    void logVerbose(char *text);
+    void logError(char *text);
     void logReduction(char *msg);
     void logNewNumber(char *msg);
 
+    void showCandidates(Field *field);
+    void showAllCandidates();
+
     void openLogFile(char *outputFilename);
-    void printlog(char *text);
     void closeLogFile();
 
 
     extern char buffer[1000];
-
-    // 0 ... no verbose logging, 1 ... log changes, 2 ... log even considerations
-    extern int verboseLogging;
-
-
 
 #ifdef	__cplusplus
 }
