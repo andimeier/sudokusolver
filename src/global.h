@@ -13,7 +13,7 @@ extern "C" {
 #endif
 
     // number of possible numbers
-#define MAX_NUMBER 9
+#define MAX_NUMBER 4
 #define NUMBER_OF_FIELDS MAX_NUMBER * MAX_NUMBER
 
 #ifdef	__cplusplus

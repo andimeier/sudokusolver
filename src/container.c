@@ -29,11 +29,16 @@ void setupContainerSets() {
     //    typedef int (*myFuncDef)(int, int);
 
     // at the moment, no other dimensions are possible than a 9x9 Sudoku
-    assert(MAX_NUMBER == 9);
+    assert(MAX_NUMBER == 9 || MAX_NUMBER == 4);
 
     if (MAX_NUMBER == 9) {
         boxWidth = 3;
         boxHeight = 3;
+    }
+
+    if (MAX_NUMBER == 4) {
+        boxWidth = 2;
+        boxHeight = 2;
     }
 
 }
@@ -152,7 +157,7 @@ int determineBoxContainer(unsigned x, unsigned y) {
     assert(boxHeight > 0);
     assert(boxWidth > 0);
 
-    return (y / boxHeight) * 3 + (x / boxWidth);
+    return (y / boxHeight) * (MAX_NUMBER / boxWidth) + (x / boxWidth);
 }
 
 /**
