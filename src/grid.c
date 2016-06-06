@@ -339,6 +339,9 @@ int forbidNumbersInOtherFields(Container *container, unsigned *n, Field **dontTo
 
                         field->candidates[i] = 0;
                         field->candidatesLeft--;
+                        
+                        assert(field->candidatesLeft > 0);
+                        
                         progress = 1;
                     }
                 }
@@ -363,6 +366,8 @@ int forbidNumber(Field *field, unsigned n) {
     if (field->candidates[n - 1]) {
         field->candidates[n - 1] = 0;
         field->candidatesLeft--;
+        assert(field->candidatesLeft > 0);
+        
         if (field->candidatesLeft == 1) {
             // nur noch eine einzige Zahl ist moeglich => ausfuellen!
             setUniqueNumber(field);

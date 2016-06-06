@@ -20,7 +20,7 @@
 #define ZZDEBUG_SEGFAULT
 
 // search for pairs, triples and quadruples, not more
-#define MAX_TUPLE_DIMENSION 2
+#define MAX_TUPLE_DIMENSION 3
 
 typedef int (*strategy)(void);
 
