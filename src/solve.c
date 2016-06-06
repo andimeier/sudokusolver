@@ -17,7 +17,7 @@
 #include "grid.h"
 #include "log.h"
 
-#define DEBUG_SEGFAULT
+#define ZZDEBUG_SEGFAULT
 
 // search for pairs, triples and quadruples, not more
 #define MAX_TUPLE_DIMENSION 2
@@ -163,7 +163,13 @@ int findNakedTuples() {
 
     // allocate memory for strategy variables
     numbers = (unsigned *) xmalloc(sizeof (unsigned) * (MAX_TUPLE_DIMENSION + 1));
-    foundFields = (FieldsVector *) xmalloc(sizeof (FieldsVector) * (MAX_TUPLE_DIMENSION + 1));
+//    foundFields = (FieldsVector *) xmalloc(sizeof (FieldsVector) * (MAX_TUPLE_DIMENSION + 1));
+    
+    /* wie viele Felder muss ich allokieren fuer diesen Algorithmus? Ich bekomme
+     * ein Segfault, wenn ich hier nur MAX_TUPLE_DIMENSION + 1 allokiere).
+     * Algo anschauen!!
+     */
+    foundFields = (FieldsVector *) xmalloc(sizeof (FieldsVector) * (MAX_NUMBER + 1));
 
     for (int dimension = 2; dimension <= MAX_TUPLE_DIMENSION; dimension++) {
 
