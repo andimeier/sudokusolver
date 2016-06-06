@@ -63,7 +63,11 @@ int main(int argc, char **argv) {
 
     // FIXME hardcoded example sudoku just to make the exec work without parameters (for GDB))
     if (!inputFilename) {
-        inputFilename = strdup("examples/naked-pair.sudoku");
+        if (MAX_NUMBER == 9) {
+            inputFilename = strdup("examples/naked-pair.sudoku");
+        } else if (MAX_NUMBER == 4) {
+            inputFilename = strdup("examples/4x4-naked-pair.sudoku");
+        }
         logLevel = LOGLEVEL_VERBOSE;
     }
 

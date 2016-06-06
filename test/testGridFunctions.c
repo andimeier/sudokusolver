@@ -182,6 +182,7 @@ void test_fieldCandidatesAreSubsetOf(void) {
 
 void test_findNakedPairsInContainer(void) {
     Container *container;
+    int dimension;
 
     container = (Container *) xmalloc(sizeof (Container));
     container->name = strdup("row 3");
@@ -202,7 +203,15 @@ void test_findNakedPairsInContainer(void) {
         container->fields[i] = createField(name, 0, cand1);
     }
 
-    TEST_ASSERT_EQUAL(1, findNakedTuplesInContainer(container, 2));
+    // allocate memory for strategy variables
+    dimension = 2;
+    unsigned *numbers = (unsigned *) xmalloc(sizeof (unsigned) * (dimension + 1));
+    FieldsVector *foundFields = (FieldsVector *) xmalloc(sizeof (FieldsVector) * (dimension + 1));
+
+    TEST_ASSERT_EQUAL(1, findNakedTuplesInContainer(container, dimension));
+
+    free(foundFields);
+    free(numbers);
 }
 
 #ifdef BUGGY_TRY_TO_REVIVE_TESTS
@@ -213,6 +222,7 @@ void test_findNakedPairsInContainer2(void) {
     Field *field;
     Container *container;
     char name[20];
+    int dimension;
 
     container = (Container *) xmalloc(sizeof (Container));
     container->name = strdup("box 1");
@@ -260,11 +270,20 @@ void test_findNakedPairsInContainer2(void) {
         container->fields[i] = field;
     }
 
-    TEST_ASSERT_EQUAL(1, findNakedTuplesInContainer(container, 2));
+    // allocate memory for strategy variables
+    dimension = 2;
+    unsigned *numbers = (unsigned *) xmalloc(sizeof (unsigned) * (dimension + 1));
+    FieldsVector *foundFields = (FieldsVector *) xmalloc(sizeof (FieldsVector) * (dimension + 1));
+
+    TEST_ASSERT_EQUAL(1, findNakedTuplesInContainer(container, dimension));
+
+    free(foundFields);
+    free(numbers);
 }
 
 void test_findNakedPairsInContainer4(void) {
     Container *container;
+    int dimension;
 
     container = (Container *) xmalloc(sizeof (Container));
     container->name = strdup("row 4");
@@ -278,12 +297,20 @@ void test_findNakedPairsInContainer4(void) {
         container->fields[i] = createField(name, 0, cand1);
     }
 
-    TEST_ASSERT_EQUAL(0, findNakedTuplesInContainer(container, 2));
-}
+    // allocate memory for strategy variables
+    dimension = 2;
+    unsigned *numbers = (unsigned *) xmalloc(sizeof (unsigned) * (dimension + 1));
+    FieldsVector *foundFields = (FieldsVector *) xmalloc(sizeof (FieldsVector) * (dimension + 1));
 
+    TEST_ASSERT_EQUAL(0, findNakedTuplesInContainer(container, dimension));
+
+    free(foundFields);
+    free(numbers);
+}
 
 void test_findNakedTriplesInContainer(void) {
     Container *container;
+    int dimension;
 
     container = (Container *) xmalloc(sizeof (Container));
     container->name = strdup("row 5");
@@ -304,11 +331,19 @@ void test_findNakedTriplesInContainer(void) {
         container->fields[i] = createField(name, 0, cand1);
     }
 
+    // allocate memory for strategy variables
+    dimension = 3;
+    unsigned *numbers = (unsigned *) xmalloc(sizeof (unsigned) * (dimension + 1));
+    FieldsVector *foundFields = (FieldsVector *) xmalloc(sizeof (FieldsVector) * (dimension + 1));
+
     // no pairs
     TEST_ASSERT_EQUAL(0, findNakedTuplesInContainer(container, 2));
-    
+
     // but a triple!
     TEST_ASSERT_EQUAL(1, findNakedTuplesInContainer(container, 3));
+
+    free(foundFields);
+    free(numbers);
 }
 
 void test_equalNumberOfFieldsAndCandidates(void) {
@@ -357,6 +392,6 @@ int main(void) {
     RUN_TEST(test_findNakedPairsInContainer2);
     RUN_TEST(test_findNakedPairsInContainer4);
     RUN_TEST(test_findNakedTriplesInContainer);
-//        RUN_TEST(test_setupGrid);
+    //        RUN_TEST(test_setupGrid);
     return UNITY_END();
 }

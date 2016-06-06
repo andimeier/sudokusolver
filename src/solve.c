@@ -137,24 +137,35 @@ int findHiddenSingles() {
 int findNakedTuples() {
     int progress;
     Container *container;
+    unsigned *numbers;
+    FieldsVector *foundFields;
 
     logVerbose("[strategy] find naked tuples ...");
 
     progress = 0;
 
+    // allocate memory for strategy variables
+    numbers = (unsigned *) xmalloc(sizeof (unsigned) * (MAX_TUPLE_DIMENSION + 1));
+    foundFields = (FieldsVector *) xmalloc(sizeof (FieldsVector) * (MAX_TUPLE_DIMENSION + 1));
+
     for (int dimension = 2; dimension <= MAX_TUPLE_DIMENSION; dimension++) {
 
         // go through all containers and find naked tuples therein
-        for (unsigned c = 0; c < numberOfContainers; c++) {
+        //        for (unsigned c = 0; c < numberOfContainers; c++) {
+        for (unsigned c = 0; c < 2; c++) {
             container = &(allContainers[c]);
             sprintf(buffer, "-- next container: %s", container->name);
             logVerbose(buffer);
-            progress |= findNakedTuplesInContainer(container, dimension);
+            progress |= findNakedTuplesInContainer(container, dimension, numbers, foundFields);
         }
 
-        if (progress)
+        if (progress) {
             break;
+        }
     }
+
+    free(foundFields);
+    free(numbers);
 
     return progress;
 }
@@ -337,18 +348,16 @@ int findPointingTupels() {
  *   tuples
  * @param dimension dimension of the tupel to be looked for. 2=pairs, 
  *   3=triples etc.
+ * @param numbers numbers vector to be searched for, terminated with 0
+ * @param foundFfields vector of found fields, terminated with NULL
  * @return progress flag: 1 for "something has changed", 0 for "no change"
  */
-unsigned findNakedTuplesInContainer(Container *container, unsigned dimension) {
+unsigned findNakedTuplesInContainer(Container *container, unsigned dimension, unsigned *numbers, FieldsVector *foundFields) {
     unsigned progress;
-    unsigned *numbers;
-    FieldsVector *foundFields;
 
     assert(dimension > 0 && dimension < MAX_NUMBER);
 
     progress = 0;
-    numbers = (unsigned *) xmalloc(sizeof (unsigned) * (dimension + 1));
-    foundFields = (FieldsVector *) xmalloc(sizeof (FieldsVector) * (dimension + 1));
 
     // we are in level 0 of recursion: initialize numbers vector
     numbers[0] = 0;
@@ -363,9 +372,6 @@ unsigned findNakedTuplesInContainer(Container *container, unsigned dimension) {
     } else {
         logVerbose("[1244] returned from recursion");
     }
-
-    free(foundFields);
-    free(numbers);
 
     return progress;
 }
