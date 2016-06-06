@@ -71,6 +71,9 @@ int main(int argc, char **argv) {
         logLevel = LOGLEVEL_VERBOSE;
     }
 
+    //FIXME remove this diabling of output buffering, it is only for testing purposes
+    setvbuf(stdout, NULL, _IONBF, 0);
+
     // first positional parameter is a Sudoku string
     if (optind < argc) {
         sudoku = argv[optind];

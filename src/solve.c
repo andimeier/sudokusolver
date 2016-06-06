@@ -17,6 +17,8 @@
 #include "grid.h"
 #include "log.h"
 
+#define DEBUG_SEGFAULT
+
 // search for pairs, triples and quadruples, not more
 #define MAX_TUPLE_DIMENSION 2
 
@@ -31,6 +33,21 @@ int errors;
 
 // FIXME remove this test counter
 int testCounter = 0;
+
+
+printFoundFields(FieldsVector *foundFields) {
+    FieldsVector *f;
+    
+    f = foundFields;
+    
+    buffer[0] = '\0';
+    while(*f) {
+        strcat(buffer, "-");
+        strcat(buffer, (*f)->name);
+        f++;
+    }
+    logVerbose(buffer);
+}
 
 /**
  * check for cells having only one candidate left and set their value (and
@@ -389,7 +406,7 @@ unsigned findNakedTuplesInContainer(Container *container, unsigned dimension, un
  * @param fieldsContainingCandidates vector of found fields, terminated with NULL
  * @return 1 if a naked tuple has been found, 0 otherwise
  */
-unsigned recurseNakedTuples(unsigned maxLevel, Container *container, unsigned level, unsigned *numbers, FieldsVector *fieldsContainingCandidates) {
+unsigned recurseNakedTuples(unsigned maxLevel, Container *container, unsigned level, unsigned *numbers, FieldsVector *foundFields) {
 
     assert(level >= 1);
     assert(level == 1 || (level >= 2 && numbers[level - 2] != 0));
@@ -407,7 +424,7 @@ unsigned recurseNakedTuples(unsigned maxLevel, Container *container, unsigned le
 
     // prepare list terminations *after* current list item
     numbers[level] = 0;
-    fieldsContainingCandidates[level] = NULL;
+    foundFields[level] = NULL;
 
     // iterate through all numbers of this level, starting with number of 
     // previous iteration level plus 1. Thus, the numbers are in ascending
@@ -458,7 +475,11 @@ unsigned recurseNakedTuples(unsigned maxLevel, Container *container, unsigned le
              * to contain *all* candidates, e.g. see the naked triple (1, 2), 
              * (1, 3), (2, 3). It only has to be a subset of the "numbers"
              */
+#ifdef DEBUG_SEGFAULT
+            if (1) {
+#else
             if (fieldCandidatesAreSubsetOf(field, numbers)) {
+#endif
                 sprintf(buffer, "yeah! field candidates of field %s (#%u in %s) are a subset of the numbers %u, %u",
                         field->name, i, container->name, numbers[0], numbers[1]);
                 logVerbose(buffer);
@@ -466,10 +487,42 @@ unsigned recurseNakedTuples(unsigned maxLevel, Container *container, unsigned le
                 //    if (level > 1) return 0;
 
                 // append field to list of found fields
-                appendField(fieldsContainingCandidates, field);
+                logVerbose("calling appendField");
+
+                // FIXME HIER ist der Hund drin!
+                // appendField bekommt irgendwas Falsches vorgesetzt
+                /*
+                 *  ./out/sudoku-solver.exe  | grep 'inc counter to' |sort | uniq -c
+                 * 
+                 *     258 inc counter to 1
+                 *      30 inc counter to 10
+                 *      22 inc counter to 11
+                 *      14 inc counter to 12
+                 *       6 inc counter to 13
+                 *     220 inc counter to 2
+                 *     182 inc counter to 3
+                 *     144 inc counter to 4
+                 *     118 inc counter to 5
+                 *      94 inc counter to 6
+                 *      78 inc counter to 7
+                 *      62 inc counter to 8
+                 *      46 inc counter to 9
+                 * Wo kommt das Zaehlen bis 13 her? Der Vektor sollte ja max. dimension lang sein ...
+                 * 
+                 * Tja, das Problem ist, dass appendField vorhandene Felder erneut einfuegt,
+                 * wenn es ein zweites Mal gefordert ist.
+                 */
+
+                printFoundFields(foundFields);
+
+                appendField(foundFields, field);
 
                 // check if we have found enough fields
-                if (equalNumberOfFieldsAndCandidates(fieldsContainingCandidates, numbers)) {
+#ifdef DEBUG_SEGFAULT
+                if (0) {
+#else
+                if (equalNumberOfFieldsAndCandidates(foundFields, numbers)) {
+#endif
                     unsigned progress;
 
                     /* found a naked tuple! But we only make progress if - based
@@ -486,7 +539,9 @@ unsigned recurseNakedTuples(unsigned maxLevel, Container *container, unsigned le
                     sprintf(buffer, "GOT IT! forbidding numbers in %s for \"other\" fields...", container->name);
                     logVerbose(buffer);
 
-                    progress |= forbidNumbersInOtherFields(container, numbers, fieldsContainingCandidates);
+#ifndef DEBUG_SEGFAULT
+                    progress |= forbidNumbersInOtherFields(container, numbers, foundFields);
+#endif
                     logVerbose("[123a]");
                     return progress;
                 }
@@ -497,10 +552,14 @@ unsigned recurseNakedTuples(unsigned maxLevel, Container *container, unsigned le
             // maximum number because then no greater number could be
             // possible, so the recursion would not yield any result anyway
             if (numbers[level - 1] < MAX_NUMBER) {
-                if (recurseNakedTuples(maxLevel, container, level + 1, numbers, fieldsContainingCandidates)) {
+                if (recurseNakedTuples(maxLevel, container, level + 1, numbers, foundFields)) {
                     logVerbose("recursion returned with progress flag of 1");
                     // found a naked tuple! Instantly return
                     sprintf(buffer, "recursion exited with 1, propagate exit from level %d", level);
+
+                    logVerbose("[666gh]:");
+                    printFoundFields(foundFields);
+
                     logVerbose(buffer);
                     return 1;
                 }
@@ -513,7 +572,10 @@ unsigned recurseNakedTuples(unsigned maxLevel, Container *container, unsigned le
 
     // take back extensions of the vectors from the current level
     numbers[level - 1] = 0;
-    fieldsContainingCandidates[level - 1] = NULL;
+    foundFields[level - 1] = NULL;
+
+    logVerbose("take back current recursion level:");
+    printFoundFields(foundFields);
 
     sprintf(buffer, "leaving recursion level %d/%d, going back one level\n", level, maxLevel);
     logVerbose(buffer);

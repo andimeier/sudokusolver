@@ -9,6 +9,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
+#include <assert.h>
 #include "global.h"
 #include "util.h"
 #include "log.h"
@@ -50,6 +51,8 @@ unsigned ulength(unsigned *array) {
     unsigned i;
     unsigned *ptr;
 
+    assert(array != NULL);
+
     ptr = array;
     i = 0;
     while (*ptr++) i++;
@@ -59,23 +62,39 @@ unsigned ulength(unsigned *array) {
 
 /**
  * append a Field reference to a NULL-terminated list of references to Fields.
+ * If the list of field references already contains the field to be added,
+ * nothing happens (the new field will not be added a second time).
  * 
  * @param fields already existing list of field references
  * @param newField the field reference to be added to the end of the list
  */
 void appendField(Field **fields, Field *newField) {
     Field **ptr;
-    
+    int count;
+
+    assert(fields != NULL);
+    assert(newField != NULL);
+
     ptr = fields;
-    
+
     // search end of current list
+    count = 0;
     while (*ptr) {
+        count++;
+        sprintf(buffer, "inc counter to %d", count);
+        logVerbose(buffer);
+        
+        // break if field is already in field list
+        if (*ptr == newField) {
+            return;
+        }
+        
         ptr++;
     }
-    
+
     // extend list
     *ptr++ = newField;
-    
+
     // terminate extended list
     *ptr = NULL;
 }
@@ -88,13 +107,16 @@ void appendField(Field **fields, Field *newField) {
  * @return 1 if the field is in the field list, 0 if it is not
  */
 int containsField(Field **list, Field * field) {
+
+    assert(*list != NULL);
+    assert(field != NULL);
+
     for (int i = 0; list[i] != NULL; i++) {
         if (field == list[i])
             return 1;
     }
     return 0;
 }
-
 
 /**
  * checks if the possible candidates for a field are a subset of the given 
@@ -109,6 +131,11 @@ int containsField(Field **list, Field * field) {
 int fieldCandidatesAreSubsetOf(Field *field, unsigned *numbers) {
     unsigned *numbersPtr;
     int found;
+
+    assert(field != NULL);
+    
+    sprintf(buffer, "field to be checked in fieldCandidatesAreSubsetOf: %s", field->name);
+    logVerbose(buffer);
 
     if (field->value) {
         // already solved => nothing to do with the candidates
