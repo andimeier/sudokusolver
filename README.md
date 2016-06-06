@@ -1,4 +1,4 @@
-Sudoku-Solver
+﻿Sudoku-Solver
 ============
 
 Description
@@ -16,6 +16,23 @@ Compile:
 Call:
 
     out/sudoku-solver < examples/sudoku1.sudoku
+
+
+Install Unity (Unit testing)
+---------------------
+
+Download Unity from 
+
+    https://github.com/ThrowTheSwitch/Unity/archive/master.zip
+
+and place it in a folder beside the Sudoku solver project.
+
+Running 
+
+    make test
+
+in the project directory will try to locate Unity at `../unity/`.
+
 
 Usage
 ----
