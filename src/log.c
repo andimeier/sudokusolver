@@ -11,6 +11,9 @@
 #include "log.h"
 
 
+static void printlog(char *text);
+
+
 static FILE *logfile;
 
 // general buffer for string operations
@@ -54,7 +57,6 @@ void showCandidates(Field *field) {
  * show the remaining candidates of all fields
  */
 void showAllCandidates() {
-    char candidates[MAX_NUMBER + 1];
     Field *field;
 
     for (int f = 0; f < NUMBER_OF_FIELDS; f++) {

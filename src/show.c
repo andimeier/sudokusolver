@@ -29,12 +29,12 @@ void show(int showInit) {
     int index;
     Field *field;
 
-    printlog(showInit ? "   1 2 3 4 5 6 7 8 9          1 2 3 4 5 6 7 8 9 " : "   1 2 3 4 5 6 7 8 9 ");
+    logAlways(showInit ? "   1 2 3 4 5 6 7 8 9          1 2 3 4 5 6 7 8 9 " : "   1 2 3 4 5 6 7 8 9 ");
     for (y = 0; y < MAX_NUMBER; y++) {
 
         if (!(y % 3)) {
             // intermediate header row
-            printlog(showInit ? "  +-----+-----+-----+        +-----+-----+-----+" : "  +-----+-----+-----+");
+            logAlways(showInit ? "  +-----+-----+-----+        +-----+-----+-----+" : "  +-----+-----+-----+");
 
         }
         // normal data row
@@ -86,11 +86,11 @@ void show(int showInit) {
         }
         buffer[index++] = '|';
         buffer[index++] = '\0';
-        printlog(buffer);
+        logAlways(buffer);
     }
 
     // intermediate header row
-    printlog(showInit ? "  +-----+-----+-----+        +-----+-----+-----+" : "  +-----+-----+-----+");
+    logAlways(showInit ? "  +-----+-----+-----+        +-----+-----+-----+" : "  +-----+-----+-----+");
 
 
 
@@ -180,7 +180,7 @@ void sudokuString(int showInit) {
     buffer[f] = '\0';
 
     // intermediate header row
-    printlog(buffer);
+    logAlways(buffer);
 
     free(buffer);
 }

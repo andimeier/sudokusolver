@@ -34,7 +34,76 @@ int errors;
 // FIXME remove this test counter
 int testCounter = 0;
 
-printFoundFields(FieldsVector *foundFields) {
+/**
+ * The working horse. Try to solve the Sudoku.
+ * 
+ * @return 1 ... Sudoku has been solved successfully. 0 ... algorithm got stuck,
+ *   indefinite iteration cancelled.
+ */
+int solve() {
+    int iteration;
+    int progress; // flag: something has changed in the iteration
+    strategy *strategies;
+    strategy *currentStrategy;
+
+    // add stragies to list of strategies to be used
+    strategies = (strategy *) xmalloc(sizeof (strategy) * 10);
+    currentStrategy = strategies;
+    *currentStrategy++ = &checkForSolvedCells;
+    *currentStrategy++ = &findHiddenSingles;
+    *currentStrategy++ = &findNakedTuples;
+    *currentStrategy++ = NULL; // terminate list of strategies
+
+
+    iteration = 0;
+    errors = 0; // no errors yet
+
+    printSvg(0);
+
+    cleanUpCandidates();
+
+    // main loop, only enter if Sudoku has been solved or if we got stuck and
+    // are unable to solve the Sudoku
+    do {
+        iteration++;
+        progress = 0; // nothing changed in this iteration (no wonder - has just started)
+        sprintf(buffer, "----- Beginne Iteration %d -----", iteration);
+        logVerbose(buffer);
+
+
+        // loop through all strategies
+        currentStrategy = strategies;
+        while (*currentStrategy) {
+            progress |= (**currentStrategy)();
+
+            if (progress) {
+                // no iterating to next strategy
+                return 1; // FIXME debugging code
+                break;
+            }
+
+            // no progress => try next strategy
+            currentStrategy++;
+        }
+
+        if (isFinished()) {
+            return 1;
+        }
+
+    } while (progress);
+
+    showAllCandidates();
+
+    free(strategies);
+
+    // wir kommen hierher, weil die letzte Iteration keine einzige Aenderung gebracht
+    // hat => wir bleiben stecken mit unseren Algorithmen. Ohne Aenderung in der
+    // Implementierung ist dieses Sudoku nicht loesbar
+    return 0;
+}
+
+
+void printFoundFields(FieldsVector *foundFields) {
     FieldsVector *f;
 
     f = foundFields;
@@ -596,73 +665,6 @@ unsigned recurseNakedTuples(unsigned maxLevel, Container *container, unsigned le
     return 0;
 }
 
-/**
- * The working horse. Try to solve the Sudoku.
- * 
- * @return 1 ... Sudoku has been solved successfully. 0 ... algorithm got stuck,
- *   indefinite iteration cancelled.
- */
-int solve() {
-    int iteration;
-    int progress; // flag: something has changed in the iteration
-    strategy *strategies;
-    strategy *currentStrategy;
-
-    // add stragies to list of strategies to be used
-    strategies = (strategy *) xmalloc(sizeof (strategy) * 10);
-    currentStrategy = strategies;
-    *currentStrategy++ = &checkForSolvedCells;
-    *currentStrategy++ = &findHiddenSingles;
-    *currentStrategy++ = &findNakedTuples;
-    *currentStrategy++ = NULL; // terminate list of strategies
-
-
-    iteration = 0;
-    errors = 0; // no errors yet
-
-    printSvg(0);
-
-    cleanUpCandidates();
-
-    // main loop, only enter if Sudoku has been solved or if we got stuck and
-    // are unable to solve the Sudoku
-    do {
-        iteration++;
-        progress = 0; // nothing changed in this iteration (no wonder - has just started)
-        sprintf(buffer, "----- Beginne Iteration %d -----", iteration);
-        logVerbose(buffer);
-
-
-        // loop through all strategies
-        currentStrategy = strategies;
-        while (*currentStrategy) {
-            progress |= (**currentStrategy)();
-
-            if (progress) {
-                // no iterating to next strategy
-                return 1; // FIXME debugging code
-                break;
-            }
-
-            // no progress => try next strategy
-            currentStrategy++;
-        }
-
-        if (isFinished()) {
-            return 1;
-        }
-
-    } while (progress);
-
-    showAllCandidates();
-
-    free(strategies);
-
-    // wir kommen hierher, weil die letzte Iteration keine einzige Aenderung gebracht
-    // hat => wir bleiben stecken mit unseren Algorithmen. Ohne Aenderung in der
-    // Implementierung ist dieses Sudoku nicht loesbar
-    return 0;
-}
 
 /**
  * compare two lists of candidates and check if they are equal
@@ -671,6 +673,8 @@ int solve() {
  * @param c2 second list of unsigned numbers (candidates)
  * @return 1 if both are equal, 0 if they are not
  */
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Wunused-function"
 int compareCandidates(unsigned *c1, unsigned *c2) {
     for (int n = 0; n < MAX_NUMBER; n++) {
         if (c1[n] != c2[n])
@@ -680,3 +684,4 @@ int compareCandidates(unsigned *c1, unsigned *c2) {
     // both are equal
     return 1;
 }
+#pragma GCC diagnostic pop

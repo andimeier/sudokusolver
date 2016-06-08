@@ -29,14 +29,14 @@ int readSudoku(char *inputFilename) {
     FILE *file;
 
     sprintf(buffer, "Reading Sudoku from file %s ...", inputFilename);
-    logVerbose(buffer);
+    logAlways(buffer);
 
     // open file
     file = fopen(inputFilename, "r");
 
     if (!file) {
         sprintf(buffer, "Error opening Sudoku file %s", inputFilename);
-        printlog(buffer);
+        logError(buffer);
         return 0;
     }
 
@@ -69,7 +69,7 @@ int readSudoku(char *inputFilename) {
              * spaces
              */
             if (y >= MAX_NUMBER) {
-                printlog("Error reading the Sudoku from file: too many data rows.");
+                logError("Error reading the Sudoku from file: too many data rows.");
                 ok = 0; // oops
                 break;
             }
@@ -83,7 +83,7 @@ int readSudoku(char *inputFilename) {
                     fields[y * MAX_NUMBER + x].initialValue = 0;
                 } else {
                     sprintf(buffer, "Error reading the Sudoku from file: illegal character ('%c') in line %d at position %d.", c, x + 1, linecount);
-                    printlog(buffer);
+                    logError(buffer);
                     ok = 0; // oops, this was no number
                     break;
                 }
@@ -129,7 +129,7 @@ int importSudoku(char *sudoku) {
         c = sudoku[f];
         if (c == '\0') {
             sprintf(buffer, "Error parsing the Sudoku input: unexpected end of Sudoku data after character #%d", f);
-            printlog(buffer);
+            logError(buffer);
             return 0;
         }
 
@@ -165,4 +165,5 @@ int importSudoku(char *sudoku) {
  */
 int parseSudokuString(char *sudoku, int maxNumber) {
     // FIXME not used yet, should be the common function which readSudoku and importSudoku uses
+    return 0;
 }

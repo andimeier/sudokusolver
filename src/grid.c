@@ -70,7 +70,7 @@ void initFields() {
         // a 26-number-Sudoku)
         sprintf(field->name, "%c%u", (char) (field->y + (int) 'A'), field->x + 1);
     }
-    printlog("Finished initializing fields");
+    logVerbose("Finished initializing fields");
 }
 
 /**

@@ -15,7 +15,7 @@ unsigned *getContainerTypes(unsigned gameType) {
 
     switch (gameType) {
         case GAME_STANDARD_SUDOKU:
-            printlog("Game type: Standard Sudoku");
+            logVerbose("Game type: Standard Sudoku");
             containerTypes = (unsigned *) xmalloc(sizeof (unsigned) * (3 + 1));
 
             unsigned *ptr = containerTypes;
