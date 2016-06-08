@@ -20,7 +20,7 @@
 #define ZZDEBUG_SEGFAULT
 
 // search for pairs, triples and quadruples, not more
-#define MAX_TUPLE_DIMENSION 3
+#define MAX_TUPLE_DIMENSION 2
 
 typedef int (*strategy)(void);
 
@@ -34,14 +34,13 @@ int errors;
 // FIXME remove this test counter
 int testCounter = 0;
 
-
 printFoundFields(FieldsVector *foundFields) {
     FieldsVector *f;
-    
+
     f = foundFields;
-    
+
     buffer[0] = '\0';
-    while(*f) {
+    while (*f) {
         strcat(buffer, "-");
         strcat(buffer, (*f)->name);
         f++;
@@ -163,8 +162,8 @@ int findNakedTuples() {
 
     // allocate memory for strategy variables
     numbers = (unsigned *) xmalloc(sizeof (unsigned) * (MAX_TUPLE_DIMENSION + 1));
-//    foundFields = (FieldsVector *) xmalloc(sizeof (FieldsVector) * (MAX_TUPLE_DIMENSION + 1));
-    
+    //    foundFields = (FieldsVector *) xmalloc(sizeof (FieldsVector) * (MAX_TUPLE_DIMENSION + 1));
+
     /* wie viele Felder muss ich allokieren fuer diesen Algorithmus? Ich bekomme
      * ein Segfault, wenn ich hier nur MAX_TUPLE_DIMENSION + 1 allokiere).
      * Algo anschauen!!
@@ -174,8 +173,8 @@ int findNakedTuples() {
     for (int dimension = 2; dimension <= MAX_TUPLE_DIMENSION; dimension++) {
 
         // go through all containers and find naked tuples therein
-        //        for (unsigned c = 0; c < numberOfContainers; c++) {
-        for (unsigned c = 0; c < 2; c++) {
+        for (unsigned c = 0; c < numberOfContainers; c++) {
+            //        for (unsigned c = 0; c < 2; c++) {
             container = &(allContainers[c]);
             sprintf(buffer, "-- next container: %s", container->name);
             logVerbose(buffer);
@@ -444,6 +443,10 @@ unsigned recurseNakedTuples(unsigned maxLevel, Container *container, unsigned le
         numbers[level - 1] = number;
         sprintf(buffer, "number vector is now (%u, %u, %u), level=%u", numbers[0], numbers[1], numbers[1] ? numbers[2] : 0, level);
         logVerbose(buffer);
+        
+        // reset "found fields" vector for a new search of fields matching the
+        // given numbers
+        foundFields[0] = NULL;
 
         testCounter++;
         sprintf(buffer, "~~~ testCounter: %d ~~~", testCounter);
@@ -537,12 +540,17 @@ unsigned recurseNakedTuples(unsigned maxLevel, Container *container, unsigned le
                      */
                     progress = 0;
 
+                    // FIXME debugging output
+                    showAllCandidates();
+
                     /* eliminate the found numbers of the naked tuple from
                      * all other field of the same container
                      * TODO and from other containers if all found fields 
                      * share the same other container
                      */
-                    sprintf(buffer, "GOT IT! forbidding numbers in %s for \"other\" fields...", container->name);
+                    // FIXME the following log line assumes there is a naked
+                    // PAIR found, does not work with naked triples/quads/etc.
+                    sprintf(buffer, "GOT IT! Container %s, found pair in %s/%s forbidding numbers %u/%u in %s for \"other\" fields...", container->name, foundFields[0]->name, foundFields[1]->name, numbers[0], numbers[1], container->name);
                     logVerbose(buffer);
 
 #ifndef DEBUG_SEGFAULT
@@ -632,6 +640,7 @@ int solve() {
 
             if (progress) {
                 // no iterating to next strategy
+                return 1; // FIXME debugging code
                 break;
             }
 
@@ -650,7 +659,7 @@ int solve() {
     free(strategies);
 
     // wir kommen hierher, weil die letzte Iteration keine einzige Aenderung gebracht
-    // hat => wir bleiben stecken mit unserem Algorithmus. Ohne Aenderung in der
+    // hat => wir bleiben stecken mit unseren Algorithmen. Ohne Aenderung in der
     // Implementierung ist dieses Sudoku nicht loesbar
     return 0;
 }

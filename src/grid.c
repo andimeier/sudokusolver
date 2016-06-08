@@ -101,7 +101,7 @@ void initContainers() {
     assert(numberOfContainerSets > 0);
 
     setupContainerSets();
-    
+
     containerSets = (ContainerSet *) xmalloc(sizeof (ContainerSet) * (numberOfContainerSets));
     containerSetPtr = containerSets;
 
@@ -127,16 +127,20 @@ void initContainers() {
      */
     for (unsigned set = 0; set < numberOfContainerSets; set++) {
         ContainerSet *containerSet = &(containerSets[set]);
-        
+
         // generate the corresponding child containers
         for (unsigned containerIndex = 0; containerIndex < containerSet->numberOfContainers; containerIndex++) {
             containersPtr->name = containerSet->getContainerName(containerIndex);
             containersPtr->type = containerSet->type;
             containersPtr->fields = (Field **) xmalloc(sizeof (Field *) * MAX_NUMBER);
-            
+
             // link to container set
             containerSet->containers[containerIndex] = containersPtr;
-            
+
+            // FIXME debugging code
+            sprintf(buffer, "name of container: %s", containersPtr->name);
+            logVerbose(buffer);
+
             containersPtr++;
         }
     }
@@ -192,7 +196,7 @@ void initGrid() {
 
         containers = (Container **) xmalloc(sizeof (Container *) * numberOfContainerSets);
         fieldContainer = containers;
-        
+
         /*
          * for each field, determine its position in the respective containers,
          * register the link between field and container in the container sets,
@@ -267,7 +271,7 @@ void setValue(Field *field, unsigned value) {
  */
 void forbidNumberInNeighbors(Field *field, unsigned n) {
     Container *container;
-    unsigned candidates[MAX_NUMBER];
+    unsigned numbers[2];
 
     assert(n <= MAX_NUMBER);
 
@@ -278,25 +282,22 @@ void forbidNumberInNeighbors(Field *field, unsigned n) {
     // forbid this number in all other fields of the container
 
     // build tuple to search for (just because forbidNumbersInOtherFields
-    // wants a complete candidates vector)
-    for (int i = 0; i < MAX_NUMBER; i++) {
-        candidates[i] = 0;
-    }
-    candidates[n - 1] = n;
+    // wants a vector, not a single number)
+    numbers[0] = n;
+    numbers[1] = 0; // terminate vector
+
+    // preserve candidate in "our" field only
+    Field * preserve[2];
+    preserve[0] = field;
+    preserve[1] = NULL;
 
     // forbid number in all other "neighboring fields"
     for (unsigned containerType = 0; containerType < numberOfContainerSets; containerType++) {
         container = field->containers[containerType];
 
-        // preserve candidate in "our" field only
-        Field * preserve[2];
-        preserve[0] = field;
-        preserve[1] = NULL;
-
-        forbidNumbersInOtherFields(container, candidates, preserve);
+        forbidNumbersInOtherFields(container, numbers, preserve);
     }
 }
-
 
 /**
  * eliminates candidates in all fields of a container - except in the specified
@@ -306,10 +307,10 @@ void forbidNumberInNeighbors(Field *field, unsigned n) {
  *  
  * @param container container in which candidates should be eliminated
  * @param n ... tuple of candidates to be removed from "other fields". This
- *   is a vector of MAX_NUMBER numbers, each position stands for the respective
- *   candidate, e.g. an array of [ 0, 2, 0, 0, 5, 6, 0, 0, 0 ] means that
- *   the candidates 2, 5 and 6 shall be removed from all "other fields" (fields
- *   other than those in parameter dontTouch)
+ *   is a vector of numbers, terminated with 0, e.g. an array of 
+ *   [ 2, 5, 6, 0 ] means that the candidates 2, 5 and 6 shall be removed from 
+ *   all "other fields" (fields in the container other than those in parameter 
+ *   dontTouch)
  * @param dontTouch ... NULL terminated list of Field pointers. These fields
  *   will not be touched. In all other fields in the container, the given 
  *   numbers will be removed as candidates
@@ -339,9 +340,9 @@ int forbidNumbersInOtherFields(Container *container, unsigned *n, Field **dontTo
 
                         field->candidates[i] = 0;
                         field->candidatesLeft--;
-                        
+
                         assert(field->candidatesLeft > 0);
-                        
+
                         progress = 1;
                     }
                 }
@@ -367,7 +368,7 @@ int forbidNumber(Field *field, unsigned n) {
         field->candidates[n - 1] = 0;
         field->candidatesLeft--;
         assert(field->candidatesLeft > 0);
-        
+
         if (field->candidatesLeft == 1) {
             // nur noch eine einzige Zahl ist moeglich => ausfuellen!
             setUniqueNumber(field);
@@ -510,7 +511,7 @@ int getUniquePositionInContainer(Field **container, unsigned n) {
         if ((field->value == n) || (!(field->value) && (field->candidates[n - 1] == n))) {
             sprintf(buffer, "Field %s can contain candidate %u", field->name, n);
             logVerbose(buffer);
-            
+
             if (!unique) {
                 unique = 1; // first occurrence in the current container
                 foundPos = pos; // remember position, in case it is the only one

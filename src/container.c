@@ -77,7 +77,7 @@ void setContainerSet(ContainerSet *containerSet, unsigned containerType) {
 char *getRowName(unsigned index) {
     assert(index >= 0 && index < 26);
     
-    sprintf(buffer, "row %u", index + 1);
+    sprintf(buffer, "row %c", (char)('A' + index));
     return strdup(buffer);
 }
 
@@ -306,4 +306,6 @@ void createContainers(unsigned type, char *name, size_t numberOfInstances, char 
     containerSet->type = type;
     containerSet->numberOfContainers = numberOfInstances;
     containerSet->containers = (Container **) xmalloc(sizeof (Container *) * (numberOfInstances + 1));
+    
+    // FIXME instanceNames cannot used here because containers are not allocated yet
 }

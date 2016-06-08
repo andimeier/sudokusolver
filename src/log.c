@@ -20,19 +20,31 @@ static char buffer2[1000];
 
 unsigned logLevel = LOGLEVEL_ERRORS; // 0 ... no logging, 1 ... solved cells, 2 ... changes, 9 ... debug
 
-
 /**
  * show the remaining candidates for the specified field
  * 
  * @param field the field for which the candidates should be printed
- */   
+ */
 void showCandidates(Field *field) {
-    char candidates[MAX_NUMBER + 1];
+    char candidates[2 * MAX_NUMBER + 1];
+    char *str;
+
+    str = candidates;
+    
+    // default: no candidates left, print "-"
+    *str = '-';
+    *(str + 1) = '\0';
 
     for (int i = 0; i < MAX_NUMBER; i++) {
-        candidates[i] = (char) (field->candidates[i] + '0');
+        if (field->candidates[i]) {
+            if (str != candidates) {
+                // not the first candidate => append comma-separated
+                *str++ = ',';
+            }
+            *str++ = (char) (field->candidates[i] + '0');
+            *str = '\0';
+        }
     }
-    candidates[MAX_NUMBER] = '\0';
 
     sprintf(buffer, "candidates for field %s are: %s", field->name, candidates);
     logVerbose(buffer);
@@ -51,18 +63,11 @@ void showAllCandidates() {
         if (field->value) {
             sprintf(buffer, "candidates for field %s ... value %u", field->name, field->value);
             logVerbose(buffer);
-            
+
             continue;
         }
 
-        // build candidates string
-        for (int i = 0; i < MAX_NUMBER; i++) {
-            candidates[i] = (char) (field->candidates[i] + '0');
-        }
-        candidates[MAX_NUMBER] = '\0';
-
-        sprintf(buffer, "candidates for field %s are: %s", field->name, candidates);
-        logVerbose(buffer);
+        showCandidates(field);
     }
 }
 
@@ -86,7 +91,6 @@ void logNewNumber(char *msg) {
     printlog(buffer2);
 }
 
-
 /**
  * open log file for writing
  * 
@@ -97,14 +101,13 @@ void openLogFile(char *outputFilename) {
     logfile = fopen(outputFilename, "w");
 }
 
-
 /**
  * log a message to printlog file or to stdout
  *
  * @param text text to be logged. A newline character will be appended.
  */
 void printlog(char *text) {
-    
+
     if (logfile) {
         fputs(text, logfile);
     } else {
@@ -112,7 +115,6 @@ void printlog(char *text) {
         puts(text);
     }
 }
-
 
 /**
  * log a message to printlog file or to stdout
@@ -123,10 +125,9 @@ void logVerbose(char *text) {
 
     if (logLevel < LOGLEVEL_VERBOSE)
         return;
-    
+
     printlog(text);
 }
-
 
 /**
  * log a message to printlog file or to stdout
@@ -149,7 +150,6 @@ void logError(char *text) {
 void logAlways(char *text) {
     printlog(text);
 }
-
 
 /**
  * close the log file

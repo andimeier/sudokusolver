@@ -383,6 +383,25 @@ void test_setupGrid(void) {
     TEST_ASSERT_EQUAL(0, strcmp(allContainers[18 + 8].name, "box 9"));
 }
 
+
+test_showCandidates() {
+//    Field *field;
+//    unsigned *candidates;
+//
+//    unsigned cand1[9] = {0, 2, 0, 4, 5, 6, 0, 0, 0};
+//    uintdup(candidates, cand1, 9);
+//    
+//    field = createField(strdup("field A", 0, );
+//
+//    showCandidates(field);
+//
+//    // FIXME how to test stdout output?
+//    
+//    TEST_ASSERT_EQUAL(0, strcmp(allContainers[18 + 0].name, "box 1"));
+//    TEST_ASSERT_EQUAL(0, strcmp(allContainers[18 + 1].name, "box 2"));
+//    TEST_ASSERT_EQUAL(0, strcmp(allContainers[18 + 8].name, "box 9"));
+}
+
 int main(void) {
     UNITY_BEGIN();
     RUN_TEST(test_fieldCandidatesContainAllOf);
@@ -392,6 +411,7 @@ int main(void) {
     RUN_TEST(test_findNakedPairsInContainer2);
     RUN_TEST(test_findNakedPairsInContainer4);
     RUN_TEST(test_findNakedTriplesInContainer);
+    RUN_TEST(test_showCandidates);
     //        RUN_TEST(test_setupGrid);
     return UNITY_END();
 }
