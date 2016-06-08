@@ -247,9 +247,30 @@ void freeGrid() {
  * @param value the number to be set as result field value
  */
 void setValue(Field *field, unsigned value) {
+    Container *container;
+    Field *otherField;
+    
     assert(value <= MAX_NUMBER);
 
     field->value = value;
+
+    // check if the number does not occur in any neighbors in any containers
+    for (int containerIndex = 0; containerIndex < numberOfContainerSets; containerIndex++) {
+        container = field->containers[containerIndex];
+        if (container) {
+            for (int pos = 0; pos < MAX_NUMBER; pos++) {
+                otherField = container->fields[pos];
+                if (otherField != field) {
+                    /* 
+                     * check that the number to which "our" field should be set
+                     * is not an already solved number in the "other" field (in 
+                     * the same container, each number must be unique)
+                     */
+                    assert (otherField->value != value);
+                }
+            }
+        }
+    }
 
     // remove all candidates from this field
     unsigned *candidates = field->candidates;
