@@ -107,8 +107,18 @@ int readSudoku(char *inputFilename) {
     // copy original grid
     for (f = 0; f < NUMBER_OF_FIELDS; f++) {
         fields[f].value = fields[f].initialValue;
+        fields[f].correctSolution = 0; // no solution known
     }
 
+#define NAKED_TRIPLE
+#ifdef NAKED_TRIPLE
+    // FIXME fill out final solution in each field, if given
+    char solution[82] = "928547316431986572567312894195673428384251769276894153749168235612435987853729641";
+    for (f = 0; f < NUMBER_OF_FIELDS; f++) {
+        fields[f].correctSolution = (unsigned)(solution[f] - '0');
+    }
+#endif
+    
     logVerbose("Initial values filled.");
 
     return ok;

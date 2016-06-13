@@ -33,6 +33,8 @@ extern "C" {
         // Possible in e.g. diagonal containers.
         unsigned *candidates;
         unsigned initialValue;
+        unsigned correctSolution; // if known in advance, can be filled out
+          // to test the algorithms
         unsigned candidatesLeft;
         unsigned value;
         char name[4]; // "name" of field = coordinates, e.g. "A2"

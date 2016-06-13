@@ -249,8 +249,12 @@ void freeGrid() {
 void setValue(Field *field, unsigned value) {
     Container *container;
     Field *otherField;
-    
+
     assert(value <= MAX_NUMBER);
+
+    if (field->correctSolution) {
+        assert(value == field->correctSolution);
+    }
 
     field->value = value;
 
@@ -266,7 +270,7 @@ void setValue(Field *field, unsigned value) {
                      * is not an already solved number in the "other" field (in 
                      * the same container, each number must be unique)
                      */
-                    assert (otherField->value != value);
+                    assert(otherField->value != value);
                 }
             }
         }
@@ -340,6 +344,7 @@ void forbidNumberInNeighbors(Field *field, unsigned n) {
 int forbidNumbersInOtherFields(Container *container, unsigned *n, Field **dontTouch) {
     int progress;
     Field *field;
+    unsigned candidate;
 
     //    showAllCandidates();
 
@@ -352,21 +357,24 @@ int forbidNumbersInOtherFields(Container *container, unsigned *n, Field **dontTo
         // don't touch the 'dontTouch' fields
         if (!containsField(dontTouch, field)) {
             // forbid the tuple numbers
-            for (int i = 0; i < MAX_NUMBER; i++) {
-                if (n[i]) {
-                    // was a candidate until now => remove candidate now
-                    if (!field->value && field->candidates[i]) {
-                        sprintf(buffer, "forbid %u in field %s", i + 1, field->name);
-                        logReduction(buffer);
+            while (*n) {
+                candidate = *n;
 
-                        field->candidates[i] = 0;
-                        field->candidatesLeft--;
+                // was a candidate until now => remove candidate now
+                if (!field->value && field->candidates[candidate - 1]) {
+                    sprintf(buffer, "forbid %u in field %s", candidate, field->name);
+                    logReduction(buffer);
 
-                        assert(field->candidatesLeft > 0);
+                    field->candidates[candidate] = 0;
+                    field->candidatesLeft--;
 
-                        progress = 1;
-                    }
+                    assert(field->candidatesLeft > 0);
+
+                    progress = 1;
                 }
+
+                // go to next candidate to be forbidden
+                n++;
             }
         }
     }

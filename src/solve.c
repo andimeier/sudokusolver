@@ -537,13 +537,6 @@ unsigned recurseNakedTuples(unsigned maxLevel, Container *container, unsigned le
 
             field = container->fields[i];
 
-            // FIXME: debugging function:
-            //            if (level == 2) {
-            //                sprintf(buffer, "[6yyyk] comparing fields %s and %s in %s (level 2)", fieldsContainingCandidates[0]->name, field->name, container->name);
-            //                logVerbose(buffer);
-            //            }
-            // end of debugging function
-
             sprintf(buffer, "[6yyyj] %s field %s (#%u in %s) (level %u)", (level == 1) ? "looking at" : "comparing with", field->name, i, container->name, level);
             logVerbose(buffer);
 
