@@ -33,7 +33,7 @@ void showCandidates(Field *field) {
     char *str;
 
     str = candidates;
-    
+
     // default: no candidates left, print "-"
     *str = '-';
     *(str + 1) = '\0';
@@ -79,8 +79,10 @@ void showAllCandidates() {
  * @param msg
  */
 void logReduction(char *msg) {
-    sprintf(buffer2, "[REDUCTION] --- %s", msg);
-    printlog(buffer2);
+    if (logLevel >= LOGLEVEL_CHANGES) {
+        sprintf(buffer2, "[REDUCTION] --- %s", msg);
+        printlog(buffer2);
+    }
 }
 
 /**
@@ -89,8 +91,10 @@ void logReduction(char *msg) {
  * @param msg
  */
 void logNewNumber(char *msg) {
-    sprintf(buffer2, "+++ %s", msg);
-    printlog(buffer2);
+    if (logLevel >= LOGLEVEL_SOLVED_CELLS) {
+        sprintf(buffer2, "+++ %s", msg);
+        printlog(buffer2);
+    }
 }
 
 /**

@@ -68,7 +68,7 @@ int main(int argc, char **argv) {
         } else if (MAX_NUMBER == 4) {
             inputFilename = strdup("examples/4x4-naked-pair.sudoku");
         }
-        logLevel = LOGLEVEL_VERBOSE;
+//        logLevel = LOGLEVEL_VERBOSE;
     }
 
     //FIXME remove this diabling of output buffering, it is only for testing purposes
