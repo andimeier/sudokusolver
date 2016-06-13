@@ -78,7 +78,6 @@ int solve() {
 
             if (progress) {
                 // no iterating to next strategy
-                return 1; // FIXME debugging code
                 break;
             }
 

@@ -52,7 +52,7 @@ extern "C" {
     int getUniquePositionInContainer(Field **container, unsigned n);
     int isFinished();
     void cleanUpCandidates();
-
+    int removeCandidate(Field *field, unsigned candidate);
 
 #ifdef	__cplusplus
 }

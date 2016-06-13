@@ -345,6 +345,7 @@ int forbidNumbersInOtherFields(Container *container, unsigned *n, Field **dontTo
     int progress;
     Field *field;
     unsigned candidate;
+    unsigned *candidates;
 
     //    showAllCandidates();
 
@@ -357,24 +358,24 @@ int forbidNumbersInOtherFields(Container *container, unsigned *n, Field **dontTo
         // don't touch the 'dontTouch' fields
         if (!containsField(dontTouch, field)) {
             // forbid the tuple numbers
-            while (*n) {
-                candidate = *n;
+            candidates = n;
+            while (*candidates) {
+                candidate = *candidates;
 
                 // was a candidate until now => remove candidate now
                 if (!field->value && field->candidates[candidate - 1]) {
                     sprintf(buffer, "forbid %u in field %s", candidate, field->name);
                     logReduction(buffer);
+                    logVerbose("Before forbidding ...");
+                    showCandidates(field);
+                    sprintf(buffer, "Before - candidatesLeft = %u", field->candidatesLeft);
+                    logVerbose(buffer);
 
-                    field->candidates[candidate] = 0;
-                    field->candidatesLeft--;
-
-                    assert(field->candidatesLeft > 0);
-
-                    progress = 1;
+                    progress = removeCandidate(field, candidate);
                 }
 
                 // go to next candidate to be forbidden
-                n++;
+                candidates++;
             }
         }
     }
@@ -632,4 +633,24 @@ void cleanUpCandidates() {
     // FIXME debugging output
     logVerbose("Initial candidates are:");
     showAllCandidates();
+}
+
+/**
+ * removes one candidate from a field. 
+ * 
+ * @param field the field from which a candidate shall be removed
+ * @param candidate the candidate to be removed
+ * @return 1 if the candidate has been removed, or 0 if nothing has changed
+ *   (candidate has already been removed before)
+ */
+int removeCandidate(Field *field, unsigned candidate) {
+    unsigned *c;
+
+    c = field->candidates + candidate - 1;
+
+    if (*c) {
+        *c = 0;
+        field->candidatesLeft--;
+    }
+    assert(field->candidatesLeft > 0);
 }
