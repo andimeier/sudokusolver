@@ -76,7 +76,7 @@ void show(int showInit) {
             else
                 buffer[index++] = '|';
 
-                field = &(fields[y * MAX_NUMBER + x]);
+            field = &(fields[y * MAX_NUMBER + x]);
 
             if (field->value)
                 buffer[index++] = (char) (field->value + 48);
@@ -184,7 +184,6 @@ void sudokuString(int showInit) {
 
     free(buffer);
 }
-
 
 /**
  * print SVG version of the current Sudoku game board

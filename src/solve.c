@@ -17,6 +17,13 @@
 #include "grid.h"
 #include "log.h"
 
+/*
+ * Optimisations:
+ * 
+ * find naked tuples:
+ * - skip fields with candidatesLeft > maxTupleDimensionToLookFor
+ */
+
 #define ZZDEBUG_SEGFAULT
 
 // search for pairs, triples and quadruples, not more
@@ -602,7 +609,7 @@ unsigned recurseNakedTuples(unsigned maxLevel, Container *container, unsigned le
                     progress = 0;
 
                     // FIXME debugging output
-                    showAllCandidates();
+//                    showAllCandidates();
 
                     /* eliminate the found numbers of the naked tuple from
                      * all other field of the same container

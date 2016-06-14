@@ -7,6 +7,7 @@
 
 #include <stdlib.h>
 #include <memory.h>
+#include <time.h>
 #include "unity.h"
 #include "global.h"
 #include "solve.h"
@@ -41,23 +42,79 @@ void setCandidates(Field *field, unsigned *cands) {
 }
 
 /**
+ * compares whether a field has the given value or candidates.
+ * If value is given, the candidates are not checked.
+ * If no value is given, the candidates are compared.
+ * 
+ * @param field
+ * @param candidatesString C string of candidates, e.g. "146"
+ * @return 1 if the field's value resp. its candidates are the same, 0 if not
+ */
+int compareField(Field *field, unsigned value, char *candidatesString) {
+    if (field->value) {
+        return field->value == value;
+    }
+
+    unsigned *candidates = (unsigned *) xmalloc(sizeof (unsigned) * MAX_NUMBER);
+    for (int i = 0; i < MAX_NUMBER; i++) {
+        // initialize with zeros
+        candidates[i] = 0;
+    }
+    // set candidates to be checked
+    while (*candidatesString) {
+        unsigned candidate = (unsigned) (*candidatesString - '0');
+        if (candidate > 0) {
+            candidates[candidate - 1] = candidate;
+        }
+        candidatesString++;
+    }
+
+    // compare candidates
+    for (int i = 0; i < MAX_NUMBER; i++) {
+        if (field->candidates[i] != candidates[i]) {
+            return 0;
+        }
+    }
+
+    // no early exit => candidates are the same
+    return 1;
+}
+
+/**
  * creates a Field object with the given field name and the given candidates
  * 
  * @param name name of the field, e.g. "A2"
  * @param value if not 0, the field is solved and the candidates will be ignored
- * @param candidates
+ * @param candidatesString C string of candidates, e.g. "146" or "020400089" 
+ *   ('0' can be used as a placeholder, will be ignored)
  * @return the created field
  */
-Field *createField(char *name, unsigned value, unsigned *candidates) {
+Field *createField(char *name, unsigned value, char *candidatesString) {
     Field *field;
 
     field = (Field *) xmalloc(sizeof (Field));
     strcpy(field->name, name);
 
+    unsigned *candidates = (unsigned *) xmalloc(sizeof (unsigned) * MAX_NUMBER);
+    for (int i = 0; i < MAX_NUMBER; i++) {
+        // initialize with zeros
+        candidates[i] = 0;
+    }
+
     if (value) {
         field->value = value;
         field->candidatesLeft = 0;
     } else {
+
+        // compare candidates
+        while (*candidatesString) {
+            unsigned candidate = (unsigned) (*candidatesString - '0');
+            if (candidate > 0) {
+                candidates[candidate - 1] = candidate;
+            }
+            candidatesString++;
+        }
+
         setCandidates(field, candidates);
     }
 
@@ -183,40 +240,52 @@ void test_fieldCandidatesAreSubsetOf(void) {
 void test_findNakedPairsInContainer(void) {
     Container *container;
     int dimension;
+    clock_t t;
 
     container = (Container *) xmalloc(sizeof (Container));
     container->name = strdup("row 3");
     container->fields = (Field **) xmalloc(sizeof (Field *) * MAX_NUMBER);
 
     for (int i = 0; i < MAX_NUMBER; i++) {
-        unsigned cand1[9] = {0, 2, 0, 4, 5, 6, 7, 8, 0};
         char name[5];
         sprintf(name, "XX%u", i);
-        container->fields[i] = createField(name, 0, cand1);
+        container->fields[i] = createField(name, 0, "245678");
     }
 
     // let 2 fields contain a naked tuple: 7, 8
     for (int i = 6; i <= 7; i++) {
-        unsigned cand1[9] = {0, 0, 0, 0, 0, 0, 7, 8, 0};
         char name[5];
         sprintf(name, "NA%u", i);
-        container->fields[i] = createField(name, 0, cand1);
+        container->fields[i] = createField(name, 0, "78");
     }
 
     // allocate memory for strategy variables
     dimension = 2;
     unsigned *numbers = (unsigned *) xmalloc(sizeof (unsigned) * (dimension + 1));
-    FieldsVector *foundFields = (FieldsVector *) xmalloc(sizeof (FieldsVector) * (dimension + 1));
+    FieldsVector *foundFields = (FieldsVector *) xmalloc(sizeof (FieldsVector) * (MAX_NUMBER + 1));
 
-    TEST_ASSERT_EQUAL(1, findNakedTuplesInContainer(container, dimension));
+    t = clock();
+    TEST_ASSERT_EQUAL(1, findNakedTuplesInContainer(container, dimension, numbers, foundFields));
+    t = clock() - t;
+
+    // check fields' values and candidates
+    TEST_ASSERT_EQUAL(1, compareField(container->fields[0], 0, "2456"));
+    TEST_ASSERT_EQUAL(1, compareField(container->fields[1], 0, "2456"));
+    TEST_ASSERT_EQUAL(1, compareField(container->fields[2], 0, "2456"));
+    TEST_ASSERT_EQUAL(1, compareField(container->fields[3], 0, "2456"));
+    TEST_ASSERT_EQUAL(1, compareField(container->fields[4], 0, "2456"));
+    TEST_ASSERT_EQUAL(1, compareField(container->fields[5], 0, "2456"));
+    TEST_ASSERT_EQUAL(1, compareField(container->fields[6], 0, "78"));
+    TEST_ASSERT_EQUAL(1, compareField(container->fields[7], 0, "78"));
+    TEST_ASSERT_EQUAL(1, compareField(container->fields[8], 0, "2456"));
+
+    double elapsedTime = ((double) t) / CLOCKS_PER_SEC; // in seconds
+    sprintf(buffer, "Elapsed time: %5.2f seconds", elapsedTime);
+    logVerbose(buffer);
 
     free(foundFields);
     free(numbers);
 }
-
-#ifdef BUGGY_TRY_TO_REVIVE_TESTS
-
-#endif
 
 void test_findNakedPairsInContainer2(void) {
     Field *field;
@@ -234,20 +303,16 @@ void test_findNakedPairsInContainer2(void) {
 
         // unsolved fields
         if (i == 1) {
-            unsigned cand1[9] = {0, 2, 0, 0, 5, 0, 0, 8, 0};
-            field = createField(name, 0, cand1);
+            field = createField(name, 0, "258");
         }
         if (i == 5) {
-            unsigned cand2[9] = {0, 2, 0, 0, 5, 0, 0, 0, 0};
-            field = createField(name, 0, cand2);
+            field = createField(name, 0, "25");
         }
         if (i == 6) {
-            unsigned cand3[9] = {0, 0, 3, 0, 0, 0, 0, 8, 0};
-            field = createField(name, 0, cand3);
+            field = createField(name, 0, "38");
         }
         if (i == 8) {
-            unsigned cand4[9] = {0, 0, 3, 0, 0, 0, 0, 8, 0};
-            field = createField(name, 0, cand4);
+            field = createField(name, 0, "38");
         }
 
         // already solved fields
@@ -273,9 +338,20 @@ void test_findNakedPairsInContainer2(void) {
     // allocate memory for strategy variables
     dimension = 2;
     unsigned *numbers = (unsigned *) xmalloc(sizeof (unsigned) * (dimension + 1));
-    FieldsVector *foundFields = (FieldsVector *) xmalloc(sizeof (FieldsVector) * (dimension + 1));
+    FieldsVector *foundFields = (FieldsVector *) xmalloc(sizeof (FieldsVector) * (MAX_NUMBER + 1));
 
-    TEST_ASSERT_EQUAL(1, findNakedTuplesInContainer(container, dimension));
+    TEST_ASSERT_EQUAL(1, findNakedTuplesInContainer(container, dimension, numbers, foundFields));
+
+    // check fields' values and candidates
+    TEST_ASSERT_EQUAL(1, compareField(container->fields[0], 4, NULL));
+    TEST_ASSERT_EQUAL(1, compareField(container->fields[1], 0, "25"));
+    TEST_ASSERT_EQUAL(1, compareField(container->fields[2], 9, NULL));
+    TEST_ASSERT_EQUAL(1, compareField(container->fields[3], 6, NULL));
+    TEST_ASSERT_EQUAL(1, compareField(container->fields[4], 1, NULL));
+    TEST_ASSERT_EQUAL(1, compareField(container->fields[5], 0, "25"));
+    TEST_ASSERT_EQUAL(1, compareField(container->fields[6], 0, "38"));
+    TEST_ASSERT_EQUAL(1, compareField(container->fields[7], 7, NULL));
+    TEST_ASSERT_EQUAL(1, compareField(container->fields[8], 0, "38"));
 
     free(foundFields);
     free(numbers);
@@ -291,18 +367,28 @@ void test_findNakedPairsInContainer4(void) {
 
     // no naked tuples
     for (int i = 0; i < MAX_NUMBER; i++) {
-        unsigned cand1[9] = {0, 2, 0, 4, 5, 6, 7, 8, 0};
         char name[5];
         sprintf(name, "XX%u", i);
-        container->fields[i] = createField(name, 0, cand1);
+        container->fields[i] = createField(name, 0, "245678");
     }
 
     // allocate memory for strategy variables
     dimension = 2;
     unsigned *numbers = (unsigned *) xmalloc(sizeof (unsigned) * (dimension + 1));
-    FieldsVector *foundFields = (FieldsVector *) xmalloc(sizeof (FieldsVector) * (dimension + 1));
+    FieldsVector *foundFields = (FieldsVector *) xmalloc(sizeof (FieldsVector) * (MAX_NUMBER + 1));
 
-    TEST_ASSERT_EQUAL(0, findNakedTuplesInContainer(container, dimension));
+    TEST_ASSERT_EQUAL(0, findNakedTuplesInContainer(container, dimension, numbers, foundFields));
+
+    // check fields' values and candidates
+    TEST_ASSERT_EQUAL(1, compareField(container->fields[0], 0, "245678"));
+    TEST_ASSERT_EQUAL(1, compareField(container->fields[1], 0, "245678"));
+    TEST_ASSERT_EQUAL(1, compareField(container->fields[2], 0, "245678"));
+    TEST_ASSERT_EQUAL(1, compareField(container->fields[3], 0, "245678"));
+    TEST_ASSERT_EQUAL(1, compareField(container->fields[4], 0, "245678"));
+    TEST_ASSERT_EQUAL(1, compareField(container->fields[5], 0, "245678"));
+    TEST_ASSERT_EQUAL(1, compareField(container->fields[6], 0, "245678"));
+    TEST_ASSERT_EQUAL(1, compareField(container->fields[7], 0, "245678"));
+    TEST_ASSERT_EQUAL(1, compareField(container->fields[8], 0, "245678"));
 
     free(foundFields);
     free(numbers);
@@ -317,30 +403,39 @@ void test_findNakedTriplesInContainer(void) {
     container->fields = (Field **) xmalloc(sizeof (Field *) * MAX_NUMBER);
 
     for (int i = 0; i < MAX_NUMBER; i++) {
-        unsigned cand1[9] = {0, 2, 0, 4, 5, 6, 7, 8, 0};
         char name[5];
         sprintf(name, "XX%u", i);
-        container->fields[i] = createField(name, 0, cand1);
+        container->fields[i] = createField(name, 0, "245678");
     }
 
-    // let 2 fields contain a naked tuple: 7, 8
+    // let 3 fields contain a naked triple: 6, 7, 8
     for (int i = 2; i <= 4; i++) {
-        unsigned cand1[9] = {0, 0, 0, 0, 0, 6, 7, 8, 0};
         char name[5];
         sprintf(name, "NA%u", i);
-        container->fields[i] = createField(name, 0, cand1);
+        container->fields[i] = createField(name, 0, "678");
     }
 
     // allocate memory for strategy variables
     dimension = 3;
     unsigned *numbers = (unsigned *) xmalloc(sizeof (unsigned) * (dimension + 1));
-    FieldsVector *foundFields = (FieldsVector *) xmalloc(sizeof (FieldsVector) * (dimension + 1));
+    FieldsVector *foundFields = (FieldsVector *) xmalloc(sizeof (FieldsVector) * (MAX_NUMBER + 1));
 
     // no pairs
-    TEST_ASSERT_EQUAL(0, findNakedTuplesInContainer(container, 2));
+    TEST_ASSERT_EQUAL(0, findNakedTuplesInContainer(container, 2, numbers, foundFields));
 
     // but a triple!
-    TEST_ASSERT_EQUAL(1, findNakedTuplesInContainer(container, 3));
+    TEST_ASSERT_EQUAL(1, findNakedTuplesInContainer(container, 3, numbers, foundFields));
+
+    // check fields' values and candidates
+    TEST_ASSERT_EQUAL(1, compareField(container->fields[0], 0, "245"));
+    TEST_ASSERT_EQUAL(1, compareField(container->fields[1], 0, "245"));
+    TEST_ASSERT_EQUAL(1, compareField(container->fields[2], 0, "678"));
+    TEST_ASSERT_EQUAL(1, compareField(container->fields[3], 0, "678"));
+    TEST_ASSERT_EQUAL(1, compareField(container->fields[4], 0, "678"));
+    TEST_ASSERT_EQUAL(1, compareField(container->fields[5], 0, "245"));
+    TEST_ASSERT_EQUAL(1, compareField(container->fields[6], 0, "245"));
+    TEST_ASSERT_EQUAL(1, compareField(container->fields[7], 0, "245"));
+    TEST_ASSERT_EQUAL(1, compareField(container->fields[8], 0, "245"));
 
     free(foundFields);
     free(numbers);
@@ -383,23 +478,22 @@ void test_setupGrid(void) {
     TEST_ASSERT_EQUAL(0, strcmp(allContainers[18 + 8].name, "box 9"));
 }
 
-
 test_showCandidates() {
-//    Field *field;
-//    unsigned *candidates;
-//
-//    unsigned cand1[9] = {0, 2, 0, 4, 5, 6, 0, 0, 0};
-//    uintdup(candidates, cand1, 9);
-//    
-//    field = createField(strdup("field A", 0, );
-//
-//    showCandidates(field);
-//
-//    // FIXME how to test stdout output?
-//    
-//    TEST_ASSERT_EQUAL(0, strcmp(allContainers[18 + 0].name, "box 1"));
-//    TEST_ASSERT_EQUAL(0, strcmp(allContainers[18 + 1].name, "box 2"));
-//    TEST_ASSERT_EQUAL(0, strcmp(allContainers[18 + 8].name, "box 9"));
+    //    Field *field;
+    //    unsigned *candidates;
+    //
+    //    unsigned cand1[9] = {0, 2, 0, 4, 5, 6, 0, 0, 0};
+    //    uintdup(candidates, cand1, 9);
+    //    
+    //    field = createField(strdup("field A", 0, );
+    //
+    //    showCandidates(field);
+    //
+    //    // FIXME how to test stdout output?
+    //    
+    //    TEST_ASSERT_EQUAL(0, strcmp(allContainers[18 + 0].name, "box 1"));
+    //    TEST_ASSERT_EQUAL(0, strcmp(allContainers[18 + 1].name, "box 2"));
+    //    TEST_ASSERT_EQUAL(0, strcmp(allContainers[18 + 8].name, "box 9"));
 }
 
 int main(void) {
