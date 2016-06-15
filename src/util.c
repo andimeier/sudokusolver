@@ -83,12 +83,12 @@ void appendField(Field **fields, Field *newField) {
         count++;
         sprintf(buffer, "inc counter to %d", count);
         logVerbose(buffer);
-        
+
         // break if field is already in field list
         if (*ptr == newField) {
             return;
         }
-        
+
         ptr++;
     }
 
@@ -133,7 +133,7 @@ int fieldCandidatesAreSubsetOf(Field *field, unsigned *numbers) {
     int found;
 
     assert(field != NULL);
-    
+
     sprintf(buffer, "field to be checked in fieldCandidatesAreSubsetOf: %s", field->name);
     logVerbose(buffer);
 
@@ -164,4 +164,47 @@ int fieldCandidatesAreSubsetOf(Field *field, unsigned *numbers) {
         }
     }
     return 1;
+}
+
+/**
+ * count the total number of distinct candidates of all given fields and checks
+ * whether the total sum lower than or equal to the given limit.
+ * Solved fields do not count.
+ * 
+ * @param fields list of fields of which the candidates should be counted
+ * @param limit the maximum number of total distinct candidates
+ */
+int countDistinctCandidates(FieldsVector *fields, size_t limit) {
+    size_t count;
+    unsigned *candidatesSet;
+
+    // TODO could already be pre-allocated by the strategy (performance optimisation))
+    // ... a strategy-local buffer so to speak ...
+    candidatesSet = (unsigned *) xmalloc(sizeof (unsigned) * MAX_NUMBER);
+
+    // initialize all candidate counters with 0    
+    for (int i = 0; i < MAX_NUMBER; i++) {
+        candidatesSet[i] = 0;
+    }
+
+    while (*fields) {
+        for (int i = 0; i < MAX_NUMBER; i++) {
+            unsigned candidate;
+            
+            candidate = (*fields)->candidates[i];
+            if (!candidatesSet[i] && count >= limit) {
+                // too many candidates (would exceed the given limit)
+                return 0;
+            }
+            
+            candidatesSet[i] = candidate;
+            count++;
+        }
+        
+        fields++;
+    }
+    
+    // no break until now => must be success
+    return 1;
+
 }

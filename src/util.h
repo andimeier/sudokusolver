@@ -20,6 +20,7 @@ extern "C" {
     void appendField(Field **fields, Field *newField);
     int containsField(Field **list, Field * field);
     int fieldCandidatesAreSubsetOf(Field *field, unsigned *numbers);
+    int countDistinctCandidates(FieldsVector *fields, size_t limit);
 
 #ifdef	__cplusplus
 }

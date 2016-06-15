@@ -16,6 +16,7 @@
 #include "util.h"
 #include "grid.h"
 #include "log.h"
+#include "fieldlist.h"
 
 /*
  * Optimisations:
@@ -32,7 +33,8 @@
 typedef int (*strategy)(void);
 
 // auxiliary functions
-static unsigned recurseNakedTuples(unsigned maxLevel, Container *container, unsigned level, unsigned *numbers, FieldsVector *fieldsContainingCandidates);
+static unsigned recurseNakedTuples(unsigned maxLevel, Container *container, unsigned level, FieldList *includedFields, FieldsVector *fieldsLeft);
+//static eliminateFieldsCandidatesFromOtherFields(Container *container, FieldsVector * fields);
 static int compareCandidates(unsigned *c1, unsigned *c2);
 
 // number of errors in the algorithm
@@ -107,7 +109,6 @@ int solve() {
     // Implementierung ist dieses Sudoku nicht loesbar
     return 0;
 }
-
 
 void printFoundFields(FieldsVector *foundFields) {
     FieldsVector *f;
@@ -228,22 +229,16 @@ int findHiddenSingles() {
 int findNakedTuples() {
     int progress;
     Container *container;
-    unsigned *numbers;
-    FieldsVector *foundFields;
+    FieldList *includedFields;
+    FieldsVector *fieldsLeft;
 
     logVerbose("[strategy] find naked tuples ...");
 
     progress = 0;
 
     // allocate memory for strategy variables
-    numbers = (unsigned *) xmalloc(sizeof (unsigned) * (MAX_TUPLE_DIMENSION + 1));
-    //    foundFields = (FieldsVector *) xmalloc(sizeof (FieldsVector) * (MAX_TUPLE_DIMENSION + 1));
-
-    /* wie viele Felder muss ich allokieren fuer diesen Algorithmus? Ich bekomme
-     * ein Segfault, wenn ich hier nur MAX_TUPLE_DIMENSION + 1 allokiere).
-     * Algo anschauen!!
-     */
-    foundFields = (FieldsVector *) xmalloc(sizeof (FieldsVector) * (MAX_NUMBER + 1));
+    includedFields = createFieldList(MAX_TUPLE_DIMENSION);
+    fieldsLeft = (FieldsVector *) xmalloc(sizeof (Field *) * (MAX_NUMBER + 1));
 
     for (int dimension = 2; dimension <= MAX_TUPLE_DIMENSION; dimension++) {
 
@@ -253,7 +248,7 @@ int findNakedTuples() {
             container = &(allContainers[c]);
             sprintf(buffer, "-- next container: %s", container->name);
             logVerbose(buffer);
-            progress |= findNakedTuplesInContainer(container, dimension, numbers, foundFields);
+            progress |= findNakedTuplesInContainer(container, dimension, includedFields, fieldsLeft);
         }
 
         if (progress) {
@@ -261,8 +256,8 @@ int findNakedTuples() {
         }
     }
 
-    free(foundFields);
-    free(numbers);
+    free(fieldsLeft);
+    freeFieldList(includedFields);
 
     return progress;
 }
@@ -440,16 +435,23 @@ int findPointingTupels() {
  * find naked tuples (pairs, triples, ...) which share the same candidates.
  * For instance, if two fields have only the candidates 2 and 4, then 2 and 4
  * can be eliminated from all other fields in the same container.
+ * Note: finds tupels of and only of the given dimension. For example,
+ * if dimension == 3, then only naked triples are found, but not naked pairs 
+ * (actually, naked pairs will be identified as naked triple with one "excessive
+ * cell").
  * 
  * @param container vector of fields (=container) in which we look for naked 
  *   tuples
  * @param dimension dimension of the tupel to be looked for. 2=pairs, 
  *   3=triples etc.
- * @param numbers numbers vector to be searched for, terminated with 0
- * @param foundFfields vector of found fields, terminated with NULL
+ * @param includedFields allocated buffer for the "found fields" during the
+ *   algorithm, must be the size of the dimension (plus 1 for a NULL termination)
+ * @param fieldsLeft allocated buffer for the vector of fields left (yet to be 
+ *   examined), terminated with NULL, thus must be the size of the dimension
+ *   plus 1 (for the NULL terminator)
  * @return progress flag: 1 for "something has changed", 0 for "no change"
  */
-unsigned findNakedTuplesInContainer(Container *container, unsigned dimension, unsigned *numbers, FieldsVector *foundFields) {
+unsigned findNakedTuplesInContainer(Container *container, unsigned dimension, FieldList *includedFields, FieldsVector *fieldsLeft) {
     unsigned progress;
 
     assert(dimension > 0 && dimension < MAX_NUMBER);
@@ -457,16 +459,18 @@ unsigned findNakedTuplesInContainer(Container *container, unsigned dimension, un
     progress = 0;
 
     // we are in level 0 of recursion: initialize numbers vector
-    numbers[0] = 0;
-    foundFields[0] = NULL;
+    emptyFieldList(includedFields);
 
     testCounter++;
     sprintf(buffer, "~~~ testCounter: %d ~~~", testCounter);
     logVerbose(buffer);
 
-    if (recurseNakedTuples(dimension, container, 1, numbers, foundFields)) {
+    if (recurseNakedTuples(dimension, container, 1, includedFields, fieldsLeft)) {
+        // FIXME Optimierungsschritt: dieses gefundene naked tuple merken, damit es nicht
+        // in Zukunft jedesmal gefunden wird (aber ohne mehr etwas zu bewirken)
         progress = 1;
     } else {
+
         logVerbose("[1244] returned from recursion");
     }
 
@@ -475,21 +479,26 @@ unsigned findNakedTuplesInContainer(Container *container, unsigned dimension, un
 
 /**
  * recursively look for naked tuples of the dimension maxLevel.
- * Note: finds tupels of the given dimension and below the given dimension.
- * For example, if dimension is 3, then naked triples are found, but naked pairs
- * as well.
+ * Note: finds tupels of and only of the given dimension. For example,
+ * if dimension == 3, then only naked triples are found, but not naked pairs 
+ * (actually, naked pairs will be identified as naked triple with one "excessive
+ * cell").
  * 
- * @param maxLevel (beginning with 1)
- * @param container 
- * @param level (starting with 1)
- * @param numbers numbers vector to be searched for, terminated with 0
- * @param fieldsContainingCandidates vector of found fields, terminated with NULL
+ * @param maxLevel (beginning with 1) = dimension
+ * @param container container in which we look for naked tuples
+ * @param level current recursion depth (starting with 1)
+ * @param includedFields allocated buffer for the "found fields" during the
+ *   algorithm, must be the size of the dimension (plus 1 for a NULL termination)
+ * @param fieldsLeft allocated buffer for the vector of fields left (yet to be 
+ *   examined), terminated with NULL, thus must be the size of the dimension
+ *   plus 1 (for the NULL terminator)
  * @return 1 if a naked tuple has been found, 0 otherwise
  */
-unsigned recurseNakedTuples(unsigned maxLevel, Container *container, unsigned level, unsigned *numbers, FieldsVector *foundFields) {
+unsigned recurseNakedTuples(unsigned maxLevel, Container *container, unsigned level, FieldList *includedFields, FieldsVector *fieldsLeft) {
+    FieldsVector *left;
 
     assert(level >= 1);
-    assert(level == 1 || (level >= 2 && numbers[level - 2] != 0));
+    //FIXME war fuer alten Algo, gehts fuer den neuen auch mit so etwas?    assert(level == 1 || (level >= 2 && numbers[level - 2] != 0));
 
     if (level > maxLevel) {
         // maximum recursion depth reached => nothing found
@@ -499,154 +508,53 @@ unsigned recurseNakedTuples(unsigned maxLevel, Container *container, unsigned le
     }
 
     sprintf(buffer, "Entering recursion level %u/%u ...", level, maxLevel);
+
     logVerbose(buffer);
 
-    // prepare list terminations *after* current list item
-    numbers[level] = 0;
-    foundFields[level] = NULL;
+    //    // prepare list terminations *after* current list item
+    //    numbers[level] = 0;
+    //    foundFields[level] = NULL;
 
-    // iterate through all numbers of this level, starting with number of 
-    // previous iteration level plus 1. Thus, the numbers are in ascending
-    // order and the numbers are not repeating themselvesb
-    sprintf(buffer, "start iteration level %d, numbers= (%u, %u, %u)", level, numbers[0], numbers[1], numbers[2]);
-    logVerbose(buffer);
+    left = fieldsLeft;
 
-    for (unsigned number = ((level > 1) ? (numbers[level - 2] + 1) : 1); number <= MAX_NUMBER; number++) {
-        //    for (unsigned number = 1; number <= MAX_NUMBER; number++) {
-        // try next number
-        numbers[level - 1] = number;
-        sprintf(buffer, "number vector is now (%u, %u, %u), level=%u", numbers[0], numbers[1], numbers[1] ? numbers[2] : 0, level);
-        logVerbose(buffer);
-        
-        // reset "found fields" vector for a new search of fields matching the
-        // given numbers
-        foundFields[0] = NULL;
+    // go through all left fields
+    while (*left) {
+        pushToFieldList(includedFields, *left++);
 
-        // loop through all fields of the container
-        for (unsigned i = 0; i < MAX_NUMBER; i++) {
-            Field *field;
-
-            field = container->fields[i];
-
-            sprintf(buffer, "[6yyyj] %s field %s (#%u in %s) (level %u)", (level == 1) ? "looking at" : "comparing with", field->name, i, container->name, level);
-            logVerbose(buffer);
-
-            /*
-             * if the candidates consist solely of numbers found in "numbers", 
-             * it could be part of a naked tuple. Note that it is not necessary
-             * to contain *all* candidates, e.g. see the naked triple (1, 2), 
-             * (1, 3), (2, 3). It only has to be a subset of the "numbers"
-             */
-#ifdef DEBUG_SEGFAULT
-            if (1) {
-#else
-            if (fieldCandidatesAreSubsetOf(field, numbers)) {
-#endif
-                sprintf(buffer, "yeah! field candidates of field %s (#%u in %s) are a subset of the numbers %u, %u",
-                        field->name, i, container->name, numbers[0], numbers[1]);
-                logVerbose(buffer);
-
-                //    if (level > 1) return 0;
-
-                // append field to list of found fields
-                logVerbose("calling appendField");
-
-                // FIXME HIER ist der Hund drin!
-                // appendField bekommt irgendwas Falsches vorgesetzt
-                /*
-                 *  ./out/sudoku-solver.exe  | grep 'inc counter to' |sort | uniq -c
-                 * 
-                 *     258 inc counter to 1
-                 *      30 inc counter to 10
-                 *      22 inc counter to 11
-                 *      14 inc counter to 12
-                 *       6 inc counter to 13
-                 *     220 inc counter to 2
-                 *     182 inc counter to 3
-                 *     144 inc counter to 4
-                 *     118 inc counter to 5
-                 *      94 inc counter to 6
-                 *      78 inc counter to 7
-                 *      62 inc counter to 8
-                 *      46 inc counter to 9
-                 * Wo kommt das Zaehlen bis 13 her? Der Vektor sollte ja max. dimension lang sein ...
-                 * 
-                 * Tja, das Problem ist, dass appendField vorhandene Felder erneut einfuegt,
-                 * wenn es ein zweites Mal gefordert ist.
-                 */
-
-                printFoundFields(foundFields);
-
-                appendField(foundFields, field);
-
-                // check if we have found enough fields
-#ifdef DEBUG_SEGFAULT
-                if (0) {
-#else
-                if (equalNumberOfFieldsAndCandidates(foundFields, numbers)) {
-#endif
-                    unsigned progress;
-
-                    /* found a naked tuple! But we only make progress if - based
-                     * on this naked tuple - candidates can be eliminated... 
-                     * let's see ...
-                     */
-                    progress = 0;
-
-                    // FIXME debugging output
-//                    showAllCandidates();
-
-                    /* eliminate the found numbers of the naked tuple from
-                     * all other field of the same container
-                     * TODO and from other containers if all found fields 
-                     * share the same other container
-                     */
-                    // FIXME the following log line assumes there is a naked
-                    // PAIR found, does not work with naked triples/quads/etc.
-                    sprintf(buffer, "GOT IT! Container %s, found pair in %s/%s forbidding numbers %u/%u in %s for \"other\" fields...", container->name, foundFields[0]->name, foundFields[1]->name, numbers[0], numbers[1], container->name);
-                    logVerbose(buffer);
-
-#ifndef DEBUG_SEGFAULT
-                    progress |= forbidNumbersInOtherFields(container, numbers, foundFields);
-#endif
-                    logVerbose("[123a]");
-                    return progress;
-                }
-            }
-
-            // no tuple of dimension "level" found
-            // only recurse further if the last number is not already the
-            // maximum number because then no greater number could be
-            // possible, so the recursion would not yield any result anyway
-            if (numbers[level - 1] < MAX_NUMBER) {
-                if (recurseNakedTuples(maxLevel, container, level + 1, numbers, foundFields)) {
-                    logVerbose("recursion returned with progress flag of 1");
-                    // found a naked tuple! Instantly return
-                    sprintf(buffer, "recursion exited with 1, propagate exit from level %d", level);
-
-                    logVerbose("[666gh]:");
-                    printFoundFields(foundFields);
-
-                    logVerbose(buffer);
+        if (countDistinctCandidates(includedFields, maxLevel)) {
+            // hm ... yes ... hm ... might contribute to a naked tuple ...
+            if (includedFields->count < maxLevel) {
+                // recurse further
+                if (recurseNakedTuples(maxLevel, container, level + 1, includedFields, left)) {
+                    // propagate success flag all levels down
                     return 1;
                 }
+            } else {
+                /*
+                 *  found naked tuple!
+                 * we reached maximum recursion depth (= dimension) and the number
+                 * of found candidates with a maximum total sum of "dimension"
+                 * candidates is maximum "dimension"
+                 */
+
+                // depending on whether some candidates could be eliminated, the
+                // board has changed or not
+                return eliminateFieldsCandidatesFromOtherFields(container, includedFields);
             }
         }
-
-        // FIXME DEBUG
-        logVerbose("recursion returned with progress flag of 0");
+        
+        popFromFieldList(includedFields);
     }
 
-    // take back extensions of the vectors from the current level
-    numbers[level - 1] = 0;
-    foundFields[level - 1] = NULL;
 
-    logVerbose("take back current recursion level:");
-    printFoundFields(foundFields);
+    //    // take back extensions of the vectors from the current level
+    //    numbers[level - 1] = 0;
+    //    foundFields[level - 1] = NULL;
 
     sprintf(buffer, "leaving recursion level %d/%d, going back one level\n", level, maxLevel);
     logVerbose(buffer);
-    return 0;
+
+    return 0; // nothing found
 }
 
 
@@ -659,6 +567,7 @@ unsigned recurseNakedTuples(unsigned maxLevel, Container *container, unsigned le
  */
 #pragma GCC diagnostic push
 #pragma GCC diagnostic ignored "-Wunused-function"
+
 int compareCandidates(unsigned *c1, unsigned *c2) {
     for (int n = 0; n < MAX_NUMBER; n++) {
         if (c1[n] != c2[n])

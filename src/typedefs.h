@@ -48,6 +48,14 @@ extern "C" {
         // appearance". This is a vector of MAX_NUMBER fields
     } Container;
 
+    /*
+     * list of fields (list of variable length)
+     */
+    typedef struct FieldList {
+        size_t count; // number of elements in the list
+        Field **fields; // list of fields
+    } FieldList;
+
     /**
      * function for determining the index of the container a specified field
      * (specified by X and Y coordinates) resides in. If no container contains
