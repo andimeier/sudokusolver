@@ -169,7 +169,6 @@ int fieldCandidatesAreSubsetOf(Field *field, unsigned *numbers) {
 /**
  * count the total number of distinct candidates of all given fields and checks
  * whether the total sum lower than or equal to the given limit.
- * Solved fields do not count.
  * 
  * @param fields list of fields of which the candidates should be counted
  * @param limit the maximum number of total distinct candidates
@@ -187,24 +186,30 @@ int countDistinctCandidates(FieldsVector *fields, size_t limit) {
         candidatesSet[i] = 0;
     }
 
+    count = 0;
     while (*fields) {
         for (int i = 0; i < MAX_NUMBER; i++) {
             unsigned candidate;
-            
+
             candidate = (*fields)->candidates[i];
-            if (!candidatesSet[i] && count >= limit) {
-                // too many candidates (would exceed the given limit)
-                return 0;
+
+            if (candidate) {
+                if (!candidatesSet[i]) {
+                    if (count >= limit) {
+                        // too many candidates (adding this candidates to the
+                        // set would exceed the given limit)
+                        return 0;
+                    }
+
+                    candidatesSet[i] = candidate;
+                    count++;
+                }
             }
-            
-            candidatesSet[i] = candidate;
-            count++;
+
         }
-        
         fields++;
     }
-    
+
     // no break until now => must be success
     return 1;
-
 }

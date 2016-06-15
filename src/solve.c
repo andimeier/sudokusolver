@@ -34,7 +34,8 @@ typedef int (*strategy)(void);
 
 // auxiliary functions
 static unsigned recurseNakedTuples(unsigned maxLevel, Container *container, unsigned level, FieldList *includedFields, FieldsVector *fieldsLeft);
-//static eliminateFieldsCandidatesFromOtherFields(Container *container, FieldsVector * fields);
+static int eliminateFieldsCandidatesFromOtherFields(Container *container, FieldsVector *fields);
+static void populateFieldsForNakedTuples(FieldsVector *relevantFields, FieldsVector *allFields, unsigned dimension);
 static int compareCandidates(unsigned *c1, unsigned *c2);
 
 // number of errors in the algorithm
@@ -248,6 +249,7 @@ int findNakedTuples() {
             container = &(allContainers[c]);
             sprintf(buffer, "-- next container: %s", container->name);
             logVerbose(buffer);
+
             progress |= findNakedTuplesInContainer(container, dimension, includedFields, fieldsLeft);
         }
 
@@ -465,6 +467,9 @@ unsigned findNakedTuplesInContainer(Container *container, unsigned dimension, Fi
     sprintf(buffer, "~~~ testCounter: %d ~~~", testCounter);
     logVerbose(buffer);
 
+    // populate fields to search for naked tuples
+    populateFieldsForNakedTuples(fieldsLeft, container->fields, dimension);
+
     if (recurseNakedTuples(dimension, container, 1, includedFields, fieldsLeft)) {
         // FIXME Optimierungsschritt: dieses gefundene naked tuple merken, damit es nicht
         // in Zukunft jedesmal gefunden wird (aber ohne mehr etwas zu bewirken)
@@ -521,7 +526,8 @@ unsigned recurseNakedTuples(unsigned maxLevel, Container *container, unsigned le
     while (*left) {
         pushToFieldList(includedFields, *left++);
 
-        if (countDistinctCandidates(includedFields, maxLevel)) {
+        // on level 1, don't try to find nake "tuples", only start at level 2
+        if (level == 1 || countDistinctCandidates(includedFields->fields, maxLevel)) {
             // hm ... yes ... hm ... might contribute to a naked tuple ...
             if (includedFields->count < maxLevel) {
                 // recurse further
@@ -539,10 +545,10 @@ unsigned recurseNakedTuples(unsigned maxLevel, Container *container, unsigned le
 
                 // depending on whether some candidates could be eliminated, the
                 // board has changed or not
-                return eliminateFieldsCandidatesFromOtherFields(container, includedFields);
+                return eliminateFieldsCandidatesFromOtherFields(container, includedFields->fields);
             }
         }
-        
+
         popFromFieldList(includedFields);
     }
 
@@ -578,3 +584,103 @@ int compareCandidates(unsigned *c1, unsigned *c2) {
     return 1;
 }
 #pragma GCC diagnostic pop
+
+/**
+ * eliminate any candidates of the given fields in the rest of the container.
+ * This is a utility function for the strategy "find naked tuples", where
+ * the candidates of the naked tuple must be removed from all other fields in
+ * the container except from the ones forming the naked tuple.
+ * 
+ * @param container the container in which candidates should be eliminated
+ * @param fields the fields of which the candidates should be taken. These 
+ *   candidates are forbidden in all of the *other* fields of the container
+ * @return progress flag: 1 if something has changed (candidates eliminated) or
+ *   0 if not
+ */
+int eliminateFieldsCandidatesFromOtherFields(Container *container, FieldsVector *fields) {
+    unsigned *candidates;
+    int progress;
+
+    // add 1 item as a zero termination in the purely theoretical case that a
+    // naked "nonuple" was found (all possible numbers of a Sudoku)
+    candidates = (unsigned *) xmalloc(sizeof (unsigned) * (MAX_NUMBER + 1));
+    for (int i = 0; i < MAX_NUMBER; i++) {
+        candidates[i] = 0;
+    }
+
+    // find out all candidates
+    while (*fields) {
+
+        // retrieve all candidates from the field
+        for (int i = 0; i < MAX_NUMBER; i++) {
+            candidates[i] |= (*fields)->candidates[i];
+        }
+        fields++;
+    }
+
+    // compact candidates to fit the parameter for "forbidNumbersInOtherFields"
+    unsigned *compact = candidates;
+    for (int i = 0; i < MAX_NUMBER; i++) {
+        if (candidates[i]) {
+            *compact++ = candidates[i];
+        }
+    }
+    // terminate list of candidates
+    *compact = 0;
+
+    // forbid candidates in all other fields
+    progress = forbidNumbersInOtherFields(container, candidates, fields);
+
+    free(candidates);
+
+    return progress;
+}
+
+/**
+ * aux function whose only purpose is to populate the fields in which the
+ * algorithm should search for naked tuples
+ * 
+ * @param relevantFields list of fields with the relevant fields (this is the
+ *   output = the result)
+ * @param allFields container from which all or some fields form the result.
+ *   Note that this is not NULL-terminated - instead, it contains MAX_NUMBER
+ *   fields (= all fields of the container to be examined)
+ * @param dimension the dimension of the tuples to search for. E.g. 2 means
+ *   "search for naked pairs", 3 means "naked triples" etc.
+ */
+void populateFieldsForNakedTuples(FieldsVector *relevantFields, FieldsVector *allFields, unsigned dimension) {
+    Field *field;
+
+    int i;
+    for (i = 0; i < MAX_NUMBER; i++) {
+        field = *allFields++;
+
+        if (!field) {
+            // in case of NULL-terminated list allFields, exit if the 
+            // terminating NULL is found (safeguard))
+            break;
+        }
+
+        /*
+         * ignore solved fields
+         */
+        if (field->value) {
+            continue;
+        }
+
+        /*
+         * ignore field if it has more than dimension candidates => this 
+         * cannot be part of a naked tuple by definition
+         */
+        if (field->candidatesLeft > dimension) {
+            continue;
+        }
+
+        // still here? No exclusion criterion matched? Then add this field to
+        // the result list
+        *relevantFields++ = field;
+    }
+
+    // terminate fields vector
+    *relevantFields = NULL;
+}

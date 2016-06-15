@@ -645,6 +645,11 @@ int removeCandidate(Field *field, unsigned candidate) {
     if (*c) {
         *c = 0;
         field->candidatesLeft--;
+
+        assert(field->candidatesLeft > 0);
+
+        return 1;
     }
-    assert(field->candidatesLeft > 0);
+    
+    return 0;
 }

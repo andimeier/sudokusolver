@@ -14,6 +14,7 @@
 #include "util.h"
 #include "grid.h"
 #include "typedefs.h"
+#include "fieldlist.h"
 #include "log.h"
 
 // prototypes
@@ -237,6 +238,36 @@ void test_fieldCandidatesAreSubsetOf(void) {
     free(candidates);
 }
 
+void test_countDistinctCandidates(void) {
+    FieldsVector fields[3];
+
+    fields[0] = createField("E1", 0, "78");
+    fields[1] = createField("E2", 0, "79");
+    fields[2] = NULL;
+            
+    TEST_ASSERT_EQUAL(0, countDistinctCandidates(fields, 2));
+    TEST_ASSERT_EQUAL(1, countDistinctCandidates(fields, 3));
+
+    fields[0] = createField("F1", 0, "12378");
+    fields[1] = createField("F2", 0, "79");
+    fields[2] = NULL;
+            
+    TEST_ASSERT_EQUAL(0, countDistinctCandidates(fields, 2));
+    TEST_ASSERT_EQUAL(0, countDistinctCandidates(fields, 3));
+    TEST_ASSERT_EQUAL(0, countDistinctCandidates(fields, 4));
+    TEST_ASSERT_EQUAL(0, countDistinctCandidates(fields, 5));
+    TEST_ASSERT_EQUAL(1, countDistinctCandidates(fields, 6));
+    TEST_ASSERT_EQUAL(1, countDistinctCandidates(fields, 7));
+
+    fields[0] = createField("G1", 0, "12");
+    fields[1] = createField("G2", 0, "12");
+    fields[2] = NULL;
+            
+    TEST_ASSERT_EQUAL(0, countDistinctCandidates(fields, 1));
+    TEST_ASSERT_EQUAL(1, countDistinctCandidates(fields, 2));
+    TEST_ASSERT_EQUAL(1, countDistinctCandidates(fields, 3));
+}
+
 void test_findNakedPairsInContainer(void) {
     Container *container;
     int dimension;
@@ -261,11 +292,12 @@ void test_findNakedPairsInContainer(void) {
 
     // allocate memory for strategy variables
     dimension = 2;
-    unsigned *numbers = (unsigned *) xmalloc(sizeof (unsigned) * (dimension + 1));
-    FieldsVector *foundFields = (FieldsVector *) xmalloc(sizeof (FieldsVector) * (MAX_NUMBER + 1));
+
+    FieldList *includedFields = createFieldList(dimension);
+    FieldsVector *fieldsLeft = (FieldsVector *) xmalloc(sizeof (Field *) * (MAX_NUMBER + 1));
 
     t = clock();
-    TEST_ASSERT_EQUAL(1, findNakedTuplesInContainer(container, dimension, numbers, foundFields));
+    TEST_ASSERT_EQUAL(1, findNakedTuplesInContainer(container, dimension, includedFields, fieldsLeft));
     t = clock() - t;
 
     // check fields' values and candidates
@@ -283,8 +315,8 @@ void test_findNakedPairsInContainer(void) {
     sprintf(buffer, "Elapsed time: %5.2f seconds", elapsedTime);
     logVerbose(buffer);
 
-    free(foundFields);
-    free(numbers);
+    free(fieldsLeft);
+    freeFieldList(includedFields);
 }
 
 void test_findNakedPairsInContainer2(void) {
@@ -337,10 +369,10 @@ void test_findNakedPairsInContainer2(void) {
 
     // allocate memory for strategy variables
     dimension = 2;
-    unsigned *numbers = (unsigned *) xmalloc(sizeof (unsigned) * (dimension + 1));
-    FieldsVector *foundFields = (FieldsVector *) xmalloc(sizeof (FieldsVector) * (MAX_NUMBER + 1));
+    FieldList *includedFields = createFieldList(dimension);
+    FieldsVector *fieldsLeft = (FieldsVector *) xmalloc(sizeof (Field *) * (MAX_NUMBER + 1));
 
-    TEST_ASSERT_EQUAL(1, findNakedTuplesInContainer(container, dimension, numbers, foundFields));
+    TEST_ASSERT_EQUAL(1, findNakedTuplesInContainer(container, dimension, includedFields, fieldsLeft));
 
     // check fields' values and candidates
     TEST_ASSERT_EQUAL(1, compareField(container->fields[0], 4, NULL));
@@ -353,8 +385,8 @@ void test_findNakedPairsInContainer2(void) {
     TEST_ASSERT_EQUAL(1, compareField(container->fields[7], 7, NULL));
     TEST_ASSERT_EQUAL(1, compareField(container->fields[8], 0, "38"));
 
-    free(foundFields);
-    free(numbers);
+    free(fieldsLeft);
+    freeFieldList(includedFields);
 }
 
 void test_findNakedPairsInContainer4(void) {
@@ -374,10 +406,10 @@ void test_findNakedPairsInContainer4(void) {
 
     // allocate memory for strategy variables
     dimension = 2;
-    unsigned *numbers = (unsigned *) xmalloc(sizeof (unsigned) * (dimension + 1));
-    FieldsVector *foundFields = (FieldsVector *) xmalloc(sizeof (FieldsVector) * (MAX_NUMBER + 1));
+    FieldList *includedFields = createFieldList(dimension);
+    FieldsVector *fieldsLeft = (FieldsVector *) xmalloc(sizeof (Field *) * (MAX_NUMBER + 1));
 
-    TEST_ASSERT_EQUAL(0, findNakedTuplesInContainer(container, dimension, numbers, foundFields));
+    TEST_ASSERT_EQUAL(0, findNakedTuplesInContainer(container, dimension, includedFields, fieldsLeft));
 
     // check fields' values and candidates
     TEST_ASSERT_EQUAL(1, compareField(container->fields[0], 0, "245678"));
@@ -390,8 +422,8 @@ void test_findNakedPairsInContainer4(void) {
     TEST_ASSERT_EQUAL(1, compareField(container->fields[7], 0, "245678"));
     TEST_ASSERT_EQUAL(1, compareField(container->fields[8], 0, "245678"));
 
-    free(foundFields);
-    free(numbers);
+    free(fieldsLeft);
+    freeFieldList(includedFields);
 }
 
 void test_findNakedPairsInContainer5(void) {
@@ -424,10 +456,10 @@ void test_findNakedPairsInContainer5(void) {
 
     // allocate memory for strategy variables
     dimension = 3;
-    unsigned *numbers = (unsigned *) xmalloc(sizeof (unsigned) * (dimension + 1));
-    FieldsVector *foundFields = (FieldsVector *) xmalloc(sizeof (FieldsVector) * (MAX_NUMBER + 1));
+    FieldList *includedFields = createFieldList(dimension);
+    FieldsVector *fieldsLeft = (FieldsVector *) xmalloc(sizeof (Field *) * (MAX_NUMBER + 1));
 
-    TEST_ASSERT_EQUAL(0, findNakedTuplesInContainer(container, 3, numbers, foundFields));
+    TEST_ASSERT_EQUAL(0, findNakedTuplesInContainer(container, dimension, includedFields, fieldsLeft));
 
     // check fields' values and candidates, should be unchanged
     TEST_ASSERT_EQUAL(1, compareField(container->fields[0], 0, "4789"));
@@ -440,8 +472,8 @@ void test_findNakedPairsInContainer5(void) {
     TEST_ASSERT_EQUAL(1, compareField(container->fields[7], 6, NULL));
     TEST_ASSERT_EQUAL(1, compareField(container->fields[8], 0, "78"));
 
-    free(foundFields);
-    free(numbers);
+    free(fieldsLeft);
+    freeFieldList(includedFields);
 }
 
 void test_findNakedTriplesInContainer(void) {
@@ -467,14 +499,14 @@ void test_findNakedTriplesInContainer(void) {
 
     // allocate memory for strategy variables
     dimension = 3;
-    unsigned *numbers = (unsigned *) xmalloc(sizeof (unsigned) * (dimension + 1));
-    FieldsVector *foundFields = (FieldsVector *) xmalloc(sizeof (FieldsVector) * (MAX_NUMBER + 1));
+    FieldList *includedFields = createFieldList(dimension);
+    FieldsVector *fieldsLeft = (FieldsVector *) xmalloc(sizeof (Field *) * (MAX_NUMBER + 1));
 
     // no pairs
-    TEST_ASSERT_EQUAL(0, findNakedTuplesInContainer(container, 2, numbers, foundFields));
+    TEST_ASSERT_EQUAL(0, findNakedTuplesInContainer(container, 2, includedFields, fieldsLeft));
 
     // but a triple!
-    TEST_ASSERT_EQUAL(1, findNakedTuplesInContainer(container, 3, numbers, foundFields));
+    TEST_ASSERT_EQUAL(1, findNakedTuplesInContainer(container, 3, includedFields, fieldsLeft));
 
     // check fields' values and candidates
     TEST_ASSERT_EQUAL(1, compareField(container->fields[0], 0, "245"));
@@ -487,8 +519,8 @@ void test_findNakedTriplesInContainer(void) {
     TEST_ASSERT_EQUAL(1, compareField(container->fields[7], 0, "245"));
     TEST_ASSERT_EQUAL(1, compareField(container->fields[8], 0, "245"));
 
-    free(foundFields);
-    free(numbers);
+    free(fieldsLeft);
+    freeFieldList(includedFields);
 }
 
 void test_equalNumberOfFieldsAndCandidates(void) {
@@ -551,6 +583,7 @@ int main(void) {
     RUN_TEST(test_fieldCandidatesContainAllOf);
     RUN_TEST(test_fieldCandidatesAreSubsetOf);
     RUN_TEST(test_equalNumberOfFieldsAndCandidates);
+    RUN_TEST(test_countDistinctCandidates);
     RUN_TEST(test_findNakedPairsInContainer);
     RUN_TEST(test_findNakedPairsInContainer2);
     RUN_TEST(test_findNakedPairsInContainer4);
