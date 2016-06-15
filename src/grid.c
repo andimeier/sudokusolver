@@ -371,7 +371,7 @@ int forbidNumbersInOtherFields(Container *container, unsigned *n, Field **dontTo
                     sprintf(buffer, "Before - candidatesLeft = %u", field->candidatesLeft);
                     logVerbose(buffer);
 
-                    progress = removeCandidate(field, candidate);
+                   progress = removeCandidate(field, candidate);
                 }
 
                 // go to next candidate to be forbidden
@@ -488,13 +488,8 @@ FieldsVector *fieldsWithCandidate(Field **container, unsigned n) {
  * @return 1 both have equal length. 0 if they differ
  */
 unsigned equalNumberOfFieldsAndCandidates(FieldsVector *fieldsVector, unsigned *numbers) {
-
-    sprintf(buffer, "check if found fields are of tuple dimension of numbers ...");
-    logVerbose(buffer);
-
     do {
         if (*fieldsVector == NULL && *numbers == 0) {
-            logVerbose("YES!");
             return 1;
         }
 
@@ -502,7 +497,6 @@ unsigned equalNumberOfFieldsAndCandidates(FieldsVector *fieldsVector, unsigned *
         // However, if the other one is exhausted, then both vectors apparently
         // do not have the same length
         if (*fieldsVector == NULL || *numbers == 0) {
-            logVerbose("   no ...");
             return 0;
         }
 

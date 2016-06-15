@@ -501,7 +501,6 @@ unsigned recurseNakedTuples(unsigned maxLevel, Container *container, unsigned le
     sprintf(buffer, "Entering recursion level %u/%u ...", level, maxLevel);
     logVerbose(buffer);
 
-
     // prepare list terminations *after* current list item
     numbers[level] = 0;
     foundFields[level] = NULL;
@@ -522,20 +521,6 @@ unsigned recurseNakedTuples(unsigned maxLevel, Container *container, unsigned le
         // reset "found fields" vector for a new search of fields matching the
         // given numbers
         foundFields[0] = NULL;
-
-        testCounter++;
-        sprintf(buffer, "~~~ testCounter: %d ~~~", testCounter);
-        logVerbose(buffer);
-        if (testCounter >= 364) {
-            testCounter = testCounter;
-        }
-
-        // FIXME breakpoint for naked-pair.sudoku: for a specific naked tuple: box1: C1/C3 contain naked pair 3/8 =>
-        // forbid in 8 in A2
-        if ((number == 3 || number == 8) && !strcmp(container->name, "box 1")) {
-            sprintf(buffer, "[7d75] WE ARE IN box 1, number: %u", number);
-            logVerbose(buffer);
-        }
 
         // loop through all fields of the container
         for (unsigned i = 0; i < MAX_NUMBER; i++) {

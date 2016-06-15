@@ -394,6 +394,56 @@ void test_findNakedPairsInContainer4(void) {
     free(numbers);
 }
 
+void test_findNakedPairsInContainer5(void) {
+    Field *field;
+    Container *container;
+    char name[20];
+    int dimension;
+
+    container = (Container *) xmalloc(sizeof (Container));
+    container->name = strdup("box 1");
+    container->fields = (Field **) xmalloc(sizeof (Field *) * MAX_NUMBER);
+
+    for (int i = 0; i < MAX_NUMBER; i++) {
+        field = (Field *) xmalloc(sizeof (Field));
+        sprintf(name, "%c%u", (char) (i % 3), i / 3);
+
+        // fields
+        if (i == 0) field = createField(name, 0, "4789");
+        if (i == 1) field = createField(name, 0, "289");
+        if (i == 2) field = createField(name, 0, "789");
+        if (i == 3) field = createField(name, 0, "3478");
+        if (i == 4) field = createField(name, 0, "238");
+        if (i == 5) field = createField(name, 1, NULL);
+        if (i == 6) field = createField(name, 5, NULL);
+        if (i == 7) field = createField(name, 6, NULL);
+        if (i == 8) field = createField(name, 0, "78");
+
+        container->fields[i] = field;
+    }
+
+    // allocate memory for strategy variables
+    dimension = 3;
+    unsigned *numbers = (unsigned *) xmalloc(sizeof (unsigned) * (dimension + 1));
+    FieldsVector *foundFields = (FieldsVector *) xmalloc(sizeof (FieldsVector) * (MAX_NUMBER + 1));
+
+    TEST_ASSERT_EQUAL(0, findNakedTuplesInContainer(container, 3, numbers, foundFields));
+
+    // check fields' values and candidates, should be unchanged
+    TEST_ASSERT_EQUAL(1, compareField(container->fields[0], 0, "4789"));
+    TEST_ASSERT_EQUAL(1, compareField(container->fields[1], 0, "289"));
+    TEST_ASSERT_EQUAL(1, compareField(container->fields[2], 0, "789"));
+    TEST_ASSERT_EQUAL(1, compareField(container->fields[3], 0, "3478"));
+    TEST_ASSERT_EQUAL(1, compareField(container->fields[4], 0, "238"));
+    TEST_ASSERT_EQUAL(1, compareField(container->fields[5], 1, NULL));
+    TEST_ASSERT_EQUAL(1, compareField(container->fields[6], 5, NULL));
+    TEST_ASSERT_EQUAL(1, compareField(container->fields[7], 6, NULL));
+    TEST_ASSERT_EQUAL(1, compareField(container->fields[8], 0, "78"));
+
+    free(foundFields);
+    free(numbers);
+}
+
 void test_findNakedTriplesInContainer(void) {
     Container *container;
     int dimension;
@@ -504,6 +554,7 @@ int main(void) {
     RUN_TEST(test_findNakedPairsInContainer);
     RUN_TEST(test_findNakedPairsInContainer2);
     RUN_TEST(test_findNakedPairsInContainer4);
+    RUN_TEST(test_findNakedPairsInContainer5);
     RUN_TEST(test_findNakedTriplesInContainer);
     RUN_TEST(test_showCandidates);
     //        RUN_TEST(test_setupGrid);
