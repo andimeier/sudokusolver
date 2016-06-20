@@ -600,6 +600,7 @@ int compareCandidates(unsigned *c1, unsigned *c2) {
 int eliminateFieldsCandidatesFromOtherFields(Container *container, FieldsVector *fields) {
     unsigned *candidates;
     int progress;
+    FieldsVector *fieldsPtr;
 
     // add 1 item as a zero termination in the purely theoretical case that a
     // naked "nonuple" was found (all possible numbers of a Sudoku)
@@ -609,13 +610,14 @@ int eliminateFieldsCandidatesFromOtherFields(Container *container, FieldsVector 
     }
 
     // find out all candidates
-    while (*fields) {
+    fieldsPtr = fields;
+    while (*fieldsPtr) {
 
         // retrieve all candidates from the field
         for (int i = 0; i < MAX_NUMBER; i++) {
-            candidates[i] |= (*fields)->candidates[i];
+            candidates[i] |= (*fieldsPtr)->candidates[i];
         }
-        fields++;
+        fieldsPtr++;
     }
 
     // compact candidates to fit the parameter for "forbidNumbersInOtherFields"
