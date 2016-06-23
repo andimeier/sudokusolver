@@ -78,15 +78,20 @@ OUT = out
 # directory containing the unit test source files
 TEST = test
 
-.PHONY: clean default all .init test
+.PHONY: clean default all .init .init_test test
 .PRECIOUS: $(OUT)/$(TARGET) $(OBJECTS)
 
 .init:
 	mkdir -p $(OUT)
 
+.init_test:
+	mkdir -p $(OUT)/$(TEST)
+
 default: .init $(OUT)/$(TARGET)
 all: clean default
-test: $(OUT)/$(TEST_TARGET)
+test: .init_test execute_tests
+
+execute_tests: $(OUT)/$(TEST_TARGET)
 	# execute tests
 	./$< -v
 
@@ -109,8 +114,7 @@ $(OUT)/%.o: $(SRC)/%.c $(HEADERS)
 	$(CC) $(CFLAGS) $(INC_DIRS) $(SYMBOLS) -c $< -o $@
 
 # compile unit test files
-$(OUT)/test/%.o: $(TEST)/%.c $(HEADERS)
-	mkdir -p $(OUT)
+$(OUT)/$(TEST)/%.o: $(TEST)/%.c $(HEADERS)
 	$(CC) $(CFLAGS) $(INC_DIRS) -c $< -o $@
 
 # link files
