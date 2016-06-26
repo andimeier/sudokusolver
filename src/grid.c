@@ -355,6 +355,11 @@ int forbidNumbersInOtherFields(Container *container, unsigned *n, Field **dontTo
     for (int pos = 0; pos < MAX_NUMBER; pos++) {
         field = container->fields[pos];
 
+        // ignore solved fields
+        if (field->value) {
+            continue;
+        }
+        
         // don't touch the 'dontTouch' fields
         if (!containsField(dontTouch, field)) {
             // forbid the tuple numbers
@@ -371,7 +376,7 @@ int forbidNumbersInOtherFields(Container *container, unsigned *n, Field **dontTo
                     sprintf(buffer, "Before - candidatesLeft = %u", field->candidatesLeft);
                     logVerbose(buffer);
 
-                   progress = removeCandidate(field, candidate);
+                    progress = removeCandidate(field, candidate);
                 }
 
                 // go to next candidate to be forbidden
@@ -395,6 +400,11 @@ int forbidNumber(Field *field, unsigned n) {
     assert(n >= 1 && n <= MAX_NUMBER);
 
     if (field->candidates[n - 1]) {
+
+        if (field->correctSolution) {
+            assert(n != field->correctSolution);
+        }
+
         field->candidates[n - 1] = 0;
         field->candidatesLeft--;
         assert(field->candidatesLeft > 0);
@@ -643,6 +653,11 @@ int removeCandidate(Field *field, unsigned candidate) {
     c = field->candidates + candidate - 1;
 
     if (*c) {
+
+        if (field->correctSolution) {
+            assert(candidate != field->correctSolution);
+        }
+
         *c = 0;
         field->candidatesLeft--;
 
@@ -650,6 +665,6 @@ int removeCandidate(Field *field, unsigned candidate) {
 
         return 1;
     }
-    
+
     return 0;
 }

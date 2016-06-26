@@ -640,7 +640,16 @@ int eliminateFieldsCandidatesFromOtherFields(Container *container, FieldsVector 
 
 /**
  * aux function whose only purpose is to populate the fields in which the
- * algorithm should search for naked tuples
+ * algorithm should search for naked tuples.
+ * The function takes all fields first, and then removes certain fields
+ * because it is clear that they cannot play a role when searching for a 
+ * naked tuple of the given dimension.
+ * 
+ * Example: a field which is already solved, is filtered out. A field containing
+ * 4 or more candidates is filtered out when searching for a naked triple.
+ * 
+ * The purpose of this function is to remove the number of fields which must
+ * be considered by the search algorithm (performance issue).
  * 
  * @param relevantFields list of fields with the relevant fields (this is the
  *   output = the result)
