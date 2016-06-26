@@ -54,7 +54,13 @@ void setCandidates(Field *field, unsigned *cands) {
 int compareField(Field *field, unsigned value, char *candidatesString) {
     if (field->value) {
         return field->value == value;
+    } else {
+        if (value) {
+            // should have a value, but is unsolved
+            return 0;
+        }
     }
+
 
     unsigned *candidates = (unsigned *) xmalloc(sizeof (unsigned) * MAX_NUMBER);
     for (int i = 0; i < MAX_NUMBER; i++) {
@@ -523,6 +529,61 @@ void test_findNakedTriplesInContainer(void) {
     freeFieldList(includedFields);
 }
 
+void test_findNakedTriplesInContainer2(void) {
+    Container *container;
+    int dimension;
+
+    container = (Container *) xmalloc(sizeof (Container));
+    container->name = strdup("row C");
+    container->fields = (Field **) xmalloc(sizeof (Field *) * MAX_NUMBER);
+
+    for (int i = 0; i < MAX_NUMBER; i++) {
+        char name[5];
+        sprintf(name, "C%u", i + 1);
+        
+        switch(i) {
+            case 0: container->fields[i] = createField(name, 5, NULL); break;
+            case 1: container->fields[i] = createField(name, 6, NULL); break;
+            case 2: container->fields[i] = createField(name, 0, "78"); break;
+            case 3: container->fields[i] = createField(name, 3, NULL); break;
+            case 4: container->fields[i] = createField(name, 1, NULL); break;
+            case 5: container->fields[i] = createField(name, 0, "27"); break;
+            case 6: container->fields[i] = createField(name, 0, "28"); break;
+            case 7: container->fields[i] = createField(name, 9, NULL); break;
+            case 8: container->fields[i] = createField(name, 4, NULL); break;
+//            case 8: container->fields[i] = createField(name, 0, "245678"); break;
+        }
+    }
+
+    // allocate memory for strategy variables
+    dimension = 3;
+    FieldList *includedFields = createFieldList(dimension);
+    FieldsVector *fieldsLeft = (FieldsVector *) xmalloc(sizeof (Field *) * (MAX_NUMBER + 1));
+
+    // no pairs
+    TEST_ASSERT_EQUAL(0, findNakedTuplesInContainer(container, 2, includedFields, fieldsLeft));
+
+    // although there is a naked triple, no candidates can be eliminated in
+    // other fields, so the strategy function is supposed to return 0 (no change)
+    TEST_ASSERT_EQUAL(0, findNakedTuplesInContainer(container, 3, includedFields, fieldsLeft));
+
+    // check fields' values and candidates
+    // all fields are unchanged (naked triple was detected, but it did not
+    // change anything)
+    TEST_ASSERT_EQUAL(1, compareField(container->fields[0], 5, NULL));
+    TEST_ASSERT_EQUAL(1, compareField(container->fields[1], 6, NULL));
+    TEST_ASSERT_EQUAL(1, compareField(container->fields[2], 0, "78"));
+    TEST_ASSERT_EQUAL(1, compareField(container->fields[3], 3, NULL));
+    TEST_ASSERT_EQUAL(1, compareField(container->fields[4], 1, NULL));
+    TEST_ASSERT_EQUAL(1, compareField(container->fields[5], 0, "27"));
+    TEST_ASSERT_EQUAL(1, compareField(container->fields[6], 0, "28"));
+    TEST_ASSERT_EQUAL(1, compareField(container->fields[7], 9, NULL));
+    TEST_ASSERT_EQUAL(1, compareField(container->fields[8], 4, NULL));
+
+    free(fieldsLeft);
+    freeFieldList(includedFields);
+}
+
 void test_equalNumberOfFieldsAndCandidates(void) {
     FieldsVector *fieldsVector;
     unsigned *numbers;
@@ -589,6 +650,7 @@ int main(void) {
     RUN_TEST(test_findNakedPairsInContainer4);
     RUN_TEST(test_findNakedPairsInContainer5);
     RUN_TEST(test_findNakedTriplesInContainer);
+    RUN_TEST(test_findNakedTriplesInContainer2);
     RUN_TEST(test_showCandidates);
     //        RUN_TEST(test_setupGrid);
     return UNITY_END();
