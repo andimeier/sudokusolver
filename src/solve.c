@@ -545,7 +545,15 @@ unsigned recurseNakedTuples(unsigned maxLevel, Container *container, unsigned le
 
                 // depending on whether some candidates could be eliminated, the
                 // board has changed or not
-                return eliminateFieldsCandidatesFromOtherFields(container, includedFields->fields);
+                if (eliminateFieldsCandidatesFromOtherFields(container, includedFields->fields)) {
+                    // something has changed! success, we actually found something!
+                    return 1;
+                } else {
+                    // restore field list to previous iteration
+                    popFromFieldList(includedFields);
+                    return 0;
+                }
+
             }
         }
 
