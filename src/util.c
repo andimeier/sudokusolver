@@ -213,3 +213,77 @@ int countDistinctCandidates(FieldsVector *fields, size_t limit) {
     // no break until now => must be success
     return 1;
 }
+
+/**
+ * determines in which fields of a given list of fields a given candidate can
+ * be. 
+ * 
+ * @param fieldsWithCandidate fields containing a candidate. This is a 
+ *   pre-allocated buffer to be used by this strategy. Performance issue, so 
+ *   that not every iteration has to allocate buffer, but a "common" buffer is
+ *   used
+ * @param fields fields in which to search for the given candidate
+ * @param candidate the candidate to look for
+ * @return a NULL-terminated list of field pointers holding all fields of the
+ *   given field list for which the given candidate is possible
+ */
+FieldsVector *fieldsContainingCandidate(FieldsVector *fieldsWithCandidate, FieldsVector *fields, unsigned candidate) {
+    FieldsVector *fieldsPtr;
+    
+    fieldsPtr = fieldsWithCandidate;
+    while (*fields) {
+        if ((*fields)->value == candidate) {
+            // field is already solved with this candidate, so the candidate
+            // is not "free" anymore and cannot occur in any fields of the 
+            // container => look no further
+            return NULL;
+        }
+        
+        if ((*fields)->candidates[candidate - 1]) {
+            // add field to list of found fields
+            *fieldsPtr++ = *fields;
+        }
+        
+        fields++;
+    }
+    
+    *fieldsPtr = NULL; // terminate list of found fields
+    return fieldsWithCandidate;
+}
+
+
+/**
+ * check if all given fields share the same container of the given type
+ * 
+ * @param fields NULL-terminated vector of field pointers specifying the fields
+ *   which should be checked whether they *all* share the same container
+ * @param containerSetIndex the index of the container set for which the 
+ *   function should check whether all fields are in the same container of this
+ *   container set
+ * @return the common container or NULL if fields have no common container. If
+ *   an empty field list is passed, the return value is NULL as well since no
+ *   container can be determined at all.
+ */
+Container *getCommonContainer(FieldsVector *fields, size_t containerSetIndex) {
+    Container *commonContainer;
+    
+    if (*fields == NULL) {
+        // not even one field given => no common container
+        return NULL;
+    }
+    
+    // reference: container index of first field
+    commonContainer = (*fields++)->containers[containerSetIndex];
+    
+    // check the remaining fields if they share the same container
+    while (*fields) {
+        if ((*fields)->containers[containerSetIndex] != commonContainer) {
+            commonContainer = NULL;
+            break;
+        }
+        
+        *fields++;
+    }
+    
+    return commonContainer;    
+}

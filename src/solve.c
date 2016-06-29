@@ -62,6 +62,7 @@ int solve() {
     *currentStrategy++ = &checkForSolvedCells;
     *currentStrategy++ = &findHiddenSingles;
     *currentStrategy++ = &findNakedTuples;
+    *currentStrategy++ = &findPointingTuples;
     *currentStrategy++ = NULL; // terminate list of strategies
 
 
@@ -264,187 +265,18 @@ int findNakedTuples() {
     return progress;
 }
 
-int findHiddenPairs() {
-    int y;
-    int cand;
-    int progress;
-
-    // http://programmers.stackexchange.com/questions/270930/sudoku-hidden-sets-algorithm
-
-    progress = 0;
-
-    // hidden pairs in rows
-    for (y = 0; y < MAX_NUMBER; y++) {
-        for (cand = 1; cand <= MAX_NUMBER; cand++) {
-            // countCandidateInRow(cand, y);
-        }
-
-    }
-
-    return progress;
-}
-
-int recurseHiddenTuples(unsigned maxLevel, FieldsVector *fields, unsigned level, unsigned *candidates, FieldsVector *fieldsContainingCandidates) {
-
-    // make room for new candidate in the candidates vector
-    candidates[level + 1] = 0;
-
-    // add next number to numbers vector
-    for (unsigned n = 1; n < MAX_NUMBER; n++) {
-        candidates[level] = n;
-
-        // check this combination of candidates (in the candidates vector) 
-        // whether there are only length(candidates) Sudoku fields in which
-        // the candidates can occur => in this case this would be a hidden
-        // tuple of length length(candidates)
-
-        // FIXME setFieldsContainingCandidates(fieldsContainingCandidates, n);
-
-        // recurse further?
-        // FIXME 
-        //        if () {
-        //        }
-    }
-
-    // "rollback" recursion
-    candidates[level] = 0;
-
-    return 0; // FIXME ????
-}
-
-/**
- * find pointing pairs or triples
- * 
- * @return progress flag: 1 for "something has changed", 0 for "no change"
- */
-int findPointingTupels() {
-    //ContainerSet *unit;
-    int progress; // flag: something has changed
-    //unsigned tuple[MAX_NUMBER];
-    //unsigned n;
-
-    progress = 0;
-
-
-    //    printf("[pii] starting findPointingTupels ...\n");
-    //
-    //    // search in all unit types (rows, cols, boxes, ...) for a tuple of numbers 
-    //    // which form a "pointing tuple"
-    //
-    //    for (int u = 0; u < unitDefs.count; u++) {
-    //        unit = &(unitDefs.containerTypes[u]);
-    //
-    //        printf("container \"%s\" has %zu instances\n", unit->name, unit->numberOfContainers);
-    //        for (int c = 0; c < unit->numberOfContainers; c++) {
-    //            FieldsVector *container = unit->containers[c].fields;
-    //
-    //            showAllCandidates();
-    //            show(0);
-    //            printf("Alex\n");
-    //            show(0);
-    //            sudokuString(0);
-    //
-    //            printf("iterating into instance %d of container \"%s\"\n", c, unit->name); // FIXME debugging output
-    //
-    //            // check for pointing tuples in this container
-    //            for (n = 1; n <= MAX_NUMBER; n++) {
-    //                FieldsVector *fieldsVector;
-    //
-    //                // collect all fields which contain this candidate
-    //                printf("get fields with candidate %u in unit type %s ... \n", n, unit->name); // FIXME debugging output
-    //                fieldsVector = fieldsWithCandidate(container, n);
-    //                printf("got fields:\n"); // FIXME debugging output
-    //                Field **ptr = fieldsVector; // FIXME debugging variable
-    //                while (*ptr) { // FIXME debugging output
-    //                    //                    printf("ptr point to address %d\n", (int) *ptr);
-    //                    printf("  candidate %u is possible in field %d/%d\n", n, (*ptr)->containerIndexes[ROWS], (*ptr)->containerIndexes[COLS]);
-    //                    ptr++;
-    //                }
-    //
-    //                printf("[hhh1]\n");
-    //
-    //                if (*fieldsVector == NULL) {
-    //                    // candidate n not found in any free field => skip it
-    //                    printf("[hhh2]\n");
-    //                    continue;
-    //                }
-    //                printf("[hhh3]\n");
-    //
-    //                // for every unit type other than the current one, check if
-    //                // all fields of the tuple share the same "other" unit instance.
-    //                // If so, the candidate can be removed from all fields in the
-    //                // "other" instance except for the fields in the tuple (in the
-    //                // current container)
-    //
-    //                for (int u2 = 0; u2 < unitDefs.count; u2++) {
-    //                    if (u2 == u) {
-    //                        // only look in OTHER unit types
-    //                        printf("[hhh4]\n");
-    //                        continue;
-    //                    }
-    //
-    //                    printf("[hhh5]\n");
-    //                    printf("  look at unit %s ...\n", unitDefs.containerTypes[u2].name);
-    //
-    //                    //                    for (int f2 = 0; f2 < NUMBER_OF_FIELDS; f2++) { // FIXME debugging output
-    //                    //                        printf("[1234] field #%d: in row %d, col %d, box %d\n", f2, fields[f2].unitPositions[ROWS], fields[f2].unitPositions[COLS], fields[f2].unitPositions[BOXES]);
-    //                    //                    }
-    //
-    //
-    //                    int containerIndex;
-    //                    // check if all fields share the same instance of the "other unit"
-    //                    Field **fieldsPtr;
-    //                    fieldsPtr = fieldsVector;
-    //                    containerIndex = (*fieldsPtr)->containerIndexes[u2];
-    //                    printf("the tupel MIGHT be in %s #%d ...\n", unitDefs.containerTypes[u2].name, containerIndex);
-    //                    fieldsPtr++;
-    //                    while (*fieldsPtr) {
-    //                        printf("[jjj2] check next position ...\n");
-    //                        if ((*fieldsPtr)->containerIndexes[u2] != containerIndex) {
-    //                            printf("[jjj3] FOUND SOMETHING => no tupel...\n");
-    //                            break;
-    //                        }
-    //
-    //                        fieldsPtr++;
-    //                    }
-    //
-    //                    printf("[jjj4] finished\n");
-    //
-    //                    // found pointing tuple?
-    //                    if (!(*fieldsPtr)) {
-    //                        printf("[lkkk] Found pointing tuple in %s #%d ...) \n", unitDefs.containerTypes[u2].name, containerIndex);
-    //
-    //                        // prepare tuple
-    //                        for (int i = 0; i < MAX_NUMBER; i++) {
-    //                            tuple[i] = 0;
-    //                        }
-    //                        tuple[n - 1] = n;
-    //
-    //                        progress |= forbidNumbersInOtherFields(&(unitDefs.containerTypes[u2].containers[containerIndex]), tuple, fieldsVector);
-    //                    }
-    //                }
-    //
-    //                free(fieldsVector);
-    //            }
-    //        }
-    //    }
-
-    return progress;
-
-}
-
 /**
  * find naked tuples (pairs, triples, ...) which share the same candidates.
  * For instance, if two fields have only the candidates 2 and 4, then 2 and 4
  * can be eliminated from all other fields in the same container.
- * Note: finds tupels of and only of the given dimension. For example,
+ * Note: finds tuples of and only of the given dimension. For example,
  * if dimension == 3, then only naked triples are found, but not naked pairs 
  * (actually, naked pairs will be identified as naked triple with one "excessive
  * cell").
  * 
  * @param container vector of fields (=container) in which we look for naked 
  *   tuples
- * @param dimension dimension of the tupel to be looked for. 2=pairs, 
+ * @param dimension dimension of the tuple to be looked for. 2=pairs, 
  *   3=triples etc.
  * @param includedFields allocated buffer for the "found fields" during the
  *   algorithm, must be the size of the dimension (plus 1 for a NULL termination)
@@ -484,7 +316,7 @@ unsigned findNakedTuplesInContainer(Container *container, unsigned dimension, Fi
 
 /**
  * recursively look for naked tuples of the dimension maxLevel.
- * Note: finds tupels of and only of the given dimension. For example,
+ * Note: finds tuples of and only of the given dimension. For example,
  * if dimension == 3, then only naked triples are found, but not naked pairs 
  * (actually, naked pairs will be identified as naked triple with one "excessive
  * cell").
@@ -571,6 +403,158 @@ unsigned recurseNakedTuples(unsigned maxLevel, Container *container, unsigned le
     return 0; // nothing found
 }
 
+int findHiddenPairs() {
+    int y;
+    int cand;
+    int progress;
+
+    // http://programmers.stackexchange.com/questions/270930/sudoku-hidden-sets-algorithm
+
+    progress = 0;
+
+    // hidden pairs in rows
+    for (y = 0; y < MAX_NUMBER; y++) {
+        for (cand = 1; cand <= MAX_NUMBER; cand++) {
+            // countCandidateInRow(cand, y);
+        }
+
+    }
+
+    return progress;
+}
+
+int recurseHiddenTuples(unsigned maxLevel, FieldsVector *fields, unsigned level, unsigned *candidates, FieldsVector *fieldsContainingCandidates) {
+
+    // make room for new candidate in the candidates vector
+    candidates[level + 1] = 0;
+
+    // add next number to numbers vector
+    for (unsigned n = 1; n < MAX_NUMBER; n++) {
+        candidates[level] = n;
+
+        // check this combination of candidates (in the candidates vector) 
+        // whether there are only length(candidates) Sudoku fields in which
+        // the candidates can occur => in this case this would be a hidden
+        // tuple of length length(candidates)
+
+        // FIXME setFieldsContainingCandidates(fieldsContainingCandidates, n);
+
+        // recurse further?
+        // FIXME 
+        //        if () {
+        //        }
+    }
+
+    // "rollback" recursion
+    candidates[level] = 0;
+
+    return 0; // FIXME ????
+}
+
+/**
+ * find pointing pairs or triples or whatever dimension. Pointing tuples
+ * are a number of fields in a container which share the same container of 
+ * another container type. Example: if in a box the number 3 can occur in two
+ * fields of the box AND these two fields share also the same row, then all 
+ * other ocurrences of the number 3 in the rest of the row can be eliminated.
+ * 
+ * @return progress flag: 1 for "something has changed", 0 for "no change"
+ */
+int findPointingTuples() {
+    //ContainerSet *unit;
+    int progress; // flag: something has changed
+    Container *container;
+    FieldsVector *fieldsBuffer;
+    //unsigned tuple[MAX_NUMBER];
+    //unsigned n;
+
+    progress = 0;
+
+
+    printf("[pii] starting findPointingTuples ...\n");
+
+    fieldsBuffer = (FieldsVector *) xmalloc(sizeof (Field *) * (MAX_NUMBER + 1));
+    
+    // search in all containers (be it rows, cols, boxes, ...) for a tuple of 
+    // numbers which form a "pointing tuple"
+
+    // go through all containers and find naked tuples therein
+    for (unsigned c = 0; c < numberOfContainers; c++) {
+        container = &(allContainers[c]);
+        sprintf(buffer, "-- next container: %s", container->name);
+        logVerbose(buffer);
+
+        progress |= findPointingTuplesInContainer(container, fieldsBuffer);
+    }
+
+    return progress;
+
+}
+
+/**
+ * find pointing pairs or triples or whatever dimension in the specified
+ * container. 
+ * 
+ * @param container container in which we look for pointing tuples
+ * @param fieldsWithCandidate fields containing a candidate. This is a 
+ *   pre-allocated buffer to be used by this strategy. Performance issue, so 
+ *   that not every iteration has to allocate buffer, but a "common" buffer is
+ *   used
+ * @return progress flag: 1 for "something has changed", 0 for "no change"
+ */
+unsigned findPointingTuplesInContainer(Container *container, FieldsVector *fieldsWithCandidate) {
+    unsigned progress;
+    ContainerSet *containerSet;
+    Container *commonContainer;
+
+    progress = 0;
+
+    /*
+     * strategy: for each container (for the given container in this function),
+     * check all "free" numbers whether all occurrences of such candidate is
+     * in the same container of another container type. If so, eliminate this
+     * candidate in the other container in all other fields than the fields
+     * of the "first" container.
+     */
+
+    // try all numbers
+    for (unsigned n = 1; n < MAX_NUMBER; n++) {
+        // TODO optimisation step: skip numbers which are already solved in the
+        // container
+
+        // gather all fields of the container which contain this candidate
+        fieldsContainingCandidate(fieldsWithCandidate, container->fields, n);
+
+        while (*fieldsWithCandidate) {
+            // iterate through all container types and see if all fields share
+            // the same "other" container
+
+            for (size_t set = 0; set < numberOfContainerSets; set++) {
+                containerSet = &(containerSets[set]);
+
+                // skip current container (container does not need to be 
+                // compared with itself), we only want to look in "other"
+                // containers
+                if (containerSet->type == container->type) {
+                    continue;
+                }
+
+                // check if all fields are in the same "other" container
+                commonContainer = getCommonContainer(fieldsWithCandidate, set);
+
+                if (commonContainer) {
+                    // all fields are in the same "other" container => try to
+                    // eliminate candidates on the other container
+                    // depending on whether some candidates could be eliminated, the
+                    // board has changed or not
+                    return eliminateFieldsCandidatesFromOtherFields(commonContainer, fieldsWithCandidate);
+                }
+            }
+        }
+    }
+
+    return progress;
+}
 
 /**
  * compare two lists of candidates and check if they are equal

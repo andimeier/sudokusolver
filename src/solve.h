@@ -21,9 +21,7 @@ extern "C" {
     int findHiddenSingles();
     int findNakedTuples();
     int findHiddenPairsAndTriples(); // not implemented yet
-    int findNakedQuads(); // not implemented yet
-    int findHiddenQuads(); // not implemented yet
-    int findPointingTupels();
+    int findPointingTuples();
     int boxLineReduction(); // not implemented yet
 
     // number of errors in the algorithm
@@ -31,6 +29,9 @@ extern "C" {
 
     // auxiliary functions
     unsigned findNakedTuplesInContainer(Container *container, unsigned dimension, FieldList *includedFields, FieldsVector *fieldsLeft);
+    unsigned findPointingTuplesInContainer(Container *container, FieldsVector *fieldsWithCandidate);
+    
+
     
 #ifdef	__cplusplus
 }

@@ -5,6 +5,7 @@
  * Created on 2016-06-15
  */
 #include <stdlib.h>
+#include <stddef.h>
 #include "util.h"
 #include "fieldlist.h"
 

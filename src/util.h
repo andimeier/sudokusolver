@@ -21,6 +21,8 @@ extern "C" {
     int containsField(Field **list, Field * field);
     int fieldCandidatesAreSubsetOf(Field *field, unsigned *numbers);
     int countDistinctCandidates(FieldsVector *fields, size_t limit);
+    FieldsVector *fieldsContainingCandidate(FieldsVector *fieldsWithCandidate, FieldsVector *fields, unsigned candidate);
+    Container *getCommonContainer(FieldsVector *fieldsWithCandidate, size_t ContainerSetIndex); // or NULL if fields have no common container
 
 #ifdef	__cplusplus
 }
