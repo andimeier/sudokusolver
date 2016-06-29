@@ -532,6 +532,14 @@ unsigned findPointingTuplesInContainer(Container *container, FieldsVector *field
             for (size_t set = 0; set < numberOfContainerSets; set++) {
                 containerSet = &(containerSets[set]);
 
+                // TODO optimisation: some combination of container sets are not
+                // relevant. E.g. tuples in a row can never "point" to the same
+                // row for all fields. Fields in a row can never share the same
+                // diagonal. Fields in a column can never share the same 
+                // diagonal. So these combinations of container sets can safely
+                // be skipped. But these combinations (or the allowed 
+                // combinations) must be defined somewhere ...
+                
                 // skip current container (container does not need to be 
                 // compared with itself), we only want to look in "other"
                 // containers
