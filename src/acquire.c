@@ -118,6 +118,14 @@ int readSudoku(char *inputFilename) {
         fields[f].correctSolution = (unsigned)(solution[f] - '0');
     }
 #endif
+#define POINTING_PAIR
+#ifdef POINTING_PAIR
+    // FIXME fill out final solution in each field, if given
+    char solution[82] = "981724365324615879765983142197836254642571938853249716476398521538162497219457683";
+    for (f = 0; f < NUMBER_OF_FIELDS; f++) {
+        fields[f].correctSolution = (unsigned)(solution[f] - '0');
+    }
+#endif
     
     logVerbose("Initial values filled.");
 
