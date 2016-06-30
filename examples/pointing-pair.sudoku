@@ -1,0 +1,22 @@
+#Step 5 - Naked Pair  docs
+#
+#    Naked Pair 1/8 in Col 4, on cells [D4,H4]
+#    - removes 1 from E4
+#    - removes 1/8 from G4
+#    Last candidate, 3, in G4 changed to solution 
+#
+#Step 6 - Pointing Pairs  docs
+#
+#    PAIR: Between Box 3 and Col 7:
+#    1 taken off G7
+#    1 taken off H7
+#    1 taken off J7
+000724005
+020010070
+000080002
+090036250
+602070008
+053240010
+400390020
+030062090
+209457000
