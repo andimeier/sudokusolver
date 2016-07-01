@@ -7,6 +7,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
+#include <assert.h>
 #include "global.h"
 #include "grid.h"
 #include "show.h"
@@ -291,4 +292,49 @@ void printSvg(int finalVersion) {
     fclose(svgfile);
 
     if (filename != svgFilename) free(filename);
+}
+
+/**
+ * prints a field on stdout. No \n appended
+ * 
+ * @param field the field to be printed
+ * @param appendLf flag whether a line feed should be appended or not
+ */
+void showField(Field *field, int appendLf) {
+    char *candidates;
+    int i;
+
+    assert(MAX_NUMBER <= 9);
+
+    candidates = strdup("123456789");
+    for (i = 0; i < MAX_NUMBER; i++) {
+        if (!field->candidates[i]) {
+            candidates[i] = ' ';
+        }
+    }
+    // terminate string
+    candidates[MAX_NUMBER + 1] = '\0';
+
+    if (field->value) {
+        // already solved
+        printf("%s: ==%u==%s", field->name, field->value, appendLf ? "\n" : "");
+    } else {
+        // not solved yet
+        if (field->correctSolution) {
+            printf("%s: [%s] (solution: %u)%s", field->name, candidates, field->correctSolution, appendLf ? "\n" : "");
+        } else {
+            printf("%s: [%s]%s", field->name, candidates, appendLf ? "\n" : "");
+        }
+    }
+
+    free(candidates);
+}
+
+/**
+ * Alias to showField()
+ * 
+ * @param field
+ */
+void sf(Field *field) {
+    showField(field, 1);
 }

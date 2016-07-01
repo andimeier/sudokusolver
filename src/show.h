@@ -6,11 +6,11 @@
  */
 
 #ifndef SHOW_H
-#define	SHOW_H
+#define SHOW_H
 
 #include "typedefs.h"
 
-#ifdef	__cplusplus
+#ifdef __cplusplus
 extern "C" {
 #endif
 
@@ -21,12 +21,17 @@ extern "C" {
     void printSvg(int finalVersion);
     char *position(Field *field);
 
+    // aux functions, mainly for debugging purposes
+    void showField(Field *field, int appendLf);
+    void sf(Field *field);
+
     // filename of SVG file
     extern char *svgFilename;
 
-#ifdef	__cplusplus
+
+#ifdef __cplusplus
 }
 #endif
 
-#endif	/* SHOW_H */
+#endif /* SHOW_H */
 
