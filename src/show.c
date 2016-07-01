@@ -298,9 +298,11 @@ void printSvg(int finalVersion) {
  * prints a field on stdout. No \n appended
  * 
  * @param field the field to be printed
+ * @param showContainers flag whether the containers holding this field should
+ *   be printed
  * @param appendLf flag whether a line feed should be appended or not
  */
-void showField(Field *field, int appendLf) {
+void showField(Field *field, int showContainers, int appendLf) {
     char *candidates;
     int i;
 
@@ -317,14 +319,26 @@ void showField(Field *field, int appendLf) {
 
     if (field->value) {
         // already solved
-        printf("%s: ==%u==%s", field->name, field->value, appendLf ? "\n" : "");
+        printf("%s: = %u", field->name, field->value);
     } else {
         // not solved yet
         if (field->correctSolution) {
-            printf("%s: [%s] (solution: %u)%s", field->name, candidates, field->correctSolution, appendLf ? "\n" : "");
+            printf("%s: [%s] (solution: %u)", field->name, candidates, field->correctSolution);
         } else {
-            printf("%s: [%s]%s", field->name, candidates, appendLf ? "\n" : "");
+            printf("%s: [%s]", field->name, candidates);
         }
+    }
+
+    if (showContainers) {
+        printf(" in containers: ");
+        for (int c = 0; c < numberOfContainerSets; c++) {
+            printf("%s%s", !c ? "" : ", ", field->containers[c]->name);
+        }
+    }
+
+    if (appendLf) {
+
+        printf("\n");
     }
 
     free(candidates);
@@ -336,5 +350,50 @@ void showField(Field *field, int appendLf) {
  * @param field
  */
 void sf(Field *field) {
-    showField(field, 1);
+
+    showField(field, 1, 1);
+}
+
+/**
+ * shows the content of a container (for debugging purposes)
+ * @param container
+ */
+void showContainer(Container *container) {
+
+    printf("Container: %s\n", container->name);
+            showFieldsVector(container->fields, 1);
+}
+
+/**
+ * Alias to showContainer
+ * 
+ * @param container
+ */
+void sc(Container *container) {
+
+    showContainer(container);
+}
+
+/**
+ * shows the content of a field list (for debugging purposes)
+ * @param fields
+ * @param indent flag whether the field list should be indented
+ */
+void showFieldsVector(FieldsVector *fields, int indent) {
+    while (*fields) {
+        if (indent) {
+
+            printf("  ");
+        }
+        showField(*fields, 0, 1);
+                fields++;
+    }
+}
+
+/**
+ * Alias to showFieldsVector
+ * @param fields
+ */
+void sfv(FieldsVector *fields) {
+    showFieldsVector(fields, 0);
 }
