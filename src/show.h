@@ -22,12 +22,10 @@ extern "C" {
     char *position(Field *field);
 
     // aux functions, mainly for debugging purposes
-    void showField(Field *field, int showContainers, int appendLf);
     void sf(Field *field);
-    void showContainer(Container *container);
     void sc(Container *container);
-    void showFieldsVector(FieldsVector *fields, int indent);
     void sfv(FieldsVector *fields);
+    void sfs(FieldsVector *fields); // identical to (alias of)) sfv
 
     // filename of SVG file
     extern char *svgFilename;

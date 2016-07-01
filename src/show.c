@@ -18,6 +18,10 @@
 
 char *svgFilename; // filename of SVG file
 
+// function prototypes
+static void showField(Field *field, int showContainers, int appendLf);
+static void showContainer(Container *container);
+static void showFieldsVector(FieldsVector *fields, int indent);
 
 
 //-------------------------------------------------------------------
@@ -208,7 +212,7 @@ void printSvg(int finalVersion) {
     char *filename;
     char suffix[20];
     static int index = 1;
-    Field ***rows;
+    Container *rows;
     Field *field;
 
     if (!svgFilename) return;
@@ -269,22 +273,22 @@ void printSvg(int finalVersion) {
     rows = containerSets[0].containers;
     for (y = 0; y < MAX_NUMBER; y++) {
         for (x = 0; x < MAX_NUMBER; x++) {
-            field = rows[y][x];
-            if (field->value) {
-                float xPos = x * MAX_NUMBER + 4.5;
-                float yPos = y * MAX_NUMBER + 7.65;
-                fprintf(svgfile, "<text class=\"final\" x=\"%f\"  y=\"%f\" text-anchor=\"middle\">%d</text>\n", xPos, yPos, field->value);
-            } else {
-                // alle noch moeglichen Zahlen ausgeben
-                int n1;
-                for (n1 = 1; n1 <= MAX_NUMBER; n1++) {
-                    if (field->candidates[n1 - 1] == n1) {
-                        float xPos = x * MAX_NUMBER + ((n1 - 1) % 3) * 3 + 1;
-                        float yPos = y * MAX_NUMBER + ((int) ((n1 - 1) / 3) * 3 + 2.4);
-                        fprintf(svgfile, "<text class=\"possibilities\" x=\"%f\"  y=\"%f\" text-anchor=\"middle\">%d</text>\n", xPos, yPos, n1);
-                    }
-                }
-            }
+//            field = rows[y][x];
+//            if (field->value) {
+//                float xPos = x * MAX_NUMBER + 4.5;
+//                float yPos = y * MAX_NUMBER + 7.65;
+//                fprintf(svgfile, "<text class=\"final\" x=\"%f\"  y=\"%f\" text-anchor=\"middle\">%d</text>\n", xPos, yPos, field->value);
+//            } else {
+//                // alle noch moeglichen Zahlen ausgeben
+//                int n1;
+//                for (n1 = 1; n1 <= MAX_NUMBER; n1++) {
+//                    if (field->candidates[n1 - 1] == n1) {
+//                        float xPos = x * MAX_NUMBER + ((n1 - 1) % 3) * 3 + 1;
+//                        float yPos = y * MAX_NUMBER + ((int) ((n1 - 1) / 3) * 3 + 2.4);
+//                        fprintf(svgfile, "<text class=\"possibilities\" x=\"%f\"  y=\"%f\" text-anchor=\"middle\">%d</text>\n", xPos, yPos, n1);
+//                    }
+//                }
+//            }
         }
     }
     fputs("  </g>\n</svg>", svgfile);
@@ -317,15 +321,15 @@ void showField(Field *field, int showContainers, int appendLf) {
     // terminate string
     candidates[MAX_NUMBER + 1] = '\0';
 
+    printf("Field %s: ", field->name);
     if (field->value) {
         // already solved
-        printf("%s: = %u", field->name, field->value);
+        printf("= %u", field->value);
     } else {
         // not solved yet
+        printf("[%s]", candidates);
         if (field->correctSolution) {
-            printf("%s: [%s] (solution: %u)", field->name, candidates, field->correctSolution);
-        } else {
-            printf("%s: [%s]", field->name, candidates);
+            printf(" (solution: %u)", field->correctSolution);
         }
     }
 
@@ -339,19 +343,9 @@ void showField(Field *field, int showContainers, int appendLf) {
     if (appendLf) {
 
         printf("\n");
-    }
+    } 
 
     free(candidates);
-}
-
-/**
- * Alias to showField()
- * 
- * @param field
- */
-void sf(Field *field) {
-
-    showField(field, 1, 1);
 }
 
 /**
@@ -361,17 +355,7 @@ void sf(Field *field) {
 void showContainer(Container *container) {
 
     printf("Container: %s\n", container->name);
-            showFieldsVector(container->fields, 1);
-}
-
-/**
- * Alias to showContainer
- * 
- * @param container
- */
-void sc(Container *container) {
-
-    showContainer(container);
+    showFieldsVector(container->fields, 1);
 }
 
 /**
@@ -386,14 +370,48 @@ void showFieldsVector(FieldsVector *fields, int indent) {
             printf("  ");
         }
         showField(*fields, 0, 1);
-                fields++;
+        fields++;
     }
 }
 
 /**
+ * Alias to showField()
+ * sf ... "show field"
+ * 
+ * @param field
+ */
+void sf(Field *field) {
+
+    showField(field, 1, 1);
+}
+
+/**
+ * Alias to showContainer
+ * sc ... "show container"
+ * 
+ * @param container
+ */
+void sc(Container *container) {
+
+    showContainer(container);
+}
+
+/**
  * Alias to showFieldsVector
+ * sfv ... "show fields vector"
+ * 
  * @param fields
  */
 void sfv(FieldsVector *fields) {
+    showFieldsVector(fields, 0);
+}
+
+/**
+ * Alias to showFieldsVector.
+ * sfs ... "show fields"
+ * 
+ * @param fields
+ */
+void sfs(FieldsVector *fields) {
     showFieldsVector(fields, 0);
 }

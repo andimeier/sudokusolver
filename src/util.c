@@ -236,7 +236,7 @@ FieldsVector *fieldsContainingCandidate(FieldsVector *fieldsWithCandidate, Field
             // field is already solved with this candidate, so the candidate
             // is not "free" anymore and cannot occur in any fields of the 
             // container => look no further
-            return NULL;
+            break;
         }
         
         if ((*fields)->candidates[candidate - 1]) {
@@ -282,7 +282,7 @@ Container *getCommonContainer(FieldsVector *fields, size_t containerSetIndex) {
             break;
         }
         
-        *fields++;
+        fields++;
     }
     
     return commonContainer;    
