@@ -11,6 +11,7 @@
 #include "show.h"
 #include "logfile.h"
 #include "log.h"
+#include "gametype.h"
 #include "acquire.h"
 
 void printUsage();
@@ -21,6 +22,7 @@ int main(int argc, char **argv) {
     char *outputFilename = NULL; // filename of printlog file
     char *inputFilename = NULL;
     char *sudoku = NULL;
+    unsigned gametype = GAME_STANDARD_SUDOKU;
 
     // if the Sudoku is wider than 26 numbers, we have a memory allocation issue
     // with the field->name (what is right of "Z26"?)
@@ -29,7 +31,7 @@ int main(int argc, char **argv) {
     // read command line arguments
     opterr = 0;
 
-    while ((c = getopt(argc, argv, "f:hvVl:s:")) != -1)
+    while ((c = getopt(argc, argv, "f:hvVl:s:t:")) != -1)
         switch (c) {
             case 'v':
                 logLevel = LOGLEVEL_VERBOSE;
@@ -45,6 +47,9 @@ int main(int argc, char **argv) {
                 break;
             case 'f':
                 inputFilename = optarg;
+                break;
+            case 't':
+                gametype = optarg;
                 break;
             case 'h':
                 printUsage();
@@ -108,11 +113,6 @@ int main(int argc, char **argv) {
     if (logLevel >= LOGLEVEL_VERBOSE) {
         logVerbose("Initial Sudoku:");
         show(0);
-    }
-
-    for (int f = 0; f < NUMBER_OF_FIELDS; f++) {
-        sprintf(buffer, "[1234-2] field #%d: in %s, %s, %s", f, fields[f].containers[0]->name, fields[f].containers[1]->name, fields[f].containers[2]->name);
-        logVerbose(buffer);
     }
 
     initLog();
