@@ -15,7 +15,7 @@
 #include "typedefs.h"
 #include "util.h"
 #include "grid.h"
-#include "log.h"
+#include "logfile.h"
 #include "fieldlist.h"
 #include "hidden-singles.h"
 #include "naked-tuples.h"
@@ -126,8 +126,6 @@ int checkForSolvedCells() {
     logVerbose("[strategy] check for solved cells ...");
 
     progress = 0;
-
-    showAllCandidates();
 
     for (f = 0; f < NUMBER_OF_FIELDS; f++) {
         field = fields + f;

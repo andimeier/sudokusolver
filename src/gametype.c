@@ -4,7 +4,7 @@
 #include <assert.h>
 #include "grid.h"
 #include "gametype.h"
-#include "log.h"
+#include "logfile.h"
 #include "util.h"
 
         

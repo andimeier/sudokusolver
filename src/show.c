@@ -12,7 +12,7 @@
 #include "grid.h"
 #include "show.h"
 #include "util.h"
-#include "log.h"
+#include "logfile.h"
 
 // global variables
 

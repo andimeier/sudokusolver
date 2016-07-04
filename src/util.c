@@ -12,7 +12,7 @@
 #include <assert.h>
 #include "global.h"
 #include "util.h"
-#include "log.h"
+#include "logfile.h"
 
 /**
  * copies all numbers from one array to another.

@@ -10,7 +10,7 @@
 #include "global.h"
 #include "container.h"
 #include "grid.h"
-#include "log.h"
+#include "logfile.h"
 #include "util.h"
 
 static void createContainers(unsigned type, char *name, size_t numberOfInstances, char *instanceNames[], ContainerSet *containerType);

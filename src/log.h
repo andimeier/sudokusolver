@@ -8,40 +8,33 @@
 #ifndef LOG_H
 #define	LOG_H
 
-#include "typedefs.h"
-
 #ifdef	__cplusplus
 extern "C" {
 #endif
 
-#define LOGLEVEL_ERRORS   0
-#define LOGLEVEL_SOLVED_CELLS   1
-#define LOGLEVEL_CHANGES    2
-#define LOGLEVEL_VERBOSE    9
+    typedef struct Entry;
+    
+    // pointer to "print log" function
+    typedef char * (*print)(struct Entry *entry);
+    
+    typedef struct Entry {
+        void *info;
+        print *printFunc;
+    } Entry;
 
-    extern char buffer[1000];
-
-
-    // one of the LOGLEVEL_* constants
-    extern unsigned logLevel;
-    void logVerbose(char *text);
-    void logError(char *text);
-    void logAlways(char *text);
-    void logReduction(char *msg);
-    void logNewNumber(char *msg);
-
-    void showCandidates(Field *field);
-    void showAllCandidates();
-
-    void openLogFile(char *outputFilename);
-    void closeLogFile();
-
-
-    extern char buffer[1000];
+    typedef struct History {
+        Entry **entries;
+        size_t capacity;
+        size_t count;
+    } History;
+    
+    void initLog();
+    void writeLog(print *printFunc, void *info);
+    void printLog();
 
 #ifdef	__cplusplus
 }
 #endif
 
-#endif	/* SHOW_H */
+#endif	/* LOG_H */
 

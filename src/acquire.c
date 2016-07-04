@@ -7,7 +7,7 @@
 #include "typedefs.h"
 #include "global.h"
 #include "grid.h"
-#include "log.h"
+#include "logfile.h"
 #include "acquire.h"
 
 

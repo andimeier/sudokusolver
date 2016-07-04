@@ -14,7 +14,7 @@
 #include "typedefs.h"
 #include "util.h"
 #include "grid.h"
-#include "log.h"
+#include "logfile.h"
 #include "fieldlist.h"
 #include "naked-tuples.h"
 

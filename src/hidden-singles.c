@@ -9,7 +9,7 @@
 #include "grid.h"
 #include "typedefs.h"
 #include "util.h"
-#include "log.h"
+#include "logfile.h"
 #include "fieldlist.h"
 #include "hidden-singles.h"
 

@@ -4,164 +4,55 @@
  *
  * Created on 04. April 2016, 21:01
  */
-#include <stdio.h>
-#include <string.h>
+#include <assert.h>
 #include "global.h"
 #include "grid.h"
 #include "log.h"
 
+#define INIT_LOGSIZE    100
+#define INCREMENT_LOGSIZE   100
 
-static void printlog(char *text);
 
+static History *history;
 
-static FILE *logfile;
-
-// general buffer for string operations
-char buffer[1000];
-
-static char buffer2[1000];
-
-unsigned logLevel = LOGLEVEL_ERRORS; // 0 ... no logging, 1 ... solved cells, 2 ... changes, 9 ... debug
 
 /**
- * show the remaining candidates for the specified field
+ * initializes the log
+ */
+void initLog() {
+    history = (void **) xmalloc(sizeof (void *) * INIT_LOGSIZE);
+    history->capacity = INIT_LOGSIZE;
+    history->count = 0;
+}
+
+/**
  * 
- * @param field the field for which the candidates should be printed
+ * @param entry a log entry.
  */
-void showCandidates(Field *field) {
-    char candidates[2 * MAX_NUMBER + 1];
-    char *str;
+void writeLog(print *printFunc, void *info) {
+    if (history->count >= history->capacity) {
+        // allocate another block for further log entries
+        history = (void **) realloc(history, sizeof (void *) * (history->capacity + INCREMENT_LOGSIZE));
+        assert(history != NULL);
 
-    str = candidates;
-
-    // default: no candidates left, print "-"
-    *str = '-';
-    *(str + 1) = '\0';
-
-    for (int i = 0; i < MAX_NUMBER; i++) {
-        if (field->candidates[i]) {
-            if (str != candidates) {
-                // not the first candidate => append comma-separated
-                *str++ = ',';
-            }
-            *str++ = (char) (field->candidates[i] + '0');
-            *str = '\0';
-        }
+        history->capacity += INCREMENT_LOGSIZE;
     }
 
-    sprintf(buffer, "candidates for field %s are: %s", field->name, candidates);
-    logVerbose(buffer);
+    // add log entry
+    Entry *entry = (Entry *) xmalloc(sizeof (Entry));
+    entry->printFunc = printFunc;
+    entry->info = info;
+    history->entries[history->count++] = &entry;
 }
 
 /**
- * show the remaining candidates of all fields
+ * calls the output function of the log entry
  */
-void showAllCandidates() {
-    Field *field;
+void printLog() {
+    for (unsigned i = 0; i < history->count; i++) {
+        Entry *entry;
 
-    for (int f = 0; f < NUMBER_OF_FIELDS; f++) {
-        field = fields + f;
-
-        if (field->value) {
-            sprintf(buffer, "candidates for field %s ... value %u", field->name, field->value);
-            logVerbose(buffer);
-
-            continue;
-        }
-
-        showCandidates(field);
+        entry = history->entries[i];
+//        *(entry->printFunc) (entry->info);
     }
 }
-
-/**
- * log a "reduction" event (candidates could be removed)
- * 
- * @param msg
- */
-void logReduction(char *msg) {
-    if (logLevel >= LOGLEVEL_CHANGES) {
-        sprintf(buffer2, "[REDUCTION] --- %s", msg);
-        printlog(buffer2);
-    }
-}
-
-/**
- * log a "found a number" event
- * 
- * @param msg
- */
-void logNewNumber(char *msg) {
-    if (logLevel >= LOGLEVEL_SOLVED_CELLS) {
-        sprintf(buffer2, "+++ %s", msg);
-        printlog(buffer2);
-    }
-}
-
-/**
- * open log file for writing
- * 
- * @param outputFilename filename of log file (file will be overwritten if it 
- *   exists already)
- */
-void openLogFile(char *outputFilename) {
-    logfile = fopen(outputFilename, "w");
-}
-
-/**
- * log a message to printlog file or to stdout
- *
- * @param text text to be logged. A newline character will be appended.
- */
-void printlog(char *text) {
-
-    if (logfile) {
-        fputs(text, logfile);
-    } else {
-        // no printlog file => write to stdout
-        puts(text);
-    }
-}
-
-/**
- * log a message to printlog file or to stdout
- *
- * @param text text to be logged. A newline character will be appended.
- */
-void logVerbose(char *text) {
-
-    if (logLevel < LOGLEVEL_VERBOSE)
-        return;
-
-    printlog(text);
-}
-
-/**
- * log a message to printlog file or to stdout
- *
- * @param text text to be logged. A newline character will be appended.
- */
-void logError(char *text) {
-
-    if (logLevel < LOGLEVEL_ERRORS)
-        return;
-
-    printlog(text);
-}
-
-/**
- * log a message to printlog file or to stdout
- *
- * @param text text to be logged. A newline character will be appended.
- */
-void logAlways(char *text) {
-    printlog(text);
-}
-
-/**
- * close the log file
- */
-void closeLogFile() {
-    if (logfile)
-        fclose(logfile);
-}
-

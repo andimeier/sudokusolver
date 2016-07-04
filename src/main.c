@@ -9,7 +9,7 @@
 #include "grid.h"
 #include "util.h"
 #include "show.h"
-#include "log.h"
+#include "logfile.h"
 #include "acquire.h"
 
 void printUsage();

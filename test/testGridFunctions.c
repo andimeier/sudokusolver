@@ -15,7 +15,7 @@
 #include "grid.h"
 #include "typedefs.h"
 #include "fieldlist.h"
-#include "log.h"
+#include "logfile.h"
 
 // prototypes
 unsigned * uintdup(unsigned *dest, unsigned const *src, size_t len);

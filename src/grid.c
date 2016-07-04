@@ -11,7 +11,8 @@
 #include <string.h>
 #include "global.h"
 #include "grid.h"
-#include "log.h"
+#include "logfile.h"
+#include "logfile.h"
 #include "util.h"
 #include "container.h"
 #include "gametype.h"
@@ -24,13 +25,21 @@ void freeFields();
 void freeContainers();
 void freeGrid();
 
+// static functions
+char * printLogSetUniqueNumber(void *info);
 
-//UnitDefs unitDefs;
+
 Field *fields; // the fields of the game board
 Container *allContainers; // all containers of the game board
 ContainerSet *containerSets; // all container types (e.g. [row, column, box])
 size_t numberOfContainerSets;
 size_t numberOfContainers;
+
+typedef struct EntrySolveField {
+    char *fieldName;
+    unsigned number;
+} EntrySolveField;
+
 
 void setupGrid() {
 
@@ -359,7 +368,7 @@ int forbidNumbersInOtherFields(Container *container, unsigned *n, Field **dontTo
         if (field->value) {
             continue;
         }
-        
+
         // don't touch the 'dontTouch' fields
         if (!containsField(dontTouch, field)) {
             // forbid the tuple numbers
@@ -449,12 +458,28 @@ int setUniqueNumber(Field *field) {
     unsigned *candidates = field->candidates;
     for (n = 1; n <= MAX_NUMBER; n++) {
         if (candidates[n - 1]) {
+
+            EntrySolveField *info = (EntrySolveField *) xmalloc(sizeof (EntrySolveField));
+
+            info->fieldName = field->name;
+            info->number = n;
+
+            writeLog(printLogSetUniqueNumber, &info);
+
             setValue(field, n);
             break;
         }
     }
 
     return n;
+}
+
+char * printLogSetUniqueNumber(void *info) {
+    EntrySolveField *infoStruct;
+
+    infoStruct = (EntrySolveField *) info;
+
+    printf("--- LOG: set value of field %s to %u", infoStruct->fieldName, infoStruct->number);
 }
 
 /**
