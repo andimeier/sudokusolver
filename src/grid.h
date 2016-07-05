@@ -6,11 +6,11 @@
  */
 
 #ifndef GRID_H
-#define	GRID_H
+#define GRID_H
 
 #include "typedefs.h"
 
-#ifdef	__cplusplus
+#ifdef __cplusplus
 extern "C" {
 #endif
 
@@ -47,16 +47,17 @@ extern "C" {
     int forbidNumber(Field *field, unsigned n);
     int fieldHasCandidate(Field *field, unsigned n);
     int setUniqueNumber(Field *field);
-    FieldsVector *fieldsWithCandidate(FieldsVector *container, unsigned n);
+    FieldsVector *fieldsWithCandidate(FieldsVector *fields, unsigned n);
     unsigned equalNumberOfFieldsAndCandidates(FieldsVector *fieldsVector, unsigned *numbers);
     int getUniquePositionInContainer(Field **container, unsigned n);
     int isFinished();
     void cleanUpCandidates();
     int removeCandidate(Field *field, unsigned candidate);
+    void solveField(Field *field, unsigned n);
 
-#ifdef	__cplusplus
+#ifdef __cplusplus
 }
 #endif
 
-#endif	/* GRID_H */
+#endif /* GRID_H */
 

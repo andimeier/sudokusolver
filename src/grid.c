@@ -27,6 +27,7 @@ void freeGrid();
 
 // static functions
 void printLogSetUniqueNumber(void *info);
+void printLogRemoveCandidate(void *info);
 
 
 Field *fields; // the fields of the game board
@@ -40,6 +41,10 @@ typedef struct EntrySolveField {
     unsigned number;
 } EntrySolveField;
 
+typedef struct EntryRemoveCandidate {
+    char *fieldName;
+    unsigned removedCandidate;
+} EntryRemoveCandidate;
 
 void setupGrid() {
 
@@ -458,20 +463,35 @@ int setUniqueNumber(Field *field) {
     unsigned *candidates = field->candidates;
     for (n = 1; n <= MAX_NUMBER; n++) {
         if (candidates[n - 1]) {
-
-            EntrySolveField *info = (EntrySolveField *) xmalloc(sizeof (EntrySolveField));
-
-            info->fieldName = field->name;
-            info->number = n;
-
-            writeLog(printLogSetUniqueNumber, info);
-
-            setValue(field, n);
+            solveField(field, n);
             break;
         }
     }
 
     return n;
+}
+
+/**
+ * solves the field with the given value
+ * 
+ * @param field
+ * @param n
+ */
+void solveField(Field *field, unsigned n) {
+
+    // field should not be solved already
+    assert(!field->value);
+    assert(field->candidatesLeft == 1);
+    assert(field->candidates[n - 1]);
+
+    EntrySolveField *info = (EntrySolveField *) xmalloc(sizeof (EntrySolveField));
+
+    info->fieldName = field->name;
+    info->number = n;
+
+    writeLog(printLogSetUniqueNumber, info);
+
+    setValue(field, n);
 }
 
 void printLogSetUniqueNumber(void *info) {
@@ -490,7 +510,7 @@ void printLogSetUniqueNumber(void *info) {
  * @param n the number to look for as a candidate
  * @return vector of fields containing the given number as possible candidate
  */
-FieldsVector *fieldsWithCandidate(Field **container, unsigned n) {
+FieldsVector *fieldsWithCandidate(FieldsVector *fields, unsigned n) {
     int ix;
     Field *field;
     FieldsVector *found;
@@ -500,7 +520,7 @@ FieldsVector *fieldsWithCandidate(Field **container, unsigned n) {
 
     foundPtr = found;
     for (ix = 0; ix < MAX_NUMBER; ix++) {
-        field = *(container + ix);
+        field = *(fields + ix);
         if (fieldHasCandidate(field, n)) {
             *foundPtr = field;
             foundPtr++;
@@ -686,10 +706,24 @@ int removeCandidate(Field *field, unsigned candidate) {
         *c = 0;
         field->candidatesLeft--;
 
+        // TODO log removal of candidate
+        EntryRemoveCandidate *info = (EntryRemoveCandidate *) xmalloc(sizeof (EntryRemoveCandidate));
+        info->fieldName = strdup(field->name);
+        info->removedCandidate = (*c + 1);
+        writeLog(printLogRemoveCandidate, info);
+
         assert(field->candidatesLeft > 0);
 
         return 1;
     }
 
     return 0;
+}
+
+void printLogRemoveCandidate(void *info) {
+    EntryRemoveCandidate *infoStruct;
+
+    infoStruct = (EntryRemoveCandidate *) info;
+
+    printf("--- LOG: field %s: remove candidate %u\n", infoStruct->fieldName, infoStruct->removedCandidate);
 }
