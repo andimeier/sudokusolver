@@ -479,7 +479,7 @@ void printLogSetUniqueNumber(void *info) {
 
     infoStruct = (EntrySolveField *) info;
 
-    printf("--- LOG: set value of field %s to %u", infoStruct->fieldName, infoStruct->number);
+    printf("--- LOG: set value of field %s to %u\n", infoStruct->fieldName, infoStruct->number);
 }
 
 /**

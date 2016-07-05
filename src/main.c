@@ -119,6 +119,8 @@ int main(int argc, char **argv) {
 
     result = solve();
 
+    printLog();
+    
     show(1);
     printSvg(1);
 
