@@ -5,41 +5,43 @@
  * Created on 04. April 2016, 21:01
  */
 #include <assert.h>
+#include <stdlib.h>
 #include "global.h"
 #include "grid.h"
+#include "util.h"
 #include "log.h"
 
 #define INIT_LOGSIZE    100
 #define INCREMENT_LOGSIZE   100
 
 
-static History *history;
+//static History *history;
 static History hist;
 
 /**
  * initializes the log
  */
 void initLog() {
-    void *f;
+//    void *f;
 
     hist.entries = (Entry **) xmalloc(sizeof (Entry *) * INIT_LOGSIZE);
     hist.capacity = INIT_LOGSIZE;
     hist.count = 0;
-    return;
-    
-    history = (History *) xmalloc(sizeof (History));
-    f = (void *) xmalloc(sizeof (Entry *) * INIT_LOGSIZE);
-    history->entries = (Entry **) f;
-    history->entries = (Entry **) xmalloc(sizeof (Entry *) * INIT_LOGSIZE);
-    history->capacity = INIT_LOGSIZE;
-    history->count = 0;
+//    return;
+//    
+//    history = (History *) xmalloc(sizeof (History));
+//    f = (void *) xmalloc(sizeof (Entry *) * INIT_LOGSIZE);
+//    history->entries = (Entry **) f;
+//    history->entries = (Entry **) xmalloc(sizeof (Entry *) * INIT_LOGSIZE);
+//    history->capacity = INIT_LOGSIZE;
+//    history->count = 0;
 }
 
 /**
  * 
  * @param entry a log entry.
  */
-void writeLog(print *printFunc, void *info) {
+void writeLog(print printFunc, void *info) {
     if (hist.count >= hist.capacity) {
         // allocate another block for further log entries
         hist.entries = (Entry **) realloc(hist.entries, sizeof (Entry *) * (hist.capacity + INCREMENT_LOGSIZE));
@@ -52,7 +54,7 @@ void writeLog(print *printFunc, void *info) {
     Entry *entry = (Entry *) xmalloc(sizeof (Entry));
     entry->printFunc = printFunc;
     entry->info = info;
-    hist.entries[hist.count++] = &entry;
+    hist.entries[hist.count++] = entry;
 }
 
 /**
@@ -63,6 +65,6 @@ void printLog() {
         Entry *entry;
 
         entry = hist.entries[i];
-        (*(entry->printFunc)) (entry->info);
+        (*(entry->printFunc)) ((void *)(entry->info));
     }
 }

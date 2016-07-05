@@ -11,7 +11,7 @@
 #include <string.h>
 #include "global.h"
 #include "grid.h"
-#include "logfile.h"
+#include "log.h"
 #include "logfile.h"
 #include "util.h"
 #include "container.h"
@@ -26,7 +26,7 @@ void freeContainers();
 void freeGrid();
 
 // static functions
-char * printLogSetUniqueNumber(void *info);
+void printLogSetUniqueNumber(void *info);
 
 
 Field *fields; // the fields of the game board
@@ -464,7 +464,7 @@ int setUniqueNumber(Field *field) {
             info->fieldName = field->name;
             info->number = n;
 
-            writeLog(printLogSetUniqueNumber, &info);
+            writeLog(printLogSetUniqueNumber, info);
 
             setValue(field, n);
             break;
@@ -474,7 +474,7 @@ int setUniqueNumber(Field *field) {
     return n;
 }
 
-char * printLogSetUniqueNumber(void *info) {
+void printLogSetUniqueNumber(void *info) {
     EntrySolveField *infoStruct;
 
     infoStruct = (EntrySolveField *) info;

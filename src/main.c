@@ -10,6 +10,7 @@
 #include "util.h"
 #include "show.h"
 #include "logfile.h"
+#include "log.h"
 #include "acquire.h"
 
 void printUsage();
