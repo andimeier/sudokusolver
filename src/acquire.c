@@ -10,7 +10,6 @@
 #include "logfile.h"
 #include "acquire.h"
 
-
 /**
  * read Sudoku from file.
  * Ignore lines starting with '#'.
@@ -110,23 +109,23 @@ int readSudoku(char *inputFilename) {
         fields[f].correctSolution = 0; // no solution known
     }
 
-//#define NAKED_TRIPLE
+    //#define NAKED_TRIPLE
 #ifdef NAKED_TRIPLE
     // FIXME fill out final solution in each field, if given
     char solution[82] = "928547316431986572567312894195673428384251769276894153749168235612435987853729641";
     for (f = 0; f < NUMBER_OF_FIELDS; f++) {
-        fields[f].correctSolution = (unsigned)(solution[f] - '0');
+        fields[f].correctSolution = (unsigned) (solution[f] - '0');
     }
 #endif
-//#define POINTING_PAIR
+    //#define POINTING_PAIR
 #ifdef POINTING_PAIR
     // FIXME fill out final solution in each field, if given
     char solution[82] = "981724365324615879765983142197836254642571938853249716476398521538162497219457683";
     for (f = 0; f < NUMBER_OF_FIELDS; f++) {
-        fields[f].correctSolution = (unsigned)(solution[f] - '0');
+        fields[f].correctSolution = (unsigned) (solution[f] - '0');
     }
 #endif
-    
+
     logVerbose("Initial values filled.");
 
     return ok;
@@ -169,7 +168,6 @@ int importSudoku(char *sudoku) {
 
     return 1;
 }
-
 
 /**
  * parse Sudoku string 409176000610389040...

@@ -14,13 +14,23 @@
 
 
 static History *history;
-
+static History hist;
 
 /**
  * initializes the log
  */
 void initLog() {
-    history = (void **) xmalloc(sizeof (void *) * INIT_LOGSIZE);
+    void *f;
+
+    hist.entries = (Entry **) xmalloc(sizeof (Entry *) * INIT_LOGSIZE);
+    hist.capacity = INIT_LOGSIZE;
+    hist.count = 0;
+    return;
+    
+    history = (History *) xmalloc(sizeof (History));
+    f = (void *) xmalloc(sizeof (Entry *) * INIT_LOGSIZE);
+    history->entries = (Entry **) f;
+    history->entries = (Entry **) xmalloc(sizeof (Entry *) * INIT_LOGSIZE);
     history->capacity = INIT_LOGSIZE;
     history->count = 0;
 }
@@ -30,29 +40,29 @@ void initLog() {
  * @param entry a log entry.
  */
 void writeLog(print *printFunc, void *info) {
-    if (history->count >= history->capacity) {
+    if (hist.count >= hist.capacity) {
         // allocate another block for further log entries
-        history = (void **) realloc(history, sizeof (void *) * (history->capacity + INCREMENT_LOGSIZE));
-        assert(history != NULL);
+        hist.entries = (Entry **) realloc(hist.entries, sizeof (Entry *) * (hist.capacity + INCREMENT_LOGSIZE));
+        assert(hist.entries != NULL);
 
-        history->capacity += INCREMENT_LOGSIZE;
+        hist.capacity += INCREMENT_LOGSIZE;
     }
 
     // add log entry
     Entry *entry = (Entry *) xmalloc(sizeof (Entry));
     entry->printFunc = printFunc;
     entry->info = info;
-    history->entries[history->count++] = &entry;
+    hist.entries[hist.count++] = &entry;
 }
 
 /**
  * calls the output function of the log entry
  */
 void printLog() {
-    for (unsigned i = 0; i < history->count; i++) {
+    for (unsigned i = 0; i < hist.count; i++) {
         Entry *entry;
 
-        entry = history->entries[i];
-//        *(entry->printFunc) (entry->info);
+        entry = hist.entries[i];
+        (*(entry->printFunc)) (entry->info);
     }
 }

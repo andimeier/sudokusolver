@@ -64,7 +64,7 @@ int main(int argc, char **argv) {
     // FIXME hardcoded example sudoku just to make the exec work without parameters (for GDB))
     if (!inputFilename) {
         if (MAX_NUMBER == 9) {
-            inputFilename = strdup("examples/pointing-pair.sudoku");
+            inputFilename = strdup("examples/very-easy.sudoku");
         } else if (MAX_NUMBER == 4) {
             inputFilename = strdup("examples/4x4-naked-pair.sudoku");
         }
@@ -113,6 +113,8 @@ int main(int argc, char **argv) {
         sprintf(buffer, "[1234-2] field #%d: in %s, %s, %s", f, fields[f].containers[0]->name, fields[f].containers[1]->name, fields[f].containers[2]->name);
         logVerbose(buffer);
     }
+
+    initLog();
 
     result = solve();
 
