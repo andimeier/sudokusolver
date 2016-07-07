@@ -303,7 +303,7 @@ void setValue(Field *field, unsigned value) {
  * forbids a number in all neighbor fields of the given field. This is used
  * e.g. after setting the value of a field to eliminate this number from all
  * neighbors. The "neighbors" are determined in all containers containing
- * the specified field.
+ * the specified field. No logging of removed candidates occurs.
  * 
  * @param field
  * @param n the number to be forbidden in neighboring fields
