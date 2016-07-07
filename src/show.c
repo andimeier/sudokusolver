@@ -23,7 +23,7 @@ char *svgFilename; // filename of SVG file
 // function prototypes
 static void showField(Field *field, int showContainers, int appendLf);
 static void showContainer(Container *container);
-static void showFieldsVector(FieldsVector *fields, int indent);
+static void showFieldsVector(FieldsVector *fields, int indent, size_t limit);
 
 
 //-------------------------------------------------------------------
@@ -158,7 +158,7 @@ void show(int showInit) {
     //		buffer[index++] = '|';
     //		buffer[index++] = '\0';
     //		printlog(buffer);
-    //	}
+    //	
     //	printlog("+-----+-----+-----+");
 }
 
@@ -314,25 +314,28 @@ void showField(Field *field, int showContainers, int appendLf) {
 
     assert(MAX_NUMBER <= 9);
 
-    candidates = strdup("123456789");
-    for (i = 0; i < MAX_NUMBER; i++) {
-        if (!field->candidates[i]) {
-            candidates[i] = ' ';
-        }
-    }
-    // terminate string
-    candidates[MAX_NUMBER + 1] = '\0';
-
     printf("Field %s: ", field->name);
     if (field->value) {
         // already solved
         printf("= %u", field->value);
     } else {
         // not solved yet
+
+        candidates = strdup("123456789");
+        for (i = 0; i < MAX_NUMBER; i++) {
+            if (!field->candidates[i]) {
+                candidates[i] = ' ';
+            }
+        }
+        // terminate string
+        candidates[MAX_NUMBER + 1] = '\0';
+
         printf("[%s]", candidates);
         if (field->correctSolution) {
             printf(" (solution: %u)", field->correctSolution);
         }
+
+        free(candidates);
     }
 
     if (showContainers) {
@@ -346,8 +349,6 @@ void showField(Field *field, int showContainers, int appendLf) {
 
         printf("\n");
     }
-
-    free(candidates);
 }
 
 /**
@@ -357,22 +358,47 @@ void showField(Field *field, int showContainers, int appendLf) {
 void showContainer(Container *container) {
 
     printf("Container: %s\n", container->name);
-    showFieldsVector(container->fields, 1);
+    showFieldsVector(container->fields, 1, MAX_NUMBER);
 }
 
 /**
  * shows the content of a field list (for debugging purposes)
  * @param fields
  * @param indent flag whether the field list should be indented
+ * @parma limit if >0, limits the number of fields analysed, this is useful
+ *   for list of fields which are not NULL terminated to provide a manual limit
  */
-void showFieldsVector(FieldsVector *fields, int indent) {
+void showFieldsVector(FieldsVector *fields, int indent, size_t limit) {
+    int counter;
+
+    counter = 0;
     while (*fields) {
         if (indent) {
-
             printf("  ");
         }
         showField(*fields, 0, 1);
         fields++;
+
+        counter++;
+        if (limit && counter >= limit) {
+            break;
+        }
+    }
+}
+
+/**
+ * shows the content of a number list (for debugging purposes)
+ * @param fields
+ * @param indent flag whether the field list should be indented
+ */
+void showNumbersVector(unsigned *numbers, int indent) {
+    while (*numbers) {
+        if (indent) {
+
+            printf("  ");
+        }
+        printf("%u ", *numbers);
+        numbers++;
     }
 }
 
@@ -403,9 +429,21 @@ void sc(Container *container) {
  * sfv ... "show fields vector"
  * 
  * @param fields
+ * @parma limit if >0, limits the number of fields analysed, this is useful
+ *   for list of fields which are not NULL terminated to provide a manual limit
  */
-void sfv(FieldsVector *fields) {
-    showFieldsVector(fields, 0);
+void sfv(FieldsVector *fields, size_t limit) {
+    showFieldsVector(fields, 0, limit);
+}
+
+/**
+ * Alias to showNumbersVector
+ * sns ... "Show NumberS"
+ * 
+ * @param numbers
+ */
+void sns(unsigned *numbers) {
+    showNumbersVector(numbers, 0);
 }
 
 /**
@@ -413,9 +451,11 @@ void sfv(FieldsVector *fields) {
  * sfs ... "show fields"
  * 
  * @param fields
+ * @parma limit if >0, limits the number of fields analysed, this is useful
+ *   for list of fields which are not NULL terminated to provide a manual limit
  */
-void sfs(FieldsVector *fields) {
-    showFieldsVector(fields, 0);
+void sfs(FieldsVector *fields, size_t limit) {
+    showFieldsVector(fields, 0, limit);
 }
 
 /**
@@ -428,22 +468,22 @@ void printInvolvedStrategies() {
     // FIXME this text should be in a place where it is guaranteed that the Sudoku
     // has indeed been SOLVED, not aborted (I refer to the wording of the text):
     logAlways("Utilized strategies:");
-    
+
     strategyPtr = strategies;
     count = 0;
     while (*strategyPtr) {
         if ((*strategyPtr)->used) {
-            
+
             // strategy has been used
             sprintf(buffer, "  * %s", (*strategyPtr)->name);
             logAlways(buffer);
-            
+
             count++;
         }
-        
+
         strategyPtr++;
     }
-    
+
     if (!count) {
         // no strategy has been used
         logAlways("(no strategy has been used)");

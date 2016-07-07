@@ -26,8 +26,8 @@ extern "C" {
     // aux functions, mainly for debugging purposes
     void sf(Field *field);
     void sc(Container *container);
-    void sfv(FieldsVector *fields);
-    void sfs(FieldsVector *fields); // identical to (alias of)) sfv
+    void sfv(FieldsVector *fields, size_t limit);
+    void sfs(FieldsVector *fields, size_t limit); // identical to (alias of)) sfv
 
     // filename of SVG file
     extern char *svgFilename;

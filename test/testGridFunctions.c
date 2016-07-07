@@ -15,6 +15,7 @@
 #include "grid.h"
 #include "typedefs.h"
 #include "fieldlist.h"
+#include "numberlist.h"
 #include "logfile.h"
 
 // prototypes
@@ -621,7 +622,7 @@ void test_setupGrid(void) {
     TEST_ASSERT_EQUAL(0, strcmp(allContainers[18 + 8].name, "box 9"));
 }
 
-test_showCandidates() {
+void test_showCandidates() {
     //    Field *field;
     //    unsigned *candidates;
     //
@@ -639,6 +640,60 @@ test_showCandidates() {
     //    TEST_ASSERT_EQUAL(0, strcmp(allContainers[18 + 8].name, "box 9"));
 }
 
+void test_findHiddenPairInContainer(void) {
+    Container *container;
+    NumberList *includedCandidates;
+    unsigned *candidatesLeft;
+    FieldsVector *fieldsWithCandidates;
+
+    container = (Container *) xmalloc(sizeof (Container));
+    container->name = strdup("row C");
+    container->fields = (Field **) xmalloc(sizeof (Field *) * MAX_NUMBER);
+
+    for (int i = 0; i < MAX_NUMBER; i++) {
+        char name[5];
+        sprintf(name, "C%u", i + 1);
+        
+        switch(i) {
+            case 0: container->fields[i] = createField(name, 6, NULL); break;
+            case 1: container->fields[i] = createField(name, 7, NULL); break;
+            case 2: container->fields[i] = createField(name, 0, "1245"); break;
+            case 3: container->fields[i] = createField(name, 8, NULL); break;
+            case 4: container->fields[i] = createField(name, 0, "123"); break;
+            case 5: container->fields[i] = createField(name, 0, "1345"); break;
+            case 6: container->fields[i] = createField(name, 0, "123"); break;
+            case 7: container->fields[i] = createField(name, 9, NULL); break;
+            case 8: container->fields[i] = createField(name, 0, "123"); break;
+        }
+    }
+
+    // allocate memory for strategy variables
+    includedCandidates = createNumberList(MAX_TUPLE_DIMENSION);
+    candidatesLeft = (unsigned *) xmalloc(sizeof (unsigned) * (MAX_NUMBER + 1));
+    fieldsWithCandidates = (FieldsVector *) xmalloc(sizeof (Field *) * (MAX_NUMBER + 1));
+
+    // no pairs
+    TEST_ASSERT_EQUAL(1, findHiddenTuplesInContainer(container, 2, includedCandidates, candidatesLeft, fieldsWithCandidates));
+
+    // check fields' values and candidates
+    // hidden triple was detected and all candidates except 4 and 5 should be
+    // removed from these fields
+    TEST_ASSERT_EQUAL(1, compareField(container->fields[0], 6, NULL));
+    TEST_ASSERT_EQUAL(1, compareField(container->fields[1], 7, NULL));
+    TEST_ASSERT_EQUAL(1, compareField(container->fields[2], 0, "45"));
+    TEST_ASSERT_EQUAL(1, compareField(container->fields[3], 8, NULL));
+    TEST_ASSERT_EQUAL(1, compareField(container->fields[4], 0, "123"));
+    TEST_ASSERT_EQUAL(1, compareField(container->fields[5], 0, "45"));
+    TEST_ASSERT_EQUAL(1, compareField(container->fields[6], 0, "123"));
+    TEST_ASSERT_EQUAL(1, compareField(container->fields[7], 9, NULL));
+    TEST_ASSERT_EQUAL(1, compareField(container->fields[8], 0, "123"));
+
+    free(includedCandidates);
+    free(candidatesLeft);
+    freeFieldList(fieldsWithCandidates);
+}
+
+
 int main(void) {
     UNITY_BEGIN();
     RUN_TEST(test_fieldCandidatesContainAllOf);
@@ -651,6 +706,7 @@ int main(void) {
     RUN_TEST(test_findNakedPairsInContainer5);
     RUN_TEST(test_findNakedTriplesInContainer);
     RUN_TEST(test_findNakedTriplesInContainer2);
+    RUN_TEST(test_findHiddenPairInContainer);
     RUN_TEST(test_showCandidates);
     //        RUN_TEST(test_setupGrid);
     return UNITY_END();

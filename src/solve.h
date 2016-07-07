@@ -12,6 +12,9 @@
 extern "C" {
 #endif
 
+    // search for pairs, triples and quadruples, not more
+#define MAX_TUPLE_DIMENSION 3
+
     typedef struct Strategy {
         char *name;
         int (*solver)(void);

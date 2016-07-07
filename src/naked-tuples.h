@@ -9,6 +9,7 @@
 #define	NAKED_TRIPLES_H
 
 #include "typedefs.h"
+#include "fieldlist.h"
 
 #ifdef	__cplusplus
 extern "C" {

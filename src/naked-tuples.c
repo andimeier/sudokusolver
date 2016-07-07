@@ -55,7 +55,6 @@ int findNakedTuples() {
 
         // go through all containers and find naked tuples therein
         for (unsigned c = 0; c < numberOfContainers; c++) {
-            //        for (unsigned c = 0; c < 2; c++) {
             container = &(allContainers[c]);
             sprintf(buffer, "-- next container: %s", container->name);
             logVerbose(buffer);
@@ -284,14 +283,15 @@ int eliminateFieldsCandidatesFromOtherFields(Container *container, FieldsVector 
  */
 void populateFieldsForNakedTuples(FieldsVector *relevantFields, FieldsVector *allFields, unsigned dimension) {
     Field *field;
-
     int i;
+
     for (i = 0; i < MAX_NUMBER; i++) {
         field = *allFields++;
 
         if (!field) {
             // in case of NULL-terminated list allFields, exit if the 
-            // terminating NULL is found (safeguard))
+            // terminating NULL is found (just a safeguard, since the loop stops
+            // after MAX_NUMBER fields anyway)
             break;
         }
 

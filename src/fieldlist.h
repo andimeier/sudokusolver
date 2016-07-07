@@ -14,6 +14,15 @@
 extern "C" {
 #endif
 
+    /*
+     * list of fields (list of variable length)
+     */
+    typedef struct FieldList {
+        size_t count; // number of elements in the list
+        Field **fields; // list of fields
+    } FieldList;
+
+
     FieldList *createFieldList(size_t capacity);
     void emptyFieldList(FieldList *list);
     void freeFieldList(FieldList *list);

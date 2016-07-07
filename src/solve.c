@@ -20,9 +20,7 @@
 #include "hidden-singles.h"
 #include "naked-tuples.h"
 #include "pointing-tuples.h"
-
-// search for pairs, triples and quadruples, not more
-#define MAX_TUPLE_DIMENSION 3
+#include "hidden-tuples.h"
 
 // maximum possible number of strategies (can be incremented any time, at the 
 // moment I regard 10 strategies as a good maximum value)
@@ -97,8 +95,6 @@ int solve() {
 
     showAllCandidates();
 
-    free(strategies);
-
     // wir kommen hierher, weil die letzte Iteration keine einzige Aenderung gebracht
     // hat => wir bleiben stecken mit unseren Algorithmen. Ohne Aenderung in der
     // Implementierung ist dieses Sudoku nicht loesbar
@@ -138,14 +134,19 @@ Strategy **buildStrategies() {
     (*currentStrategy)->solver = &findHiddenSingles;
     currentStrategy++;
     
-    // check for solved cells
+    // check for naked tuples
     (*currentStrategy)->name = strdup("find naked tuples");
     (*currentStrategy)->solver = &findNakedTuples;
     currentStrategy++;
     
-    // check for solved cells
+    // check for pointing tuples
     (*currentStrategy)->name = strdup("find pointing tuples");
     (*currentStrategy)->solver = &findPointingTuples;
+    currentStrategy++;
+
+    // check for hidden tuples
+    (*currentStrategy)->name = strdup("find hidden tuples");
+    (*currentStrategy)->solver = &findHiddenTuples;
     currentStrategy++;
 
     *currentStrategy = (Strategy *)NULL; // terminate list of strategies
@@ -186,53 +187,4 @@ int checkForSolvedCells() {
 
     }
     return progress;
-}
-
-
-int findHiddenPairs() {
-    int y;
-    int cand;
-    int progress;
-
-    // http://programmers.stackexchange.com/questions/270930/sudoku-hidden-sets-algorithm
-
-    progress = 0;
-
-    // hidden pairs in rows
-    for (y = 0; y < MAX_NUMBER; y++) {
-        for (cand = 1; cand <= MAX_NUMBER; cand++) {
-            // countCandidateInRow(cand, y);
-        }
-
-    }
-
-    return progress;
-}
-
-int recurseHiddenTuples(unsigned maxLevel, FieldsVector *fields, unsigned level, unsigned *candidates, FieldsVector *fieldsContainingCandidates) {
-
-    // make room for new candidate in the candidates vector
-    candidates[level + 1] = 0;
-
-    // add next number to numbers vector
-    for (unsigned n = 1; n < MAX_NUMBER; n++) {
-        candidates[level] = n;
-
-        // check this combination of candidates (in the candidates vector) 
-        // whether there are only length(candidates) Sudoku fields in which
-        // the candidates can occur => in this case this would be a hidden
-        // tuple of length length(candidates)
-
-        // FIXME setFieldsContainingCandidates(fieldsContainingCandidates, n);
-
-        // recurse further?
-        // FIXME 
-        //        if () {
-        //        }
-    }
-
-    // "rollback" recursion
-    candidates[level] = 0;
-
-    return 0; // FIXME ????
 }
