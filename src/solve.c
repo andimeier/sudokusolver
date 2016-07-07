@@ -24,7 +24,18 @@
 // search for pairs, triples and quadruples, not more
 #define MAX_TUPLE_DIMENSION 3
 
-typedef int (*strategy)(void);
+// maximum possible number of strategies (can be incremented any time, at the 
+// moment I regard 10 strategies as a good maximum value)
+#define MAX_NUMBER_OF_STRATEGIES 10
+
+
+
+
+// prototypes
+static Strategy **buildStrategies();
+
+// the defined strategies
+Strategy **strategies;
 
 // number of errors in the algorithm
 int errors;
@@ -39,19 +50,10 @@ int errors;
 int solve() {
     int iteration;
     int progress; // flag: something has changed in the iteration
-    strategy *strategies;
-    strategy *currentStrategy;
-
-    // add stragies to list of strategies to be used
-    strategies = (strategy *) xmalloc(sizeof (strategy) * 10);
-    currentStrategy = strategies;
-    *currentStrategy++ = &checkForSolvedCells;
-    *currentStrategy++ = &findHiddenSingles;
-    *currentStrategy++ = &findNakedTuples;
-    *currentStrategy++ = &findPointingTuples;
-    *currentStrategy++ = NULL; // terminate list of strategies
-
-
+    Strategy **currentStrategy;
+    
+    strategies = buildStrategies();
+    
     iteration = 0;
     errors = 0; // no errors yet
 
@@ -71,10 +73,15 @@ int solve() {
         // loop through all strategies
         currentStrategy = strategies;
         while (*currentStrategy) {
-            progress |= (**currentStrategy)();
+            progress |= ((*currentStrategy)->solver)();
 
             if (progress) {
-                // no iterating to next strategy
+                (*currentStrategy)->used++;
+                
+                /*
+                 * no iterating to next strategy, begin again with the easiest 
+                 * one for the next iteration
+                 */
                 break;
             }
 
@@ -98,19 +105,61 @@ int solve() {
     return 0;
 }
 
-void printFoundFields(FieldsVector *foundFields) {
-    FieldsVector *f;
 
-    f = foundFields;
+/**
+ * define the strategies
+ * 
+ * @return the list of Strategy "objects"
+ */
+Strategy **buildStrategies() {
+    Strategy **strategies;
+    Strategy **currentStrategy;
 
-    buffer[0] = '\0';
-    while (*f) {
-        strcat(buffer, "-");
-        strcat(buffer, (*f)->name);
-        f++;
+    // add stragies to list of strategies to be used
+    // FIXME hardcoded maximum of 10 different strategies
+    strategies = (Strategy **) xmalloc(sizeof (Strategy *) * (MAX_NUMBER_OF_STRATEGIES + 1));
+    
+    for (int i = 0; i < MAX_NUMBER_OF_STRATEGIES; i++) {
+        strategies[i] = (Strategy *) xmalloc(sizeof (Strategy));
     }
-    logVerbose(buffer);
+
+    // build list of strategies
+    // ------------------------
+    
+    currentStrategy = strategies;
+    
+    // check for solved cells
+    (*currentStrategy)->name = strdup("check for solved cells");
+    (*currentStrategy)->solver = &checkForSolvedCells;
+    currentStrategy++;
+    
+    // check for solved cells
+    (*currentStrategy)->name = strdup("find hidden singles");
+    (*currentStrategy)->solver = &findHiddenSingles;
+    currentStrategy++;
+    
+    // check for solved cells
+    (*currentStrategy)->name = strdup("find naked tuples");
+    (*currentStrategy)->solver = &findNakedTuples;
+    currentStrategy++;
+    
+    // check for solved cells
+    (*currentStrategy)->name = strdup("find pointing tuples");
+    (*currentStrategy)->solver = &findPointingTuples;
+    currentStrategy++;
+
+    *currentStrategy = (Strategy *)NULL; // terminate list of strategies
+
+    // set all strategies  to "not yet used" initially
+    currentStrategy = strategies;
+    while (*currentStrategy) {
+        (*currentStrategy)->used = 0;
+        currentStrategy++;
+    }
+    
+    return strategies;
 }
+
 
 /**
  * check for cells having only one candidate left and set their value (and

@@ -13,6 +13,8 @@
 #include "show.h"
 #include "util.h"
 #include "logfile.h"
+#include "solve.h"
+#include "log.h"
 
 // global variables
 
@@ -273,22 +275,22 @@ void printSvg(int finalVersion) {
     rows = containerSets[0].containers;
     for (y = 0; y < MAX_NUMBER; y++) {
         for (x = 0; x < MAX_NUMBER; x++) {
-//            field = rows[y][x];
-//            if (field->value) {
-//                float xPos = x * MAX_NUMBER + 4.5;
-//                float yPos = y * MAX_NUMBER + 7.65;
-//                fprintf(svgfile, "<text class=\"final\" x=\"%f\"  y=\"%f\" text-anchor=\"middle\">%d</text>\n", xPos, yPos, field->value);
-//            } else {
-//                // alle noch moeglichen Zahlen ausgeben
-//                int n1;
-//                for (n1 = 1; n1 <= MAX_NUMBER; n1++) {
-//                    if (field->candidates[n1 - 1] == n1) {
-//                        float xPos = x * MAX_NUMBER + ((n1 - 1) % 3) * 3 + 1;
-//                        float yPos = y * MAX_NUMBER + ((int) ((n1 - 1) / 3) * 3 + 2.4);
-//                        fprintf(svgfile, "<text class=\"possibilities\" x=\"%f\"  y=\"%f\" text-anchor=\"middle\">%d</text>\n", xPos, yPos, n1);
-//                    }
-//                }
-//            }
+            //            field = rows[y][x];
+            //            if (field->value) {
+            //                float xPos = x * MAX_NUMBER + 4.5;
+            //                float yPos = y * MAX_NUMBER + 7.65;
+            //                fprintf(svgfile, "<text class=\"final\" x=\"%f\"  y=\"%f\" text-anchor=\"middle\">%d</text>\n", xPos, yPos, field->value);
+            //            } else {
+            //                // alle noch moeglichen Zahlen ausgeben
+            //                int n1;
+            //                for (n1 = 1; n1 <= MAX_NUMBER; n1++) {
+            //                    if (field->candidates[n1 - 1] == n1) {
+            //                        float xPos = x * MAX_NUMBER + ((n1 - 1) % 3) * 3 + 1;
+            //                        float yPos = y * MAX_NUMBER + ((int) ((n1 - 1) / 3) * 3 + 2.4);
+            //                        fprintf(svgfile, "<text class=\"possibilities\" x=\"%f\"  y=\"%f\" text-anchor=\"middle\">%d</text>\n", xPos, yPos, n1);
+            //                    }
+            //                }
+            //            }
         }
     }
     fputs("  </g>\n</svg>", svgfile);
@@ -343,7 +345,7 @@ void showField(Field *field, int showContainers, int appendLf) {
     if (appendLf) {
 
         printf("\n");
-    } 
+    }
 
     free(candidates);
 }
@@ -414,4 +416,36 @@ void sfv(FieldsVector *fields) {
  */
 void sfs(FieldsVector *fields) {
     showFieldsVector(fields, 0);
+}
+
+/**
+ * print all strategies which have been used
+ */
+void printInvolvedStrategies() {
+    Strategy **strategyPtr;
+    size_t count;
+
+    // FIXME this text should be in a place where it is guaranteed that the Sudoku
+    // has indeed been SOLVED, not aborted (I refer to the wording of the text):
+    logAlways("This Sudoku could be solved by utilizing only the following strategies:");
+    
+    strategyPtr = strategies;
+    count = 0;
+    while (*strategyPtr) {
+        if ((*strategyPtr)->used) {
+            
+            // strategy has been used
+            sprintf(buffer, "  * %s", (*strategyPtr)->name);
+            logAlways(buffer);
+            
+            count++;
+        }
+        
+        strategyPtr++;
+    }
+    
+    if (!count) {
+        // no strategy has been used
+        logAlways("(no strategy has been used)");
+    }
 }

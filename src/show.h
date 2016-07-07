@@ -21,6 +21,8 @@ extern "C" {
     void printSvg(int finalVersion);
     char *position(Field *field);
 
+    void printInvolvedStrategies();
+    
     // aux functions, mainly for debugging purposes
     void sf(Field *field);
     void sc(Container *container);

@@ -6,11 +6,18 @@
  */
 
 #ifndef SOLVE_H
-#define	SOLVE_H
+#define SOLVE_H
 
-#ifdef	__cplusplus
+#ifdef __cplusplus
 extern "C" {
 #endif
+
+    typedef struct Strategy {
+        char *name;
+        int (*solver)(void);
+        int used; // flag if this strategy had to be used during solving
+    } Strategy;
+
 
     int solve();
 
@@ -20,10 +27,14 @@ extern "C" {
     // number of errors in the algorithm
     extern int errors;
 
-#ifdef	__cplusplus
+    // the defined strategies
+    extern Strategy **strategies;
+
+
+#ifdef __cplusplus
 }
 #endif
 
 
-#endif	/* SOLVE_H */
+#endif /* SOLVE_H */
 

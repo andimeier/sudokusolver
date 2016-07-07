@@ -126,9 +126,13 @@ int main(int argc, char **argv) {
 
     if (result) {
         logAlways("-----------------------------------------------");
-        logAlways("         FERTIG, SUDOKU WURDE GELOEST!");
+        logAlways("         SUDOKU HAS BEEN SOLVED!");
         logAlways("-----------------------------------------------");
         sudokuString(1);
+        
+        // print the strategies involved
+        printInvolvedStrategies();
+        
     } else {
 
         int numbersFound = 0;
@@ -137,15 +141,15 @@ int main(int argc, char **argv) {
                 numbersFound++;
 
         logAlways("-----------------------------------------------");
-        logAlways("      Sudoku konnte nicht geloest werden!");
-        sprintf(buffer, "      %d von %d Zellen wurden gefunden.", numbersFound, NUMBER_OF_FIELDS);
+        logAlways("      Sudoku could not be solved!");
+        sprintf(buffer, "      Found %u of %u cells.", numbersFound, NUMBER_OF_FIELDS);
         logAlways(buffer);
         logAlways("-----------------------------------------------");
         sudokuString(0);
     }
 
     if (errors) {
-        sprintf(buffer, "Es sind %d FEHLER aufgetreten!", errors);
+        sprintf(buffer, "%d ERRORS occurred!", errors);
         logError(buffer);
     }
 
