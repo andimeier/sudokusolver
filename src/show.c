@@ -427,7 +427,7 @@ void printInvolvedStrategies() {
 
     // FIXME this text should be in a place where it is guaranteed that the Sudoku
     // has indeed been SOLVED, not aborted (I refer to the wording of the text):
-    logAlways("This Sudoku could be solved by utilizing only the following strategies:");
+    logAlways("Utilized strategies:");
     
     strategyPtr = strategies;
     count = 0;

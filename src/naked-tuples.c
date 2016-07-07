@@ -15,6 +15,7 @@
 #include "util.h"
 #include "grid.h"
 #include "logfile.h"
+#include "solve.h"
 #include "fieldlist.h"
 #include "naked-tuples.h"
 
@@ -25,12 +26,6 @@
  * - skip fields with candidatesLeft > maxTupleDimensionToLookFor
  */
 
-#define ZZDEBUG_SEGFAULT
-
-// search for pairs, triples and quadruples, not more
-#define MAX_TUPLE_DIMENSION 3
-
-typedef int (*strategy)(void);
 
 // auxiliary functions
 static unsigned recurseNakedTuples(unsigned maxLevel, Container *container, unsigned level, FieldList *includedFields, FieldsVector *fieldsLeft);
