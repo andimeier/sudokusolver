@@ -73,7 +73,8 @@ int main(int argc, char **argv) {
     // FIXME hardcoded example sudoku just to make the exec work without parameters (for GDB))
     if (!inputFilename) {
         if (MAX_NUMBER == 9) {
-            inputFilename = strdup("examples/hidden-tuple.sudoku");
+            gametype = GAME_X_SUDOKU;
+            inputFilename = strdup("examples/x-sudoku");
         } else if (MAX_NUMBER == 4) {
             inputFilename = strdup("examples/4x4-naked-pair.sudoku");
         }
@@ -218,12 +219,15 @@ void printUsage() {
 unsigned parseGametypeString(char *gametypeString) {
     unsigned gametype;
     
-    if (!strncmp(gametypeString, "standard", 1)) {
+    if (!strncmp(gametypeString, "standard", strlen(gametypeString))) {
         gametype  = GAME_STANDARD_SUDOKU;
-    } else if (!strncmp(gametypeString, "x", 1)) {
+        logVerbose("Game type: Standard Sudoku");
+    } else if (!strncmp(gametypeString, "x", strlen(gametypeString))) {
         gametype  = GAME_X_SUDOKU;
-    } else if (!strncmp(gametypeString, "color", 1)) {
+        logVerbose("Game type: X-Sudoku");
+    } else if (!strncmp(gametypeString, "color", strlen(gametypeString))) {
         gametype  = GAME_COLOR_SUDOKU;
+        logVerbose("Game type: Color Sudoku");
     } else {
         sprintf(buffer, "unnknown game type: %s (must be \"standard\", \"x\" or \"color\")", gametypeString);
         logError(buffer);

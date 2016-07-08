@@ -54,7 +54,7 @@ void setupContainerSets() {
  */
 void setContainerSet(ContainerSet *containerSet, unsigned containerType) {
 
-    assert(containerType >= ROWS && containerType <= BOXES);
+    assert(containerType >= ROWS && containerType <= DIAGONALS);
 
     switch (containerType) {
         case ROWS:
