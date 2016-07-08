@@ -172,7 +172,7 @@ void show(int showInit) {
  * @param showInit {integer} if falsey, only print current grid. If truish,
  *   print original (init) grid and current grid
  */
-void sudokuString(int showInit) {
+void printSudokuString(int showInit) {
     // display sudoku string, e.g. 5600340701000403000130500020400000304
     char *buffer;
     int f;

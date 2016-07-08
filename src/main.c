@@ -15,13 +15,16 @@
 #include "acquire.h"
 
 void printUsage();
+unsigned parseGametypeString(char *gametypeString);
+
 
 int main(int argc, char **argv) {
     int result;
     int c;
     char *outputFilename = NULL; // filename of printlog file
     char *inputFilename = NULL;
-    char *sudoku = NULL;
+    char *sudokuString = NULL;
+    char *gametypeString = NULL;
     unsigned gametype = GAME_STANDARD_SUDOKU;
 
     // if the Sudoku is wider than 26 numbers, we have a memory allocation issue
@@ -49,7 +52,7 @@ int main(int argc, char **argv) {
                 inputFilename = optarg;
                 break;
             case 't':
-                gametype = optarg;
+                gametypeString = optarg;
                 break;
             case 'h':
                 printUsage();
@@ -74,15 +77,12 @@ int main(int argc, char **argv) {
         } else if (MAX_NUMBER == 4) {
             inputFilename = strdup("examples/4x4-naked-pair.sudoku");
         }
-//        logLevel = LOGLEVEL_VERBOSE;
+        //        logLevel = LOGLEVEL_VERBOSE;
     }
-
-    //FIXME remove this diabling of output buffering, it is only for testing purposes
-    setvbuf(stdout, NULL, _IONBF, 0);
 
     // first positional parameter is a Sudoku string
     if (optind < argc) {
-        sudoku = argv[optind];
+        sudokuString = argv[optind];
     }
 
     for (int i = optind; i < argc; i++) {
@@ -90,7 +90,7 @@ int main(int argc, char **argv) {
     }
 
     // if no sudoku is given
-    if (!sudoku && !inputFilename) {
+    if (!sudokuString && !inputFilename) {
         fprintf(stderr, "No Sudoku data given. Please either specify a file with -f or a Sudoku string.\n");
         fprintf(stderr, "See usage page for details: -h");
         exit(EXIT_FAILURE);
@@ -99,14 +99,24 @@ int main(int argc, char **argv) {
     if (outputFilename) {
         openLogFile(outputFilename);
     }
+        
+    if (gametypeString) {
+        gametype = parseGametypeString(gametypeString);
+    }
 
-    setupGrid();
 
+    // START
+    // =====
+
+    setupGrid(gametype);
+
+    // try to load Sudoku from file
     if (inputFilename && !readSudoku(inputFilename)) {
         exit(EXIT_FAILURE);
     }
 
-    if (sudoku && !importSudoku(sudoku)) {
+    // try to parse Sudoku string
+    if (sudokuString && !importSudoku(sudokuString)) {
         exit(EXIT_FAILURE);
     }
 
@@ -120,7 +130,7 @@ int main(int argc, char **argv) {
     result = solve();
 
     printLog();
-    
+
     show(1);
     printSvg(1);
 
@@ -128,11 +138,11 @@ int main(int argc, char **argv) {
         logAlways("-----------------------------------------------");
         logAlways("         SUDOKU HAS BEEN SOLVED!");
         logAlways("-----------------------------------------------");
-        sudokuString(1);
-        
+        printSudokuString(1);
+
         // print the strategies involved
         printInvolvedStrategies();
-        
+
     } else {
 
         int numbersFound = 0;
@@ -145,7 +155,7 @@ int main(int argc, char **argv) {
         sprintf(buffer, "      Found %u of %u cells.", numbersFound, NUMBER_OF_FIELDS);
         logAlways(buffer);
         logAlways("-----------------------------------------------");
-        sudokuString(0);
+        printSudokuString(0);
 
         // print the strategies involved
         printInvolvedStrategies();
@@ -188,9 +198,37 @@ void printUsage() {
     puts("              For example, when the parameter -s test.svg is specified, you will end up with SVG");
     puts("              files of test.svg.1, test.svg.2, test.svg.3 etc. plus the final grid, stored in the");
     puts("              file test.svg (without additional suffix).");
+    puts("  -t          game type, can be s(tandard), c(olor) or x (X-Sudoku). If not specified, standard");
+    puts("              is assumed");
     puts("  -v          verbose logging");
     puts("  -V          very verbose logging");
     puts("  -h          this help screen");
     puts("  SUDOKU_STRING a Sudoku in the one-string format. If given, overrides the -f setting.");
 }
 
+
+/**
+ * parses the game type from the command line and tries to find out which
+ * game type has to be chosen. Game types are "standard", "x" (X-Sudoku) or
+ * "color" (color Sudoku).
+ * 
+ * @param gametypeString
+ * @return 
+ */
+unsigned parseGametypeString(char *gametypeString) {
+    unsigned gametype;
+    
+    if (!strncmp(gametypeString, "standard", 1)) {
+        gametype  = GAME_STANDARD_SUDOKU;
+    } else if (!strncmp(gametypeString, "x", 1)) {
+        gametype  = GAME_X_SUDOKU;
+    } else if (!strncmp(gametypeString, "color", 1)) {
+        gametype  = GAME_COLOR_SUDOKU;
+    } else {
+        sprintf(buffer, "unnknown game type: %s (must be \"standard\", \"x\" or \"color\")", gametypeString);
+        logError(buffer);
+        exit( EXIT_FAILURE);
+    }
+    
+    return gametype;
+}
