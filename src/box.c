@@ -74,6 +74,9 @@ unsigned createBoxContainers(ContainerSet *containerSet) {
     char **instanceNames;
     unsigned i;
 
+    // FIXME: at the moment, only two dimensions are possible:
+    assert(MAX_NUMBER == 9 || MAX_NUMBER == 4);
+    
     if (MAX_NUMBER == 9) {
         boxWidth = 3;
         boxHeight = 3;

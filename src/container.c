@@ -20,17 +20,6 @@
 
 
 /**
- * sets up containers sets
- */
-void setupContainerSets() {
-    //    typedef int (*myFuncDef)(int, int);
-
-    // at the moment, no other dimensions are possible than a 9x9 Sudoku
-    assert(MAX_NUMBER == 9 || MAX_NUMBER == 4);
-
-}
-
-/**
  * fills the container set placeholder with the characteristics of the 
  * specified type of container set
  * 

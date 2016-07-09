@@ -119,8 +119,6 @@ void initContainers() {
 
     assert(numberOfContainerSets > 0);
 
-    setupContainerSets();
-
     containerSets = (ContainerSet *) xmalloc(sizeof (ContainerSet) * (numberOfContainerSets));
     containerSetPtr = containerSets;
 
