@@ -15,19 +15,10 @@ extern "C" {
 #endif
 
     void setupContainerSets();
-    
+
     void setContainerSet(ContainerSet *containerSet, unsigned containerType);
+    void createContainers(unsigned type, char *name, size_t numberOfInstances, char *instanceNames[], ContainerSet *containerType);
 
-    // get container index for the specified field coordinates
-    int determineRowContainer(unsigned x, unsigned y);
-    int determineColumnContainer(unsigned x, unsigned y);
-    int determineBoxContainer(unsigned x, unsigned y);
-
-    // necessary number of containers 
-    unsigned determineRowContainersCount(void);
-    unsigned determineColumnContainersCount(void);
-    unsigned determineBoxContainersCount(void);
-    
 #ifdef	__cplusplus
 }
 #endif

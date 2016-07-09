@@ -1,0 +1,31 @@
+14.06.2016
+
+000000300001900500560310094100600428004000709270004003040068035002005900000000000
+
+
+7 wird entfern (illegal!) in
+	#0  removeCandidate (field=0x60004a250, candidate=7) at src/grid.c:647
+	#1  0x0000000100404984 in forbidNumbersInOtherFields (container=0x60004c720,
+		n=0x60004ebc0, dontTouch=0x60004ebe0) at src/grid.c:374
+	#2  0x0000000100401bbb in recurseNakedTuples (maxLevel=3, container=0x60004c720,
+		level=2, numbers=0x60004ebc0, foundFields=0x60004ebe0) at src/solve.c:610
+	#3  0x0000000100401c16 in recurseNakedTuples (maxLevel=3, container=0x60004c720,
+		level=1, numbers=0x60004ebc0, foundFields=0x60004ebe0) at src/solve.c:622
+	#4  0x00000001004017cd in findNakedTuplesInContainer (container=0x60004c720,
+		dimension=3, numbers=0x60004ebc0, foundFields=0x60004ebe0) at src/solve.c:467
+	#5  0x00000001004015e1 in findNakedTuples () at src/solve.c:256
+	#6  0x0000000100401269 in solve () at src/solve.c:84
+	#7  0x0000000100402c22 in main (argc=1, argv=0xffffcc10) at src/main.c:117
+
+Grund:
+naked tuple found in:
+	container: box 1
+	foundFields: A1 [479], B1 [47]
+	numbers: { 4, 7 }
+
+ABER das ist kein naked tuple (3 Kandidaten in A1)! Wie kommt er darauf? Und warum ist in B1 nicht [3478], wie es laut Andrew Stuart Ausgangspunkt sein sollte? Wo verschwinden [38] für B1?
+Verdacht: die Bedingung equalNumberOfFieldsAndCandidates(foundFields, numbers) ist nicht hinreichend für naked tuples.
+
+Wieso schlägt fieldCandidatesAreSubsetOf(field, numbers) an? Bei A1 [479] und numbers [47] dürfte das nicht anschlagen!
+
+Ui, unit test findNakedTuplesInContainer5 reproduziert das Problem. Wenn Triples gefunden werden sollen, hauen die Pairs nicht mehr hin.
