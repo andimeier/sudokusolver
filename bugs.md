@@ -148,3 +148,10 @@ Segfault in Rekursionstiefe 2 bei:
 
 
 	
+X-Sudoku
+========
+Input: Sudoku "x-sudoku.standard.3454b"
+070020001001603840008000200000000700503090104007000000006000500032905400700040020
+
+
+
