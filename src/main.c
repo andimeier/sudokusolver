@@ -74,7 +74,7 @@ int main(int argc, char **argv) {
     if (!inputFilename) {
         if (MAX_NUMBER == 9) {
             gametype = GAME_X_SUDOKU;
-            inputFilename = strdup("examples/x-sudoku");
+            inputFilename = strdup("examples/x-sudoku.standard.3454b");
         } else if (MAX_NUMBER == 4) {
             inputFilename = strdup("examples/4x4-naked-pair.sudoku");
         }

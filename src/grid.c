@@ -228,14 +228,15 @@ void initGrid() {
             // add reference to container containing this field
             if (*indexPtr != -1) {
                 *fieldContainer = containerSet->containers[*indexPtr];
+
+                // at the same time, add the field to the container which contains
+                // it
+                appendField(containerSet->containers[*indexPtr]->fields, field);
+
             } else {
                 // no container of this type contains this field
                 *fieldContainer = NULL;
             }
-
-            // at the same time, add the field to the container which contains
-            // it
-            appendField(containerSet->containers[*indexPtr]->fields, field);
 
             indexPtr++;
             containerSet++;
