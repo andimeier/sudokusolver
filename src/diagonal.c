@@ -11,7 +11,7 @@
 
 
 static char *getDiagonalName(unsigned index);
-static int determineDiagonalContainer(unsigned x, unsigned y);
+//static int determineDiagonalContainer(unsigned x, unsigned y);
 static unsigned determineDiagonalContainersCount(void);
 
 /**
@@ -54,7 +54,7 @@ int determineDiagonalContainer(unsigned x, unsigned y) {
     if (x == y) {
         return 0; // on falling diagonal
     }
-    if (x == -y) {
+    if (x + y + 1 == MAX_NUMBER) {
         return 1; // on ascending diagonal
     }
     return -1;

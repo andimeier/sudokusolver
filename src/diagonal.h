@@ -16,6 +16,10 @@ extern "C" {
 
     unsigned createDiagonalContainers(ContainerSet *containerSet);
 
+    // aux functions, exposed for unit testing only
+    int determineDiagonalContainer(unsigned x, unsigned y);
+
+    
 #ifdef	__cplusplus
 }
 #endif
