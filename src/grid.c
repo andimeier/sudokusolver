@@ -338,7 +338,12 @@ void forbidNumberInNeighbors(Field *field, unsigned n) {
     for (unsigned containerType = 0; containerType < numberOfContainerSets; containerType++) {
         container = field->containers[containerType];
 
-        forbidNumbersInOtherFields(container, numbers, preserve);
+        // some fields may not be part of container (e.g. A2 is not part of
+        // any "diagonal" container, so only proceed if a valid container has
+        // been returned)
+        if (container) {
+            forbidNumbersInOtherFields(container, numbers, preserve);
+        }
     }
 }
 
