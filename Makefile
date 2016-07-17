@@ -109,10 +109,16 @@ TEST_SRC_FILES = \
   $(filter-out src/main.c, $(wildcard $(SRC)/*.c)) \
   $(TEST)/test*.c
 
+SRC_FILES = $(SRC)/%.c $(SRC)/strategies/%.c $(SRC)/containers/%.c
+
 # compile source files
-$(OUT)/%.o: $(SRC)/%.c $(HEADERS)
+#$(OUT)/%.o: $(SRC)/%.c $(HEADERS)
+#	$(CC) $(CFLAGS) $(INC_DIRS) $(SYMBOLS) -c $< -o $@
+
+$(OUT)/%.o: $(SRC_FILES) $(HEADER_FILES)
 	$(CC) $(CFLAGS) $(INC_DIRS) $(SYMBOLS) -c $< -o $@
 
+	
 # compile unit test files
 $(OUT)/$(TEST)/%.o: $(TEST)/%.c $(HEADERS)
 	$(CC) $(CFLAGS) $(INC_DIRS) -c $< -o $@
