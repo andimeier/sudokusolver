@@ -475,10 +475,14 @@ void printInvolvedStrategies() {
         if ((*strategyPtr)->used) {
 
             // strategy has been used
-            sprintf(buffer, "  * %s", (*strategyPtr)->name);
+            sprintf(buffer, "  X %s", (*strategyPtr)->name);
             logAlways(buffer);
 
             count++;
+        } else {
+            // strategy has not been used
+            sprintf(buffer, "  - %s (not used)", (*strategyPtr)->name);
+            logAlways(buffer);
         }
 
         strategyPtr++;

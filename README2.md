@@ -33,3 +33,5 @@ A new container type must provide the following functions:
 * getContainerNameFunc) ... returns the name of the container for the given container index
 
 The new container type must be linked to a certain "game type". For example, a game type "standard Sudoku" consists of the container types "rows", "columns" and "boxes". For a new container type to be used, it must be assigned to a (new) game type.
+
+Note that a field could be member of more than one container of a spdcific type (for example, the crossing between ascending and falling diagonal is the same field)
