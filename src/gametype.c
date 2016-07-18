@@ -7,7 +7,6 @@
 #include "logfile.h"
 #include "util.h"
 
-        
 unsigned *getContainerTypes(unsigned gameType) {
     unsigned *containerTypes;
     size_t numberOfContainerTypes;

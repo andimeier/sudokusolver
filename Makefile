@@ -95,13 +95,15 @@ execute_tests: $(OUT)/$(TEST_TARGET)
 	# execute tests
 	./$< -v
 
-OBJECTS = $(patsubst $(SRC)/%.c, $(OUT)/%.o, $(wildcard $(SRC)/*.c))
+OBJECTS = $(patsubst $(SRC)/%.c, $(OUT)/%.o, $(wildcard $(SRC)/*.c)) \
+  $(patsubst $(SRC)/strategies/%.c, $(OUT)/%.o, $(wildcard $(SRC)/strategies/*.c)) \
+  $(patsubst $(SRC)/containers/%.c, $(OUT)/%.o, $(wildcard $(SRC)/containers/*.c))
 TEST_OBJECTS = \
   $(filter-out $(OUT)/main.o, $(patsubst $(SRC)/%.c, $(OUT)/%.o, $(wildcard $(SRC)/*.c))) \
   $(patsubst $(TEST)/%.c, $(OUT)/test/%.o, $(wildcard $(TEST)/test*.c))
 HEADERS = $(wildcard $(SRC)/*.h)
 
-INC_DIRS=-I$(SRC) -I$(UNITY_ROOT)/src -I$(UNITY_ROOT)/extras/fixture/src
+INC_DIRS=-I$(SRC) -I$(SRC)/strategies -I$(SRC)/containers -I$(UNITY_ROOT)/src -I$(UNITY_ROOT)/extras/fixture/src
 SYMBOLS=
 TEST_SRC_FILES = \
   $(UNITY_ROOT)/src/unity.c \
@@ -109,13 +111,22 @@ TEST_SRC_FILES = \
   $(filter-out src/main.c, $(wildcard $(SRC)/*.c)) \
   $(TEST)/test*.c
 
-SRC_FILES = $(SRC)/%.c $(SRC)/strategies/%.c $(SRC)/containers/%.c
+#SRC_FILES = $(SRC)/%.c $(SRC)/strategies/%.c $(SRC)/containers/%.c
+#SRC_FILES = $(SRC)/%.c $(SRC)/strategies/%.c
+#SRC_FILES = $(wildcard $(SRC)/%.c)
+# $(wildcard $(SRC)/strategies/%.c)
+SRC_FILES = $(SRC)/*.c $(SRC)/strategies/*.c $(SRC)/containers/*.c
+HEADER_FILES = $(SRC)/*.h $(SRC)/strategies/*.h $(SRC)/containers/*.h
 
 # compile source files
 #$(OUT)/%.o: $(SRC)/%.c $(HEADERS)
 #	$(CC) $(CFLAGS) $(INC_DIRS) $(SYMBOLS) -c $< -o $@
 
-$(OUT)/%.o: $(SRC_FILES) $(HEADER_FILES)
+$(OUT)/%.o: $(SRC)/%.c $(HEADER_FILES)
+	$(CC) $(CFLAGS) $(INC_DIRS) $(SYMBOLS) -c $< -o $@
+$(OUT)/%.o: $(SRC)/strategies/%.c $(HEADER_FILES)
+	$(CC) $(CFLAGS) $(INC_DIRS) $(SYMBOLS) -c $< -o $@
+$(OUT)/%.o: $(SRC)/containers/%.c $(HEADER_FILES)
 	$(CC) $(CFLAGS) $(INC_DIRS) $(SYMBOLS) -c $< -o $@
 
 	
