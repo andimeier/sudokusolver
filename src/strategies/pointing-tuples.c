@@ -90,7 +90,7 @@ unsigned findPointingTuplesInContainer(Container *container, FieldsVector *field
      */
 
     // try all numbers
-    for (unsigned n = 1; n < MAX_NUMBER; n++) {
+    for (unsigned n = 1; n <= MAX_NUMBER; n++) {
         // TODO optimisation step: skip numbers which are already solved in the
         // container
 
@@ -128,7 +128,9 @@ unsigned findPointingTuplesInContainer(Container *container, FieldsVector *field
                     // eliminate this candidate in the other container.
                     // Depending on whether some candidates could be eliminated, the
                     // board has changed or not
-                    return eliminateCandidatesFromOtherFields(commonContainer, fieldsWithCandidate, n);
+                    if (eliminateCandidatesFromOtherFields(commonContainer, fieldsWithCandidate, n)) {
+                        return 1;
+                    }
                 }
             }
         }
