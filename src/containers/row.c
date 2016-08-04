@@ -10,7 +10,8 @@
 #include "container.h"
 
 static char *getRowName(unsigned index);
-static int determineRowContainer(unsigned x, unsigned y);
+//static int determineRowContainer(unsigned x, unsigned y);
+static void fillContainerFields(unsigned containerIndex, FieldsVector *fields);
 static unsigned determineRowContainersCount(void);
 
 /**
@@ -27,20 +28,40 @@ char *getRowName(unsigned index) {
     return strdup(buffer);
 }
 
+///**
+// * determines the index of the row container which contains the field on the
+// * given Sudoku coordinates
+// * 
+// * @param x X coordinate (starting with 0) of the specified field
+// * @param y Y coordinate (starting with 0) of the specified field
+// * @return index of the row container which contains the specified field, 
+// *   or -1 if no such container contains the specified field (which is not
+// *   possible with row containers, but might be possible for other types of
+// *   containers)
+// */
+//int determineRowContainer(unsigned x, unsigned y) {
+//    return y;
+//}
+
+
 /**
- * determines the index of the row container which contains the field on the
- * given Sudoku coordinates
+ * fills the given fields vector with the list of fields which are members
+ * of this container
  * 
- * @param x X coordinate (starting with 0) of the specified field
- * @param y Y coordinate (starting with 0) of the specified field
- * @return index of the row container which contains the specified field, 
- *   or -1 if no such container contains the specified field (which is not
- *   possible with row containers, but might be possible for other types of
- *   containers)
+ * @param containerIndex the index of the container which should be filled
+ * @param fields pre-allocated vector of fields which will be filled by this
+ *   function
  */
-int determineRowContainer(unsigned x, unsigned y) {
-    return y;
+void fillContainerFields(unsigned containerIndex, FieldsVector *fields) {
+    unsigned x;
+    unsigned y;
+
+    y = containerIndex;
+    for (x = 0; x < MAX_NUMBER; x++) {
+        fields[x] = getFieldAt(x, y);
+    }
 }
+
 
 /**
  * return number of row containers necessary to hold the Sudoku data.
@@ -78,7 +99,7 @@ unsigned createRowContainers(ContainerSet *containerSet) {
     // delegate container creation to generic generator function
     createContainers(ROWS, strdup("row"), MAX_NUMBER, instanceNames, containerSet);
 
-    containerSet->getContainerIndex = &determineRowContainer;
+    containerSet->fillContainerFields = &fillContainerFields;
     containerSet->getContainerName = &getRowName;
 
     // MAX_NUMBER rows have been generated

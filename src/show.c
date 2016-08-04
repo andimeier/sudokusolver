@@ -340,8 +340,15 @@ void showField(Field *field, int showContainers, int appendLf) {
 
     if (showContainers) {
         printf(" in containers: ");
+        int first = 1;
         for (int c = 0; c < numberOfContainerSets; c++) {
-            printf("%s%s", !c ? "" : ", ", field->containers[c]->name);
+            Container **containersPtr = field->containers[c];
+            while (*containersPtr) {
+                printf("%s%s", first ? "" : ", ", (*containersPtr)->name);
+                first = 0;
+                containersPtr++;
+            }
+            
         }
     }
 

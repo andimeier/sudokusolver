@@ -11,7 +11,8 @@
 
 
 static char *getBoxName(unsigned index);
-static int determineBoxContainer(unsigned x, unsigned y);
+//static int determineBoxContainer(unsigned x, unsigned y);
+static void fillContainerFields(unsigned containerIndex, FieldsVector *fields);
 static unsigned determineBoxContainersCount(void);
 
 
@@ -32,25 +33,52 @@ char *getBoxName(unsigned index) {
     return strdup(buffer);
 }
 
-/**
- * determines the index of the box container which contains the field on the
- * given Sudoku coordinates
- * 
- * @param x X coordinate (starting with 0) of the specified field
- * @param y Y coordinate (starting with 0) of the specified field
- * @return index of the box container which contains the specified field, 
- *   or -1 if no such container contains the specified field (which is not
- *   possible with box containers, but might be possible for other types of
- *   containers)
- */
-int determineBoxContainer(unsigned x, unsigned y) {
-    assert(x >= 0 && x < MAX_NUMBER);
-    assert(y >= 0 && y < MAX_NUMBER);
-    assert(boxHeight > 0);
-    assert(boxWidth > 0);
+///**
+// * determines the index of the box container which contains the field on the
+// * given Sudoku coordinates
+// * 
+// * @param x X coordinate (starting with 0) of the specified field
+// * @param y Y coordinate (starting with 0) of the specified field
+// * @return index of the box container which contains the specified field, 
+// *   or -1 if no such container contains the specified field (which is not
+// *   possible with box containers, but might be possible for other types of
+// *   containers)
+// */
+//int determineBoxContainer(unsigned x, unsigned y) {
+//    assert(x >= 0 && x < MAX_NUMBER);
+//    assert(y >= 0 && y < MAX_NUMBER);
+//    assert(boxHeight > 0);
+//    assert(boxWidth > 0);
+//
+//    return (y / boxHeight) * (MAX_NUMBER / boxWidth) + (x / boxWidth);
+//}
 
-    return (y / boxHeight) * (MAX_NUMBER / boxWidth) + (x / boxWidth);
+/**
+ * fills the given fields vector with the list of fields which are members
+ * of this container
+ * 
+ * @param containerIndex the index of the container which should be filled
+ * @param fields pre-allocated vector of fields which will be filled by this
+ *   function
+ */
+void fillContainerFields(unsigned containerIndex, FieldsVector *fields) {
+    unsigned n;
+    unsigned boxStartX;
+    unsigned boxStartY;
+    unsigned boxX;
+    unsigned boxY;
+
+    boxStartX = (containerIndex % 3) * 3;
+    boxStartY = (containerIndex / 3) * 3;
+    
+    for (n = 0; n < MAX_NUMBER; n++) {
+        boxX = n % 3;
+        boxY = n / 3;
+
+        fields[n] = getFieldAt(boxStartX + boxX, boxStartY + boxY);
+    }
 }
+
 
 /**
  * return number of box containers necessary to hold the Sudoku data.
@@ -102,7 +130,7 @@ unsigned createBoxContainers(ContainerSet *containerSet) {
     // delegate container creation to generic generator function
     createContainers(BOXES, strdup("box"), MAX_NUMBER, instanceNames, containerSet);
 
-    containerSet->getContainerIndex = &determineBoxContainer;
+    containerSet->fillContainerFields = &fillContainerFields;
     containerSet->getContainerName = &getBoxName;
 
     // MAX_NUMBER boxes have been generated

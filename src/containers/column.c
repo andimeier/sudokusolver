@@ -10,7 +10,8 @@
 #include "container.h"
 
 static char *getColumnName(unsigned index);
-static int determineColumnContainer(unsigned x, unsigned y);
+//static int determineColumnContainer(unsigned x, unsigned y);
+static void fillContainerFields(unsigned containerIndex, FieldsVector *fields);
 static unsigned determineColumnContainersCount(void);
 
 /**
@@ -28,21 +29,38 @@ char *getColumnName(unsigned index) {
 }
 
 
-/**
- * determines the index of the column container which contains the field on the
- * given Sudoku coordinates
- * 
- * @param x X coordinate (starting with 0) of the specified field
- * @param y Y coordinate (starting with 0) of the specified field
- * @return index of the column container which contains the specified field, 
- *   or -1 if no such container contains the specified field (which is not
- *   possible with column containers, but might be possible for other types of
- *   containers)
- */
-int determineColumnContainer(unsigned x, unsigned y) {
-    return x;
-}
+///**
+// * determines the index of the column container which contains the field on the
+// * given Sudoku coordinates
+// * 
+// * @param x X coordinate (starting with 0) of the specified field
+// * @param y Y coordinate (starting with 0) of the specified field
+// * @return index of the column container which contains the specified field, 
+// *   or -1 if no such container contains the specified field (which is not
+// *   possible with column containers, but might be possible for other types of
+// *   containers)
+// */
+//int determineColumnContainer(unsigned x, unsigned y) {
+//    return x;
+//}
 
+/**
+ * fills the given fields vector with the list of fields which are members
+ * of this container
+ * 
+ * @param containerIndex the index of the container which should be filled
+ * @param fields pre-allocated vector of fields which will be filled by this
+ *   function
+ */
+void fillContainerFields(unsigned containerIndex, FieldsVector * fields) {
+    unsigned x;
+    unsigned y;
+
+    x = containerIndex;
+    for (y = 0; y < MAX_NUMBER; y++) {
+        fields[y] = getFieldAt(x, y);
+    }
+}
 
 /**
  * return number of column containers necessary to hold the Sudoku data.
@@ -54,6 +72,7 @@ int determineColumnContainer(unsigned x, unsigned y) {
 unsigned determineColumnContainersCount(void) {
     return MAX_NUMBER;
 }
+
 /**
  * creates a container set for columns, along with all needed containers 
  * instances of this type
@@ -61,7 +80,7 @@ unsigned determineColumnContainersCount(void) {
  * @param the container set structure to be filled with data
  * @return the number of generated container children of this container set
  */
-unsigned createColumnContainers(ContainerSet *containerSet) {
+unsigned createColumnContainers(ContainerSet * containerSet) {
     char **instanceNames;
     unsigned i;
 
@@ -79,7 +98,7 @@ unsigned createColumnContainers(ContainerSet *containerSet) {
     // delegate container creation to generic generator function
     createContainers(COLS, strdup("column"), MAX_NUMBER, instanceNames, containerSet);
 
-    containerSet->getContainerIndex = &determineColumnContainer;
+    containerSet->fillContainerFields = &fillContainerFields;
     containerSet->getContainerName = &getColumnName;
 
     // MAX_NUMBER columns have been generated

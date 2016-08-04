@@ -55,7 +55,8 @@ extern "C" {
     void cleanUpCandidates();
     int removeCandidate(Field *field, unsigned candidate);
     void solveField(Field *field, unsigned n);
-
+    Field *getFieldAt(unsigned x, unsigned y);
+    
 #ifdef __cplusplus
 }
 #endif

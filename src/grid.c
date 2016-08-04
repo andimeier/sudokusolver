@@ -20,10 +20,8 @@
 // function prototypes
 void initFields();
 void initContainers();
-void initGrid();
 void freeFields();
 void freeContainers();
-void freeGrid();
 
 // static functions
 void printLogSetUniqueNumber(void *info);
@@ -55,12 +53,10 @@ void setupGrid(unsigned _gametype) {
     gametype = _gametype;
     initFields();
     initContainers();
-    initGrid();
 }
 
 void releaseGrid() {
     freeContainers();
-    freeGrid();
     freeFields();
 }
 
@@ -71,6 +67,7 @@ void releaseGrid() {
 void initFields() {
     Field *field;
     unsigned *candidates;
+    int i;
 
     fields = (Field *) xmalloc(sizeof (Field) * NUMBER_OF_FIELDS);
 
@@ -82,7 +79,50 @@ void initFields() {
 
         // allocate candidates
         candidates = (unsigned *) xmalloc(sizeof (unsigned) * MAX_NUMBER);
+        // allow all candidates for the field
+        for (int n = 0; n < MAX_NUMBER; n++) {
+            candidates[n] = n + 1;
+        }
+
         field->candidates = candidates;
+        field->candidatesLeft = MAX_NUMBER;
+        field->value = 0;
+        field->initialValue = 0;
+
+
+        // allocate containerIndexes and referenced containers
+        field->containerIndexes = (int **) xmalloc(sizeof (int *) * numberOfContainerSets);
+        field->containers = (Container ***) xmalloc(sizeof (Container **) * numberOfContainerSets);
+        for (i = 0; i < numberOfContainerSets; i++) {
+            /* for each containerSet, reserve space for MAX_NUMBER containers, 
+             * as if the field could be member in all (=MAX_NUMBER) container.
+             * In most cases, each field will only be part of ONE container, 
+             * e.g. one row. However, in some edge cases, a field could be 
+             * member of more than one container of a type, e.g. the center 
+             * field in the container type "diagonal" is part of both diagonal
+             * containers. To cover cases like that, the containerIndexes is 
+             * no index, but a vector of indexes, terminated with -1. In most
+             * cases, there will be only one member, in other cases there will
+             * be no member (e.g. the field A2 is not part of any diagonal 
+             * container). In other cases there will be more than one member (as
+             * described above with the center field with diagonals).
+             * Allocate MAX_NUMBER + 1 to leave a slot for the terminator (-1).
+             */
+            field->containerIndexes[i] = (int *) xmalloc(sizeof (int) * (MAX_NUMBER + 1));
+
+            // init containerIndexes with an empty list by registering
+            // terminator as only member (at the moment)
+            field->containerIndexes[i][0] = -1;
+        
+            // the same operations for referenced containers ...
+            // -------------------------------------------------
+            
+            field->containers[i] = (Container **) xmalloc(sizeof (Container *) * (MAX_NUMBER + 1));
+
+            // init containerIndexes with an empty list by registering
+            // terminator as only member (at the moment)
+            field->containers[i][0] = NULL;
+        }
 
         // use the ROWS and COLS coordinates as the "name" of the field
         // reserve space for coordinates up to "Z26" (a theoretical limit of
@@ -98,6 +138,7 @@ void initFields() {
 void freeFields() {
 
     for (int f = 0; f < NUMBER_OF_FIELDS; f++) {
+
         free(fields[f].candidates);
     }
 
@@ -111,6 +152,7 @@ void freeFields() {
 void initContainers() {
     ContainerSet *containerSetPtr;
     unsigned *containerTypes;
+    unsigned index;
 
     // assuming a standard Sudoku, 
     // we have 3 types of containers (row, column, box)
@@ -147,9 +189,27 @@ void initContainers() {
 
         // generate the corresponding child containers
         for (unsigned containerIndex = 0; containerIndex < containerSet->numberOfContainers; containerIndex++) {
+
             containersPtr->name = containerSet->getContainerName(containerIndex);
             containersPtr->type = containerSet->type;
-            containersPtr->fields = (Field **) xmalloc(sizeof (Field *) * MAX_NUMBER);
+            containersPtr->fields = (FieldsVector *) xmalloc(sizeof (FieldsVector) * MAX_NUMBER);
+
+            // fill the field of the container
+            (containerSet->fillContainerFields)(containerIndex, containersPtr->fields);
+
+            // register the indexes of the field in the containers of this type
+            for (index = 0; index < MAX_NUMBER; index++) {
+                Field *field = containersPtr->fields[index];
+                int *containerIndexes = field->containerIndexes[set];
+
+                while (*containerIndexes != -1) {
+                    containerIndexes++;
+                }
+
+                // append containerIndex to existing list of containerIndexes
+                *containerIndexes++ = index;
+                *containerIndexes = -1; // terminate list
+            }
 
             // link to container set
             containerSet->containers[containerIndex] = containersPtr;
@@ -185,78 +245,6 @@ void freeContainers() {
 
 }
 
-void initGrid() {
-    int x, y;
-    Field *field;
-    ContainerSet *containerSet;
-    Container **containers;
-    Container **fieldContainer;
-
-    // init all fields (set all candidates, link to container, etc.)
-    for (int f = 0; f < NUMBER_OF_FIELDS; f++) {
-        field = fields + f;
-
-        x = field->x;
-        y = field->y;
-
-        // allow all candidates for the field
-        for (int n = 0; n < MAX_NUMBER; n++) {
-            field->candidates[n] = n + 1;
-        }
-
-        field->candidatesLeft = MAX_NUMBER;
-        field->value = 0;
-        field->initialValue = 0;
-
-        int *containerIndexes = (int *) xmalloc(sizeof (int) * numberOfContainerSets);
-        int * indexPtr = containerIndexes;
-
-        containers = (Container **) xmalloc(sizeof (Container *) * numberOfContainerSets);
-        fieldContainer = containers;
-
-        /*
-         * for each field, determine its position in the respective containers,
-         * register the link between field and container in the container sets,
-         * as well as in the field (back reference to container)
-         */
-        for (unsigned set = 0; set < numberOfContainerSets; set++) {
-            containerSet = containerSets + set;
-
-            // determine container index of field 
-            *indexPtr = (containerSet->getContainerIndex)(x, y);
-
-            // add reference to container containing this field
-            if (*indexPtr != -1) {
-                *fieldContainer = containerSet->containers[*indexPtr];
-
-                // at the same time, add the field to the container which contains
-                // it
-                appendField(containerSet->containers[*indexPtr]->fields, field);
-
-            } else {
-                // no container of this type contains this field
-                *fieldContainer = NULL;
-            }
-
-            indexPtr++;
-            containerSet++;
-            fieldContainer++;
-        }
-
-        field->containerIndexes = containerIndexes; // FIXME property field.containerIndexes needed at all?
-        field->containers = containers;
-    }
-}
-
-/**
- * frees memory allocated for the grid fields
- */
-void freeGrid() {
-    for (int f = 0; f < NUMBER_OF_FIELDS; f++) {
-        free(fields[f].containerIndexes);
-    }
-}
-
 /**
  * sets the value of a field and eliminates this number from all candidates
  * of neighboring fields
@@ -265,7 +253,7 @@ void freeGrid() {
  * @param value the number to be set as result field value
  */
 void setValue(Field *field, unsigned value) {
-    Container *container;
+    Container **containers;
     Field *otherField;
 
     assert(value <= MAX_NUMBER);
@@ -278,8 +266,12 @@ void setValue(Field *field, unsigned value) {
 
     // check if the number does not occur in any neighbors in any containers
     for (int containerIndex = 0; containerIndex < numberOfContainerSets; containerIndex++) {
-        container = field->containers[containerIndex];
-        if (container) {
+        containers = field->containers[containerIndex];
+        
+        while (*containers) {
+            Container *container;
+            
+            container = *containers;
             for (int pos = 0; pos < MAX_NUMBER; pos++) {
                 otherField = container->fields[pos];
                 if (otherField != field) {
@@ -291,12 +283,14 @@ void setValue(Field *field, unsigned value) {
                     assert(otherField->value != value);
                 }
             }
+            containers++;
         }
     }
 
     // remove all candidates from this field
     unsigned *candidates = field->candidates;
     for (unsigned n = 1; n <= MAX_NUMBER; n++) {
+
         candidates[n - 1] = (n == value) ? value : 0;
     }
 
@@ -313,7 +307,7 @@ void setValue(Field *field, unsigned value) {
  * @param n the number to be forbidden in neighboring fields
  */
 void forbidNumberInNeighbors(Field *field, unsigned n) {
-    Container *container;
+    Container **containers;
     unsigned numbers[2];
 
     assert(n <= MAX_NUMBER);
@@ -336,13 +330,10 @@ void forbidNumberInNeighbors(Field *field, unsigned n) {
 
     // forbid number in all other "neighboring fields"
     for (unsigned containerType = 0; containerType < numberOfContainerSets; containerType++) {
-        container = field->containers[containerType];
+        containers = field->containers[containerType];
 
-        // some fields may not be part of container (e.g. A2 is not part of
-        // any "diagonal" container, so only proceed if a valid container has
-        // been returned)
-        if (container) {
-            forbidNumbersInOtherFields(container, numbers, preserve);
+        while (*containers) {
+            forbidNumbersInOtherFields(*containers, numbers, preserve);
         }
     }
 }
@@ -392,6 +383,7 @@ int forbidNumbersInOtherFields(Container *container, unsigned *n, Field **dontTo
 
                 // was a candidate until now => remove candidate now
                 if (!field->value && field->candidates[candidate - 1]) {
+
                     sprintf(buffer, "forbid %u in field %s", candidate, field->name);
                     logReduction(buffer);
                     logVerbose("Before forbidding ...");
@@ -434,6 +426,7 @@ int forbidNumber(Field *field, unsigned n) {
 
         if (field->candidatesLeft == 1) {
             // nur noch eine einzige Zahl ist moeglich => ausfuellen!
+
             setUniqueNumber(field);
         }
         return 1;
@@ -450,6 +443,7 @@ int forbidNumber(Field *field, unsigned n) {
  * @return 1 if the number is a possible candidate, 0 if it is not
  */
 int fieldHasCandidate(Field *field, unsigned n) {
+
     return !field->value && (field->candidates[n - 1] == n);
 }
 
@@ -473,6 +467,7 @@ int setUniqueNumber(Field *field) {
     for (n = 1; n <= MAX_NUMBER; n++) {
         if (candidates[n - 1]) {
             solveField(field, n);
+
             break;
         }
     }
@@ -489,6 +484,7 @@ int setUniqueNumber(Field *field) {
 void solveField(Field *field, unsigned n) {
 
     // field should not be solved already
+
     assert(!field->value);
     assert(field->candidatesLeft == 1);
     assert(field->candidates[n - 1]);
@@ -504,6 +500,7 @@ void solveField(Field *field, unsigned n) {
 }
 
 void printLogSetUniqueNumber(void *info) {
+
     EntrySolveField *infoStruct;
 
     infoStruct = (EntrySolveField *) info;
@@ -610,6 +607,7 @@ int getUniquePositionInContainer(Field **container, unsigned n) {
         }
     }
     if (unique) {
+
         return foundPos;
     }
 
@@ -639,6 +637,7 @@ int fieldCandidatesContainAllOf(Field *field, unsigned *numbers) {
             // candidates are no subset of "numbers"
             sprintf(buffer, "number %u not found in candidates (%u)", *numbers, field->candidates[*numbers - 1]);
             logVerbose(buffer);
+
             return 0;
         }
         numbers++;
@@ -661,6 +660,7 @@ int isFinished() {
     for (f = 0; f < NUMBER_OF_FIELDS; f++) {
         if (!fields[f].value)
             // ein leeres Feld gefunden => wir sind noch nicht fertig!
+
             return 0;
     }
     return 1;
@@ -682,6 +682,7 @@ void cleanUpCandidates() {
         field = fields + f;
 
         if (field->value) {
+
             sprintf(buffer, "Set value of field %s (#%d) to %u", field->name, f, field->value);
             logVerbose(buffer);
             setValue(field, field->value);
@@ -730,9 +731,23 @@ int removeCandidate(Field *field, unsigned candidate) {
 }
 
 void printLogRemoveCandidate(void *info) {
+
     EntryRemoveCandidate *infoStruct;
 
     infoStruct = (EntryRemoveCandidate *) info;
 
     printf("--- LOG: field %s: remove candidate %u\n", infoStruct->fieldName, infoStruct->removedCandidate);
+}
+
+/**
+ * identifies the field on the given coordinates 
+ * @param x X coordinate, in the range (0 ... MAX_NUMBER-1)
+ * @param y Y coordinate, in the range (0 ... MAX_NUMBER-1)
+ * @return the field on the given coordinates
+ */
+Field *getFieldAt(unsigned x, unsigned y) {
+    assert(x >= 0 && x < MAX_NUMBER);
+    assert(y >= 0 && y < MAX_NUMBER);
+
+    return (fields + y * MAX_NUMBER + x);
 }

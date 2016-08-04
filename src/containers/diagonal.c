@@ -12,6 +12,7 @@
 
 static char *getDiagonalName(unsigned index);
 //static int determineDiagonalContainer(unsigned x, unsigned y);
+static void fillContainerFields(unsigned containerIndex, FieldsVector *fields);
 static unsigned determineDiagonalContainersCount(void);
 
 /**
@@ -32,32 +33,54 @@ char *getDiagonalName(unsigned index) {
             return strdup("ascending diagonal");
             break;
     }
-    
+
     assert(0); // we should never get here
 }
 
+///**
+// * determines the index of the diagonal container which contains the field on 
+// * the given Sudoku coordinates
+// * 
+// * @param x X coordinate (starting with 0) of the specified field
+// * @param y Y coordinate (starting with 0) of the specified field
+// * @return index of the diagonal container which contains the specified field, 
+// *   or -1 if no such container contains the specified field (a field that 
+// *   does not lie on one of the two diagonals)
+// */
+//int determineDiagonalContainer(unsigned x, unsigned y) {
+//    assert(x >= 0 && x < MAX_NUMBER);
+//    assert(y >= 0 && y < MAX_NUMBER);
+//
+//    if (x == y) {
+//        return 0; // on falling diagonal
+//    }
+//    if (x + y + 1 == MAX_NUMBER) {
+//        return 1; // on ascending diagonal
+//    }
+//    return -1;
+//}
 
 /**
- * determines the index of the diagonal container which contains the field on 
- * the given Sudoku coordinates
+ * fills the given fields vector with the list of fields which are members
+ * of this container
  * 
- * @param x X coordinate (starting with 0) of the specified field
- * @param y Y coordinate (starting with 0) of the specified field
- * @return index of the diagonal container which contains the specified field, 
- *   or -1 if no such container contains the specified field (a field that 
- *   does not lie on one of the two diagonals)
+ * @param containerIndex the index of the container which should be filled
+ * @param fields pre-allocated vector of fields which will be filled by this
+ *   function
  */
-int determineDiagonalContainer(unsigned x, unsigned y) {
-    assert(x >= 0 && x < MAX_NUMBER);
-    assert(y >= 0 && y < MAX_NUMBER);
+void fillContainerFields(unsigned containerIndex, FieldsVector *fields) {
+    unsigned n;
+    unsigned x;
+    unsigned y;
 
-    if (x == y) {
-        return 0; // on falling diagonal
+    for (n = 0; n < MAX_NUMBER; n++) {
+        x = n;
+        y = (containerIndex == 0) ?
+                x : // index 0 ... falling diagonal
+                MAX_NUMBER - 1 - x; // index 1 ... ascending diagonal 
+
+        fields[n] = getFieldAt(x, y);
     }
-    if (x + y + 1 == MAX_NUMBER) {
-        return 1; // on ascending diagonal
-    }
-    return -1;
 }
 
 /**
@@ -91,7 +114,7 @@ unsigned createDiagonalContainers(ContainerSet *containerSet) {
     // delegate container creation to generic generator function
     createContainers(DIAGONALS, strdup("diagonals"), 2, instanceNames, containerSet);
 
-    containerSet->getContainerIndex = &determineDiagonalContainer;
+    containerSet->fillContainerFields = &fillContainerFields;
     containerSet->getContainerName = &getDiagonalName;
 
     // 2 diagonals have been generated
