@@ -18,10 +18,11 @@
 #include "gametype.h"
 
 // function prototypes
-void initFields();
-void initContainers();
-void freeFields();
-void freeContainers();
+static void initContainerSets();
+static void initFields();
+static void initContainers();
+static void freeFields();
+static void freeContainers();
 
 // static functions
 void printLogSetUniqueNumber(void *info);
@@ -51,6 +52,8 @@ typedef struct EntryRemoveCandidate {
  */
 void setupGrid(unsigned _gametype) {
     gametype = _gametype;
+
+    initContainerSets();
     initFields();
     initContainers();
 }
@@ -58,6 +61,36 @@ void setupGrid(unsigned _gametype) {
 void releaseGrid() {
     freeContainers();
     freeFields();
+}
+
+/**
+ * determine the container types (depend on the game type) and provide
+ * some basic global variables needed for initFields
+ */
+void initContainerSets() {
+    unsigned *containerTypes;
+    ContainerSet *containerSetPtr;
+    
+    // assuming a standard Sudoku, 
+    // we have 3 types of containers (row, column, box)
+    containerTypes = getContainerTypes(gametype);
+    numberOfContainerSets = ulength(containerTypes);
+
+    assert(numberOfContainerSets > 0);
+    containerSets = (ContainerSet *) xmalloc(sizeof (ContainerSet) * (numberOfContainerSets));
+    containerSetPtr = containerSets;
+
+    numberOfContainers = 0;
+    while (*containerTypes) {
+        // set container set (holding no containers yet)
+        setContainerSet(containerSetPtr, *containerTypes);
+        numberOfContainers += containerSetPtr->numberOfContainers;
+
+        containerSetPtr++;
+        containerTypes++;
+    }
+
+    assert(numberOfContainers > 0);
 }
 
 /**
@@ -146,35 +179,11 @@ void freeFields() {
 }
 
 /**
- * init the container types and containers), but with no link to containing 
+ * init the containers, but with no link to containing 
  * fields. This will be done later in initGrid().
  */
 void initContainers() {
-    ContainerSet *containerSetPtr;
-    unsigned *containerTypes;
     unsigned index;
-
-    // assuming a standard Sudoku, 
-    // we have 3 types of containers (row, column, box)
-    containerTypes = getContainerTypes(gametype);
-    numberOfContainerSets = ulength(containerTypes);
-
-    assert(numberOfContainerSets > 0);
-
-    containerSets = (ContainerSet *) xmalloc(sizeof (ContainerSet) * (numberOfContainerSets));
-    containerSetPtr = containerSets;
-
-    numberOfContainers = 0;
-    while (*containerTypes) {
-        // set container set (holding no containers yet)
-        setContainerSet(containerSetPtr, *containerTypes);
-        numberOfContainers += containerSetPtr->numberOfContainers;
-
-        containerSetPtr++;
-        containerTypes++;
-    }
-
-    assert(numberOfContainers > 0);
 
     // init and populate "all containers" vector
     allContainers = (Container *) xmalloc(sizeof (Container) * (numberOfContainers));
