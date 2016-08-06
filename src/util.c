@@ -222,7 +222,8 @@ int countDistinctCandidates(FieldsVector *fields, size_t limit) {
  *   pre-allocated buffer to be used by this strategy. Performance issue, so 
  *   that not every iteration has to allocate buffer, but a "common" buffer is
  *   used
- * @param fields fields in which to search for the given candidate
+ * @param fields fields in which to search for the given candidate, must be
+ *   MAX_NUMBER of entries
  * @param candidate the candidate to look for
  * @return a NULL-terminated list of field pointers holding all fields of the
  *   given field list for which the given candidate is possible
@@ -324,6 +325,11 @@ Container *getCommonContainer(FieldsVector *fields, size_t containerSetIndex) {
                 commonContainer = NULL;
                 break;
             }
+        }
+        
+        if (commonContainer != NULL) {
+            // found a common container
+            break;
         }
     }
 

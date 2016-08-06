@@ -201,10 +201,14 @@ void initContainers() {
 
             containerPtr->name = containerSet->getContainerName(containerIndex);
             containerPtr->type = containerSet->type;
-            containerPtr->fields = (FieldsVector *) xmalloc(sizeof (FieldsVector) * MAX_NUMBER);
+            
+            // reserve space for a NULL terminator at the end of the container's field list
+            containerPtr->fields = (FieldsVector *) xmalloc(sizeof (FieldsVector) * (MAX_NUMBER + 1));
 
             // fill the field of the container
             (containerSet->fillContainerFields)(containerIndex, containerPtr->fields);
+            // add NULL terminator to field list
+            containerPtr->fields[MAX_NUMBER] = NULL;
 
             // link fields to containers: containerIndexes and containers
             // ----------------------------------------------------------
