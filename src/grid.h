@@ -18,6 +18,7 @@ extern "C" {
 #define ROWS 1
 #define COLS 2
 #define BOXES 3
+#define DIAGONALS 4
 
     // the fields of the game board
     extern Field *fields;
@@ -54,7 +55,8 @@ extern "C" {
     void cleanUpCandidates();
     int removeCandidate(Field *field, unsigned candidate);
     void solveField(Field *field, unsigned n);
-
+    Field *getFieldAt(unsigned x, unsigned y);
+    
 #ifdef __cplusplus
 }
 #endif

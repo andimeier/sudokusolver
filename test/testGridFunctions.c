@@ -17,6 +17,7 @@
 #include "fieldlist.h"
 #include "numberlist.h"
 #include "logfile.h"
+#include "diagonal.h"
 
 // prototypes
 unsigned * uintdup(unsigned *dest, unsigned const *src, size_t len);
@@ -251,14 +252,14 @@ void test_countDistinctCandidates(void) {
     fields[0] = createField("E1", 0, "78");
     fields[1] = createField("E2", 0, "79");
     fields[2] = NULL;
-            
+
     TEST_ASSERT_EQUAL(0, countDistinctCandidates(fields, 2));
     TEST_ASSERT_EQUAL(1, countDistinctCandidates(fields, 3));
 
     fields[0] = createField("F1", 0, "12378");
     fields[1] = createField("F2", 0, "79");
     fields[2] = NULL;
-            
+
     TEST_ASSERT_EQUAL(0, countDistinctCandidates(fields, 2));
     TEST_ASSERT_EQUAL(0, countDistinctCandidates(fields, 3));
     TEST_ASSERT_EQUAL(0, countDistinctCandidates(fields, 4));
@@ -269,7 +270,7 @@ void test_countDistinctCandidates(void) {
     fields[0] = createField("G1", 0, "12");
     fields[1] = createField("G2", 0, "12");
     fields[2] = NULL;
-            
+
     TEST_ASSERT_EQUAL(0, countDistinctCandidates(fields, 1));
     TEST_ASSERT_EQUAL(1, countDistinctCandidates(fields, 2));
     TEST_ASSERT_EQUAL(1, countDistinctCandidates(fields, 3));
@@ -541,18 +542,27 @@ void test_findNakedTriplesInContainer2(void) {
     for (int i = 0; i < MAX_NUMBER; i++) {
         char name[5];
         sprintf(name, "C%u", i + 1);
-        
-        switch(i) {
-            case 0: container->fields[i] = createField(name, 5, NULL); break;
-            case 1: container->fields[i] = createField(name, 6, NULL); break;
-            case 2: container->fields[i] = createField(name, 0, "78"); break;
-            case 3: container->fields[i] = createField(name, 3, NULL); break;
-            case 4: container->fields[i] = createField(name, 1, NULL); break;
-            case 5: container->fields[i] = createField(name, 0, "27"); break;
-            case 6: container->fields[i] = createField(name, 0, "28"); break;
-            case 7: container->fields[i] = createField(name, 9, NULL); break;
-            case 8: container->fields[i] = createField(name, 4, NULL); break;
-//            case 8: container->fields[i] = createField(name, 0, "245678"); break;
+
+        switch (i) {
+            case 0: container->fields[i] = createField(name, 5, NULL);
+                break;
+            case 1: container->fields[i] = createField(name, 6, NULL);
+                break;
+            case 2: container->fields[i] = createField(name, 0, "78");
+                break;
+            case 3: container->fields[i] = createField(name, 3, NULL);
+                break;
+            case 4: container->fields[i] = createField(name, 1, NULL);
+                break;
+            case 5: container->fields[i] = createField(name, 0, "27");
+                break;
+            case 6: container->fields[i] = createField(name, 0, "28");
+                break;
+            case 7: container->fields[i] = createField(name, 9, NULL);
+                break;
+            case 8: container->fields[i] = createField(name, 4, NULL);
+                break;
+                //            case 8: container->fields[i] = createField(name, 0, "245678"); break;
         }
     }
 
@@ -653,17 +663,26 @@ void test_findHiddenPairInContainer(void) {
     for (int i = 0; i < MAX_NUMBER; i++) {
         char name[5];
         sprintf(name, "C%u", i + 1);
-        
-        switch(i) {
-            case 0: container->fields[i] = createField(name, 6, NULL); break;
-            case 1: container->fields[i] = createField(name, 7, NULL); break;
-            case 2: container->fields[i] = createField(name, 0, "1245"); break;
-            case 3: container->fields[i] = createField(name, 8, NULL); break;
-            case 4: container->fields[i] = createField(name, 0, "123"); break;
-            case 5: container->fields[i] = createField(name, 0, "1345"); break;
-            case 6: container->fields[i] = createField(name, 0, "123"); break;
-            case 7: container->fields[i] = createField(name, 9, NULL); break;
-            case 8: container->fields[i] = createField(name, 0, "123"); break;
+
+        switch (i) {
+            case 0: container->fields[i] = createField(name, 6, NULL);
+                break;
+            case 1: container->fields[i] = createField(name, 7, NULL);
+                break;
+            case 2: container->fields[i] = createField(name, 0, "1245");
+                break;
+            case 3: container->fields[i] = createField(name, 8, NULL);
+                break;
+            case 4: container->fields[i] = createField(name, 0, "123");
+                break;
+            case 5: container->fields[i] = createField(name, 0, "1345");
+                break;
+            case 6: container->fields[i] = createField(name, 0, "123");
+                break;
+            case 7: container->fields[i] = createField(name, 9, NULL);
+                break;
+            case 8: container->fields[i] = createField(name, 0, "123");
+                break;
         }
     }
 
@@ -693,6 +712,32 @@ void test_findHiddenPairInContainer(void) {
     freeFieldList(fieldsWithCandidates);
 }
 
+void test_determineDiagonalContainer() {
+    
+    TEST_ASSERT_EQUAL(1, determineDiagonalContainer(0, 8));
+    TEST_ASSERT_EQUAL(1, determineDiagonalContainer(1, 7));
+    TEST_ASSERT_EQUAL(1, determineDiagonalContainer(2, 6));
+    TEST_ASSERT_EQUAL(1, determineDiagonalContainer(3, 5));
+    TEST_ASSERT_EQUAL(1, determineDiagonalContainer(4, 4));
+    TEST_ASSERT_EQUAL(1, determineDiagonalContainer(5, 3));
+    TEST_ASSERT_EQUAL(1, determineDiagonalContainer(6, 2));
+    TEST_ASSERT_EQUAL(1, determineDiagonalContainer(7, 1));
+    TEST_ASSERT_EQUAL(1, determineDiagonalContainer(8, 0));
+
+    TEST_ASSERT_EQUAL(-1, determineDiagonalContainer(8, 1));
+    TEST_ASSERT_EQUAL(-1, determineDiagonalContainer(8, 2));
+    TEST_ASSERT_EQUAL(-1, determineDiagonalContainer(0, 1));
+
+    TEST_ASSERT_EQUAL(0, determineDiagonalContainer(0, 0));
+    TEST_ASSERT_EQUAL(0, determineDiagonalContainer(1, 1));
+    TEST_ASSERT_EQUAL(0, determineDiagonalContainer(2, 2));
+    TEST_ASSERT_EQUAL(0, determineDiagonalContainer(3, 3));
+    TEST_ASSERT_EQUAL(0, determineDiagonalContainer(4, 4));
+    TEST_ASSERT_EQUAL(0, determineDiagonalContainer(5, 5));
+    TEST_ASSERT_EQUAL(0, determineDiagonalContainer(6, 6));
+    TEST_ASSERT_EQUAL(0, determineDiagonalContainer(7, 7));
+    TEST_ASSERT_EQUAL(0, determineDiagonalContainer(8, 8));
+}
 
 int main(void) {
     UNITY_BEGIN();
@@ -707,6 +752,7 @@ int main(void) {
     RUN_TEST(test_findNakedTriplesInContainer);
     RUN_TEST(test_findNakedTriplesInContainer2);
     RUN_TEST(test_findHiddenPairInContainer);
+    RUN_TEST(test_determineDiagonalContainer);
     RUN_TEST(test_showCandidates);
     //        RUN_TEST(test_setupGrid);
     return UNITY_END();

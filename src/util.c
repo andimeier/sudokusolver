@@ -222,14 +222,15 @@ int countDistinctCandidates(FieldsVector *fields, size_t limit) {
  *   pre-allocated buffer to be used by this strategy. Performance issue, so 
  *   that not every iteration has to allocate buffer, but a "common" buffer is
  *   used
- * @param fields fields in which to search for the given candidate
+ * @param fields fields in which to search for the given candidate, must be
+ *   MAX_NUMBER of entries
  * @param candidate the candidate to look for
  * @return a NULL-terminated list of field pointers holding all fields of the
  *   given field list for which the given candidate is possible
  */
 FieldsVector *fieldsContainingCandidate(FieldsVector *fieldsWithCandidate, FieldsVector *fields, unsigned candidate) {
     FieldsVector *fieldsPtr;
-    
+
     fieldsPtr = fieldsWithCandidate;
     while (*fields) {
         if ((*fields)->value == candidate) {
@@ -238,22 +239,28 @@ FieldsVector *fieldsContainingCandidate(FieldsVector *fieldsWithCandidate, Field
             // container => look no further
             break;
         }
-        
+
         if ((*fields)->candidates[candidate - 1]) {
             // add field to list of found fields
             *fieldsPtr++ = *fields;
         }
-        
+
         fields++;
     }
-    
+
     *fieldsPtr = NULL; // terminate list of found fields
     return fieldsWithCandidate;
 }
 
-
 /**
- * check if all given fields share the same container of the given type
+ * check if all given fields share the same container of the given type.
+ * For a tuple of fields which share more than container of the given type, only
+ * the first found container instance is returned. I cannot think of a case like
+ * this. A single field can be member of two different container instances of
+ * the same type (e.g. the center field is part of both diagonal containers),
+ * but I don't see a case where *mulitple* fields share more than one common
+ * containers. So this function doesn't take such a case into account and simply
+ * returns the first found container.
  * 
  * @param fields NULL-terminated vector of field pointers specifying the fields
  *   which should be checked whether they *all* share the same container
@@ -266,24 +273,65 @@ FieldsVector *fieldsContainingCandidate(FieldsVector *fieldsWithCandidate, Field
  */
 Container *getCommonContainer(FieldsVector *fields, size_t containerSetIndex) {
     Container *commonContainer;
-    
+    unsigned containerInstanceIndex;
+    unsigned compareContainerInstanceIndex;
+    FieldsVector *fieldsPtr;
+    unsigned shared;
+    Container *compareContainer;
+
     if (*fields == NULL) {
         // not even one field given => no common container
         return NULL;
     }
-    
-    // reference: container index of first field
-    commonContainer = (*fields++)->containers[containerSetIndex];
-    
-    // check the remaining fields if they share the same container
-    while (*fields) {
-        if ((*fields)->containers[containerSetIndex] != commonContainer) {
-            commonContainer = NULL;
+
+    /*
+     * loop through all containers (of the given type) of the first field.
+     * This is a loop because e.g. in the special case of a center field being
+     * member of both diagonal containers, a field could be member of more than
+     * one container of the same type.
+     * So, for each of the containers (of same type) of the first field, check
+     * if all other fields also *contain* this container in *their* potential
+     * list of containers
+     */
+    for (commonContainer = NULL, containerInstanceIndex = 0;; containerInstanceIndex++) {
+        // take the container #containerInstanceIndex of the first field as
+        // a reference. Do all other fields share this container?
+        commonContainer = (*fields)->containers[containerSetIndex][containerInstanceIndex];
+        if (commonContainer == NULL) {
+            // reached end of container list
             break;
         }
+
+        // check the remaining fields if they share the same container
+        for (fieldsPtr = fields + 1; *fieldsPtr != NULL; fieldsPtr++) {
+
+            // loop through all container instances of this type of this field
+            for (compareContainerInstanceIndex = 0;; compareContainerInstanceIndex++) {
+                compareContainer = (*fieldsPtr)->containers[containerSetIndex][compareContainerInstanceIndex];
+                if (compareContainer == NULL) {
+                    // reached end of container list
+                    shared = 0; // this field does not reference the commonContainer
+                    break;
+                }
+
+                if (compareContainer == commonContainer) {
+                    // found the same container in the comparison field
+                    shared = 1;
+                    break;
+                }
+            }
+
+            if (!shared) {
+                commonContainer = NULL;
+                break;
+            }
+        }
         
-        fields++;
+        if (commonContainer != NULL) {
+            // found a common container
+            break;
+        }
     }
-    
-    return commonContainer;    
+
+    return commonContainer;
 }

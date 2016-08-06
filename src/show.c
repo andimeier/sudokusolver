@@ -172,7 +172,7 @@ void show(int showInit) {
  * @param showInit {integer} if falsey, only print current grid. If truish,
  *   print original (init) grid and current grid
  */
-void sudokuString(int showInit) {
+void printSudokuString(int showInit) {
     // display sudoku string, e.g. 5600340701000403000130500020400000304
     char *buffer;
     int f;
@@ -340,8 +340,14 @@ void showField(Field *field, int showContainers, int appendLf) {
 
     if (showContainers) {
         printf(" in containers: ");
+        int first = 1;
         for (int c = 0; c < numberOfContainerSets; c++) {
-            printf("%s%s", !c ? "" : ", ", field->containers[c]->name);
+            Container **containersPtr;
+            for (containersPtr = field->containers[c]; *containersPtr;  containersPtr++) {
+                printf("%s%s", first ? "" : ", ", (*containersPtr)->name);
+                first = 0;
+            }
+            
         }
     }
 
@@ -475,10 +481,14 @@ void printInvolvedStrategies() {
         if ((*strategyPtr)->used) {
 
             // strategy has been used
-            sprintf(buffer, "  * %s", (*strategyPtr)->name);
+            sprintf(buffer, "  X %s", (*strategyPtr)->name);
             logAlways(buffer);
 
             count++;
+        } else {
+            // strategy has not been used
+            sprintf(buffer, "  - %s (not used)", (*strategyPtr)->name);
+            logAlways(buffer);
         }
 
         strategyPtr++;
