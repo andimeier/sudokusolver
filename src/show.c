@@ -342,11 +342,10 @@ void showField(Field *field, int showContainers, int appendLf) {
         printf(" in containers: ");
         int first = 1;
         for (int c = 0; c < numberOfContainerSets; c++) {
-            Container **containersPtr = field->containers[c];
-            while (*containersPtr) {
+            Container **containersPtr;
+            for (containersPtr = field->containers[c]; *containersPtr;  containersPtr++) {
                 printf("%s%s", first ? "" : ", ", (*containersPtr)->name);
                 first = 0;
-                containersPtr++;
             }
             
         }

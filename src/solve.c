@@ -59,6 +59,8 @@ int solve() {
 
     cleanUpCandidates();
 
+    sf((Field *)(fields + 1));
+    
     // main loop, only enter if Sudoku has been solved or if we got stuck and
     // are unable to solve the Sudoku
     do {

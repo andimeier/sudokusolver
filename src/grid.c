@@ -70,7 +70,7 @@ void releaseGrid() {
 void initContainerSets() {
     unsigned *containerTypes;
     ContainerSet *containerSetPtr;
-    
+
     // assuming a standard Sudoku, 
     // we have 3 types of containers (row, column, box)
     containerTypes = getContainerTypes(gametype);
@@ -146,10 +146,10 @@ void initFields() {
             // init containerIndexes with an empty list by registering
             // terminator as only member (at the moment)
             field->containerIndexes[i][0] = -1;
-        
+
             // the same operations for referenced containers ...
             // -------------------------------------------------
-            
+
             field->containers[i] = (Container **) xmalloc(sizeof (Container *) * (MAX_NUMBER + 1));
 
             // init containerIndexes with an empty list by registering
@@ -187,7 +187,7 @@ void initContainers() {
 
     // init and populate "all containers" vector
     allContainers = (Container *) xmalloc(sizeof (Container) * (numberOfContainers));
-    Container *containersPtr = allContainers;
+    Container *containerPtr = allContainers;
 
     /*
      * go through all container sets and generate all child containers for each
@@ -199,35 +199,48 @@ void initContainers() {
         // generate the corresponding child containers
         for (unsigned containerIndex = 0; containerIndex < containerSet->numberOfContainers; containerIndex++) {
 
-            containersPtr->name = containerSet->getContainerName(containerIndex);
-            containersPtr->type = containerSet->type;
-            containersPtr->fields = (FieldsVector *) xmalloc(sizeof (FieldsVector) * MAX_NUMBER);
+            containerPtr->name = containerSet->getContainerName(containerIndex);
+            containerPtr->type = containerSet->type;
+            containerPtr->fields = (FieldsVector *) xmalloc(sizeof (FieldsVector) * MAX_NUMBER);
 
             // fill the field of the container
-            (containerSet->fillContainerFields)(containerIndex, containersPtr->fields);
+            (containerSet->fillContainerFields)(containerIndex, containerPtr->fields);
 
-            // register the indexes of the field in the containers of this type
+            // link fields to containers: containerIndexes and containers
+            // ----------------------------------------------------------
+
+            // register the field's indexes within the containers of this type
             for (index = 0; index < MAX_NUMBER; index++) {
-                Field *field = containersPtr->fields[index];
+                Field *field = containerPtr->fields[index];
                 int *containerIndexes = field->containerIndexes[set];
+                Container **containers = field->containers[set];
 
+                // fast forward to end of the lists
                 while (*containerIndexes != -1) {
                     containerIndexes++;
+
+                    // both containerIndexes and containers must correlate
+                    // to each other, thus having the same number of members.
+                    // So we can fast-forward both at simultaneously
+                    containers++;
                 }
 
                 // append containerIndex to existing list of containerIndexes
                 *containerIndexes++ = index;
                 *containerIndexes = -1; // terminate list
+
+                *containers++ = containerPtr;
+                *containers = NULL; // terminate list
             }
 
             // link to container set
-            containerSet->containers[containerIndex] = containersPtr;
+            containerSet->containers[containerIndex] = containerPtr;
 
             // FIXME debugging code
-            sprintf(buffer, "name of container: %s", containersPtr->name);
+            sprintf(buffer, "name of container: %s", containerPtr->name);
             logVerbose(buffer);
 
-            containersPtr++;
+            containerPtr++;
         }
     }
 }
@@ -274,12 +287,12 @@ void setValue(Field *field, unsigned value) {
     field->value = value;
 
     // check if the number does not occur in any neighbors in any containers
-    for (int containerIndex = 0; containerIndex < numberOfContainerSets; containerIndex++) {
-        containers = field->containers[containerIndex];
-        
+    for (int containerSetIndex = 0; containerSetIndex < numberOfContainerSets; containerSetIndex++) {
+        containers = field->containers[containerSetIndex];
+
         while (*containers) {
             Container *container;
-            
+
             container = *containers;
             for (int pos = 0; pos < MAX_NUMBER; pos++) {
                 otherField = container->fields[pos];
@@ -338,10 +351,8 @@ void forbidNumberInNeighbors(Field *field, unsigned n) {
     preserve[1] = NULL;
 
     // forbid number in all other "neighboring fields"
-    for (unsigned containerType = 0; containerType < numberOfContainerSets; containerType++) {
-        containers = field->containers[containerType];
-
-        while (*containers) {
+    for (unsigned containerSetIndex = 0; containerSetIndex < numberOfContainerSets; containerSetIndex++) {
+        for (containers = field->containers[containerSetIndex]; *containers; containers++) {
             forbidNumbersInOtherFields(*containers, numbers, preserve);
         }
     }
