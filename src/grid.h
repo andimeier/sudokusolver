@@ -38,6 +38,7 @@ extern "C" {
     extern size_t numberOfContainers;
 
     // init functions
+    void setSudokuType(unsigned type);
     void setupGrid();
     void releaseGrid();
 
@@ -56,7 +57,7 @@ extern "C" {
     int removeCandidate(Field *field, unsigned candidate);
     void solveField(Field *field, unsigned n);
     Field *getFieldAt(unsigned x, unsigned y);
-    
+
 #ifdef __cplusplus
 }
 #endif

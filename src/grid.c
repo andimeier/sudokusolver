@@ -29,7 +29,7 @@ void printLogSetUniqueNumber(void *info);
 void printLogRemoveCandidate(void *info);
 
 
-unsigned gametype; // type of Sudoku
+unsigned sudokuType = GAME_STANDARD_SUDOKU; // type of Sudoku (e.g. GAME_X_SUDOKU))
 Field *fields; // the fields of the game board
 Container *allContainers; // all containers of the game board
 ContainerSet *containerSets; // all container types (e.g. [row, column, box])
@@ -46,13 +46,21 @@ typedef struct EntryRemoveCandidate {
     unsigned removedCandidate;
 } EntryRemoveCandidate;
 
+
+/**
+ * set the type of Sudoku, e.g. X_SUDOKU
+ * 
+ * @param type type of the Sudoku type constants, e.g. X_SUDOKU
+ */
+void setSudokuType(unsigned type) {
+  sudokuType = type;
+}
+
 /**
  * 
  * @param gametype
  */
-void setupGrid(unsigned _gametype) {
-    gametype = _gametype;
-
+void setupGrid() {
     initContainerSets();
     initFields();
     initContainers();
@@ -73,7 +81,7 @@ void initContainerSets() {
 
     // assuming a standard Sudoku, 
     // we have 3 types of containers (row, column, box)
-    containerTypes = getContainerTypes(gametype);
+    containerTypes = getContainerTypes(sudokuType);
     numberOfContainerSets = ulength(containerTypes);
 
     assert(numberOfContainerSets > 0);

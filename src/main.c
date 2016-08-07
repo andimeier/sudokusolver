@@ -17,7 +17,6 @@
 void printUsage();
 unsigned parseGametypeString(char *gametypeString);
 
-
 int main(int argc, char **argv) {
     int result;
     int c;
@@ -100,7 +99,7 @@ int main(int argc, char **argv) {
     if (outputFilename) {
         openLogFile(outputFilename);
     }
-        
+
     if (gametypeString) {
         gametype = parseGametypeString(gametypeString);
     }
@@ -109,7 +108,9 @@ int main(int argc, char **argv) {
     // START
     // =====
 
-    setupGrid(gametype);
+    setSudokuType(gametype);
+
+    setupGrid();
 
     // try to load Sudoku from file
     if (inputFilename && !readSudoku(inputFilename)) {
@@ -207,32 +208,3 @@ void printUsage() {
     puts("  SUDOKU_STRING a Sudoku in the one-string format. If given, overrides the -f setting.");
 }
 
-
-/**
- * parses the game type from the command line and tries to find out which
- * game type has to be chosen. Game types are "standard", "x" (X-Sudoku) or
- * "color" (color Sudoku).
- * 
- * @param gametypeString
- * @return 
- */
-unsigned parseGametypeString(char *gametypeString) {
-    unsigned gametype;
-    
-    if (!strncmp(gametypeString, "standard", strlen(gametypeString))) {
-        gametype  = GAME_STANDARD_SUDOKU;
-        logVerbose("Game type: Standard Sudoku");
-    } else if (!strncmp(gametypeString, "x", strlen(gametypeString))) {
-        gametype  = GAME_X_SUDOKU;
-        logVerbose("Game type: X-Sudoku");
-    } else if (!strncmp(gametypeString, "color", strlen(gametypeString))) {
-        gametype  = GAME_COLOR_SUDOKU;
-        logVerbose("Game type: Color Sudoku");
-    } else {
-        sprintf(buffer, "unnknown game type: %s (must be \"standard\", \"x\" or \"color\")", gametypeString);
-        logError(buffer);
-        exit( EXIT_FAILURE);
-    }
-    
-    return gametype;
-}

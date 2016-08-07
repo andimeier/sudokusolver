@@ -4,11 +4,17 @@
  * Or from command line string.
  */
 #include <stdio.h>
+#include <stdlib.h>
+#include <string.h>
+#include <ctype.h>
 #include "typedefs.h"
 #include "global.h"
 #include "grid.h"
 #include "logfile.h"
 #include "acquire.h"
+#include "gametype.h"
+
+static void toLowerStr(char *str);
 
 /**
  * read Sudoku from file.
@@ -26,6 +32,8 @@ int readSudoku(char *inputFilename) {
     int x, y;
     int f;
     FILE *file;
+    char *settingName;
+    char *settingValue;
 
     sprintf(buffer, "Reading Sudoku from file %s ...", inputFilename);
     logAlways(buffer);
@@ -59,7 +67,29 @@ int readSudoku(char *inputFilename) {
         sprintf(buffer, "Next line read: %s ...", line);
         logVerbose(buffer);
 
-        if (line[0] != '#') {
+        if (line[0] == '#') {
+            // a comment line => ignore it
+        } else if (strchr(line, ':')) {
+            // a control line containing the setting name and the value
+            settingName = strtok(line, ":");
+            settingValue = strtok(NULL, "\r\n");
+
+            // skip spaces at the beginning of the value
+            while (*settingValue == ' ') {
+                settingValue++;
+            }
+
+            // settingName should be case-insensitive
+            toLowerStr(settingName);
+            
+            // interpret the setting
+            if (!strcmp(settingName, "type")) {
+                // specify type of Sudoku
+                setSudokuType(parseGametypeString(settingValue));
+            }
+
+        } else {
+            // so this must be a standard data line
             sprintf(buffer, "... is a data line and contains row %d ...", y);
             logVerbose(buffer);
 
@@ -88,8 +118,6 @@ int readSudoku(char *inputFilename) {
                 }
             }
             y++;
-        } else {
-            // a comment line => ignore it
         }
     }
     logVerbose("Sudoku read");
@@ -182,4 +210,47 @@ int importSudoku(char *sudoku) {
 int parseSudokuString(char *sudoku, int maxNumber) {
     // FIXME not used yet, should be the common function which readSudoku and importSudoku uses
     return 0;
+}
+
+/**
+ * converts a string to lower case.
+ * 
+ * @param str the string to be lowercased
+ */
+void toLowerStr(char *str) {
+    int i;
+
+    for (i = 0; str[i]; i++) {
+        str[i] = tolower(str[i]);
+    }
+}
+
+
+/**
+ * parses the game type from the command line and tries to find out which
+ * game type has to be chosen. Game types are "standard", "x" (X-Sudoku) or
+ * "color" (color Sudoku).
+ * 
+ * @param gametypeString
+ * @return 
+ */
+unsigned parseGametypeString(char *gametypeString) {
+    unsigned gametype;
+    
+    if (!strncmp(gametypeString, "standard", strlen(gametypeString))) {
+        gametype  = GAME_STANDARD_SUDOKU;
+        logVerbose("Game type: Standard Sudoku");
+    } else if (!strncmp(gametypeString, "x", strlen(gametypeString))) {
+        gametype  = GAME_X_SUDOKU;
+        logVerbose("Game type: X-Sudoku");
+    } else if (!strncmp(gametypeString, "color", strlen(gametypeString))) {
+        gametype  = GAME_COLOR_SUDOKU;
+        logVerbose("Game type: Color Sudoku");
+    } else {
+        sprintf(buffer, "unnknown game type: %s (must be \"standard\", \"x\" or \"color\")", gametypeString);
+        logError(buffer);
+        exit( EXIT_FAILURE);
+    }
+    
+    return gametype;
 }
