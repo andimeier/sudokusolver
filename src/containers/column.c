@@ -2,7 +2,6 @@
 #include <string.h>
 #include <assert.h>
 #include <string.h>
-#include "global.h"
 #include "grid.h"
 #include "logfile.h"
 #include "util.h"
@@ -57,7 +56,7 @@ void fillContainerFields(unsigned containerIndex, FieldsVector * fields) {
     unsigned y;
 
     x = containerIndex;
-    for (y = 0; y < MAX_NUMBER; y++) {
+    for (y = 0; y < maxNumber; y++) {
         fields[y] = getFieldAt(x, y);
     }
 }
@@ -65,12 +64,12 @@ void fillContainerFields(unsigned containerIndex, FieldsVector * fields) {
 /**
  * return number of column containers necessary to hold the Sudoku data.
  * In many cases (like this) the number of containers of this type will be
- * equal to MAX_NUMBER, but in some cases it might not, e.g. for diagonals
+ * equal to maxNumber, but in some cases it might not, e.g. for diagonals
  * there would be only 2 containers.
  * @return the number of needed containers of this type
  */
 unsigned determineColumnContainersCount(void) {
-    return MAX_NUMBER;
+    return maxNumber;
 }
 
 /**
@@ -84,9 +83,9 @@ unsigned createColumnContainers(ContainerSet * containerSet) {
     char **instanceNames;
     unsigned i;
 
-    instanceNames = (char **) xmalloc(sizeof (char *) * MAX_NUMBER);
+    instanceNames = (char **) xmalloc(sizeof (char *) * maxNumber);
 
-    for (i = 0; i < MAX_NUMBER; i++) {
+    for (i = 0; i < maxNumber; i++) {
         sprintf(buffer, "column %u", i + 1);
         instanceNames[i] = strdup(buffer);
     }
@@ -96,12 +95,12 @@ unsigned createColumnContainers(ContainerSet * containerSet) {
     assert(i == determineColumnContainersCount());
 
     // delegate container creation to generic generator function
-    createContainers(COLS, strdup("column"), MAX_NUMBER, instanceNames, containerSet);
+    createContainers(COLS, strdup("column"), maxNumber, instanceNames, containerSet);
 
     containerSet->fillContainerFields = &fillContainerFields;
     containerSet->getContainerName = &getColumnName;
 
-    // MAX_NUMBER columns have been generated
-    return MAX_NUMBER;
+    // maxNumber columns have been generated
+    return maxNumber;
 }
 

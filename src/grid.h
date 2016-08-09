@@ -34,11 +34,14 @@ extern "C" {
     // all containers of the game board
     extern Container *allContainers;
 
+    extern size_t maxNumber;
+    extern size_t numberOfFields;
     extern size_t numberOfContainerSets;
     extern size_t numberOfContainers;
 
     // init functions
     void setSudokuType(unsigned type);
+    void dimensionGrid(size_t maxNumber);
     void setupGrid();
     void releaseGrid();
 

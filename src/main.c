@@ -4,7 +4,6 @@
 #include <ctype.h>
 #include <assert.h>
 #include <unistd.h>
-#include "global.h"
 #include "solve.h"
 #include "grid.h"
 #include "util.h"
@@ -28,7 +27,7 @@ int main(int argc, char **argv) {
 
     // if the Sudoku is wider than 26 numbers, we have a memory allocation issue
     // with the field->name (what is right of "Z26"?)
-    assert(MAX_NUMBER <= 26);
+    assert(maxNumber <= 26);
 
     // read command line arguments
     opterr = 0;
@@ -71,10 +70,10 @@ int main(int argc, char **argv) {
 
     // FIXME hardcoded example sudoku just to make the exec work without parameters (for GDB))
     if (!inputFilename) {
-        if (MAX_NUMBER == 9) {
+        if (maxNumber == 9) {
             gametype = GAME_X_SUDOKU;
             inputFilename = strdup("examples/x-sudoku.standard.3454b");
-        } else if (MAX_NUMBER == 4) {
+        } else if (maxNumber == 4) {
             inputFilename = strdup("examples/4x4-naked-pair.sudoku");
         }
         //        logLevel = LOGLEVEL_VERBOSE;
@@ -147,14 +146,14 @@ int main(int argc, char **argv) {
 
     } else {
 
-        int numbersFound = 0;
-        for (int f = 0; f < NUMBER_OF_FIELDS; f++)
+        unsigned numbersFound = 0;
+        for (int f = 0; f < numberOfFields; f++)
             if (fields[f].value)
                 numbersFound++;
 
         logAlways("-----------------------------------------------");
         logAlways("      Sudoku could not be solved!");
-        sprintf(buffer, "      Found %u of %u cells.", numbersFound, NUMBER_OF_FIELDS);
+        sprintf(buffer, "      Found %u of %zu cells.", numbersFound, numberOfFields);
         logAlways(buffer);
         logAlways("-----------------------------------------------");
         printSudokuString(0);

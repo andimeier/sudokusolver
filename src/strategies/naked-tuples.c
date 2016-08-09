@@ -8,7 +8,6 @@
 #include <string.h>
 #include <stdlib.h>
 #include <assert.h>
-#include "global.h"
 #include "show.h"
 #include "grid.h"
 #include "typedefs.h"
@@ -49,7 +48,7 @@ int findNakedTuples() {
 
     // allocate memory for strategy variables
     includedFields = createFieldList(MAX_TUPLE_DIMENSION);
-    fieldsLeft = (FieldsVector *) xmalloc(sizeof (Field *) * (MAX_NUMBER + 1));
+    fieldsLeft = (FieldsVector *) xmalloc(sizeof (Field *) * (maxNumber + 1));
 
     for (int dimension = 2; dimension <= MAX_TUPLE_DIMENSION; dimension++) {
 
@@ -96,7 +95,7 @@ int findNakedTuples() {
 unsigned findNakedTuplesInContainer(Container *container, unsigned dimension, FieldList *includedFields, FieldsVector *fieldsLeft) {
     unsigned progress;
 
-    assert(dimension > 0 && dimension < MAX_NUMBER);
+    assert(dimension > 0 && dimension < maxNumber);
 
     progress = 0;
 
@@ -226,8 +225,8 @@ int eliminateFieldsCandidatesFromOtherFields(Container *container, FieldsVector 
 
     // add 1 item as a zero termination in the purely theoretical case that a
     // naked "nonuple" was found (all possible numbers of a Sudoku)
-    candidates = (unsigned *) xmalloc(sizeof (unsigned) * (MAX_NUMBER + 1));
-    for (int i = 0; i < MAX_NUMBER; i++) {
+    candidates = (unsigned *) xmalloc(sizeof (unsigned) * (maxNumber + 1));
+    for (int i = 0; i < maxNumber; i++) {
         candidates[i] = 0;
     }
 
@@ -236,7 +235,7 @@ int eliminateFieldsCandidatesFromOtherFields(Container *container, FieldsVector 
     while (*fieldsPtr) {
 
         // retrieve all candidates from the field
-        for (int i = 0; i < MAX_NUMBER; i++) {
+        for (int i = 0; i < maxNumber; i++) {
             candidates[i] |= (*fieldsPtr)->candidates[i];
         }
         fieldsPtr++;
@@ -244,7 +243,7 @@ int eliminateFieldsCandidatesFromOtherFields(Container *container, FieldsVector 
 
     // compact candidates to fit the parameter for "forbidNumbersInOtherFields"
     unsigned *compact = candidates;
-    for (int i = 0; i < MAX_NUMBER; i++) {
+    for (int i = 0; i < maxNumber; i++) {
         if (candidates[i]) {
             *compact++ = candidates[i];
         }
@@ -276,7 +275,7 @@ int eliminateFieldsCandidatesFromOtherFields(Container *container, FieldsVector 
  * @param relevantFields list of fields with the relevant fields (this is the
  *   output = the result)
  * @param allFields container from which all or some fields form the result.
- *   Note that this is not NULL-terminated - instead, it contains MAX_NUMBER
+ *   Note that this is not NULL-terminated - instead, it contains maxNumber
  *   fields (= all fields of the container to be examined)
  * @param dimension the dimension of the tuples to search for. E.g. 2 means
  *   "search for naked pairs", 3 means "naked triples" etc.
@@ -285,13 +284,13 @@ void populateFieldsForNakedTuples(FieldsVector *relevantFields, FieldsVector *al
     Field *field;
     int i;
 
-    for (i = 0; i < MAX_NUMBER; i++) {
+    for (i = 0; i < maxNumber; i++) {
         field = *allFields++;
 
         if (!field) {
             // in case of NULL-terminated list allFields, exit if the 
             // terminating NULL is found (just a safeguard, since the loop stops
-            // after MAX_NUMBER fields anyway)
+            // after maxNumber fields anyway)
             break;
         }
 

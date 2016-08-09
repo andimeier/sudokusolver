@@ -9,7 +9,6 @@
 #include <memory.h>
 #include <time.h>
 #include "unity.h"
-#include "global.h"
 #include "solve.h"
 #include "util.h"
 #include "grid.h"
@@ -31,13 +30,13 @@ void setCandidates(Field *field, unsigned *cands);
 void setCandidates(Field *field, unsigned *cands) {
     unsigned *candidates;
 
-    candidates = (unsigned *) xmalloc(sizeof (unsigned) * MAX_NUMBER);
+    candidates = (unsigned *) xmalloc(sizeof (unsigned) * maxNumber);
     uintdup(candidates, cands, 9);
     field->candidates = candidates;
     field->value = 0; // not solved yet
 
     field->candidatesLeft = 0;
-    for (int i = 0; i < MAX_NUMBER; i++) {
+    for (int i = 0; i < maxNumber; i++) {
         if (candidates[i]) {
             field->candidatesLeft++;
         }
@@ -64,8 +63,8 @@ int compareField(Field *field, unsigned value, char *candidatesString) {
     }
 
 
-    unsigned *candidates = (unsigned *) xmalloc(sizeof (unsigned) * MAX_NUMBER);
-    for (int i = 0; i < MAX_NUMBER; i++) {
+    unsigned *candidates = (unsigned *) xmalloc(sizeof (unsigned) * maxNumber);
+    for (int i = 0; i < maxNumber; i++) {
         // initialize with zeros
         candidates[i] = 0;
     }
@@ -79,7 +78,7 @@ int compareField(Field *field, unsigned value, char *candidatesString) {
     }
 
     // compare candidates
-    for (int i = 0; i < MAX_NUMBER; i++) {
+    for (int i = 0; i < maxNumber; i++) {
         if (field->candidates[i] != candidates[i]) {
             return 0;
         }
@@ -104,8 +103,8 @@ Field *createField(char *name, unsigned value, char *candidatesString) {
     field = (Field *) xmalloc(sizeof (Field));
     strcpy(field->name, name);
 
-    unsigned *candidates = (unsigned *) xmalloc(sizeof (unsigned) * MAX_NUMBER);
-    for (int i = 0; i < MAX_NUMBER; i++) {
+    unsigned *candidates = (unsigned *) xmalloc(sizeof (unsigned) * maxNumber);
+    for (int i = 0; i < maxNumber; i++) {
         // initialize with zeros
         candidates[i] = 0;
     }
@@ -283,9 +282,9 @@ void test_findNakedPairsInContainer(void) {
 
     container = (Container *) xmalloc(sizeof (Container));
     container->name = strdup("row 3");
-    container->fields = (Field **) xmalloc(sizeof (Field *) * MAX_NUMBER);
+    container->fields = (Field **) xmalloc(sizeof (Field *) * maxNumber);
 
-    for (int i = 0; i < MAX_NUMBER; i++) {
+    for (int i = 0; i < maxNumber; i++) {
         char name[5];
         sprintf(name, "XX%u", i);
         container->fields[i] = createField(name, 0, "245678");
@@ -302,7 +301,7 @@ void test_findNakedPairsInContainer(void) {
     dimension = 2;
 
     FieldList *includedFields = createFieldList(dimension);
-    FieldsVector *fieldsLeft = (FieldsVector *) xmalloc(sizeof (Field *) * (MAX_NUMBER + 1));
+    FieldsVector *fieldsLeft = (FieldsVector *) xmalloc(sizeof (Field *) * (maxNumber + 1));
 
     t = clock();
     TEST_ASSERT_EQUAL(1, findNakedTuplesInContainer(container, dimension, includedFields, fieldsLeft));
@@ -335,9 +334,9 @@ void test_findNakedPairsInContainer2(void) {
 
     container = (Container *) xmalloc(sizeof (Container));
     container->name = strdup("box 1");
-    container->fields = (Field **) xmalloc(sizeof (Field *) * MAX_NUMBER);
+    container->fields = (Field **) xmalloc(sizeof (Field *) * maxNumber);
 
-    for (int i = 0; i < MAX_NUMBER; i++) {
+    for (int i = 0; i < maxNumber; i++) {
         field = (Field *) xmalloc(sizeof (Field));
         sprintf(name, "%c%u", (char) (i % 3), i / 3);
 
@@ -378,7 +377,7 @@ void test_findNakedPairsInContainer2(void) {
     // allocate memory for strategy variables
     dimension = 2;
     FieldList *includedFields = createFieldList(dimension);
-    FieldsVector *fieldsLeft = (FieldsVector *) xmalloc(sizeof (Field *) * (MAX_NUMBER + 1));
+    FieldsVector *fieldsLeft = (FieldsVector *) xmalloc(sizeof (Field *) * (maxNumber + 1));
 
     TEST_ASSERT_EQUAL(1, findNakedTuplesInContainer(container, dimension, includedFields, fieldsLeft));
 
@@ -403,10 +402,10 @@ void test_findNakedPairsInContainer4(void) {
 
     container = (Container *) xmalloc(sizeof (Container));
     container->name = strdup("row 4");
-    container->fields = (Field **) xmalloc(sizeof (Field *) * MAX_NUMBER);
+    container->fields = (Field **) xmalloc(sizeof (Field *) * maxNumber);
 
     // no naked tuples
-    for (int i = 0; i < MAX_NUMBER; i++) {
+    for (int i = 0; i < maxNumber; i++) {
         char name[5];
         sprintf(name, "XX%u", i);
         container->fields[i] = createField(name, 0, "245678");
@@ -415,7 +414,7 @@ void test_findNakedPairsInContainer4(void) {
     // allocate memory for strategy variables
     dimension = 2;
     FieldList *includedFields = createFieldList(dimension);
-    FieldsVector *fieldsLeft = (FieldsVector *) xmalloc(sizeof (Field *) * (MAX_NUMBER + 1));
+    FieldsVector *fieldsLeft = (FieldsVector *) xmalloc(sizeof (Field *) * (maxNumber + 1));
 
     TEST_ASSERT_EQUAL(0, findNakedTuplesInContainer(container, dimension, includedFields, fieldsLeft));
 
@@ -442,9 +441,9 @@ void test_findNakedPairsInContainer5(void) {
 
     container = (Container *) xmalloc(sizeof (Container));
     container->name = strdup("box 1");
-    container->fields = (Field **) xmalloc(sizeof (Field *) * MAX_NUMBER);
+    container->fields = (Field **) xmalloc(sizeof (Field *) * maxNumber);
 
-    for (int i = 0; i < MAX_NUMBER; i++) {
+    for (int i = 0; i < maxNumber; i++) {
         field = (Field *) xmalloc(sizeof (Field));
         sprintf(name, "%c%u", (char) (i % 3), i / 3);
 
@@ -465,7 +464,7 @@ void test_findNakedPairsInContainer5(void) {
     // allocate memory for strategy variables
     dimension = 3;
     FieldList *includedFields = createFieldList(dimension);
-    FieldsVector *fieldsLeft = (FieldsVector *) xmalloc(sizeof (Field *) * (MAX_NUMBER + 1));
+    FieldsVector *fieldsLeft = (FieldsVector *) xmalloc(sizeof (Field *) * (maxNumber + 1));
 
     TEST_ASSERT_EQUAL(0, findNakedTuplesInContainer(container, dimension, includedFields, fieldsLeft));
 
@@ -490,9 +489,9 @@ void test_findNakedTriplesInContainer(void) {
 
     container = (Container *) xmalloc(sizeof (Container));
     container->name = strdup("row 5");
-    container->fields = (Field **) xmalloc(sizeof (Field *) * MAX_NUMBER);
+    container->fields = (Field **) xmalloc(sizeof (Field *) * maxNumber);
 
-    for (int i = 0; i < MAX_NUMBER; i++) {
+    for (int i = 0; i < maxNumber; i++) {
         char name[5];
         sprintf(name, "XX%u", i);
         container->fields[i] = createField(name, 0, "245678");
@@ -508,7 +507,7 @@ void test_findNakedTriplesInContainer(void) {
     // allocate memory for strategy variables
     dimension = 3;
     FieldList *includedFields = createFieldList(dimension);
-    FieldsVector *fieldsLeft = (FieldsVector *) xmalloc(sizeof (Field *) * (MAX_NUMBER + 1));
+    FieldsVector *fieldsLeft = (FieldsVector *) xmalloc(sizeof (Field *) * (maxNumber + 1));
 
     // no pairs
     TEST_ASSERT_EQUAL(0, findNakedTuplesInContainer(container, 2, includedFields, fieldsLeft));
@@ -537,9 +536,9 @@ void test_findNakedTriplesInContainer2(void) {
 
     container = (Container *) xmalloc(sizeof (Container));
     container->name = strdup("row C");
-    container->fields = (Field **) xmalloc(sizeof (Field *) * MAX_NUMBER);
+    container->fields = (Field **) xmalloc(sizeof (Field *) * maxNumber);
 
-    for (int i = 0; i < MAX_NUMBER; i++) {
+    for (int i = 0; i < maxNumber; i++) {
         char name[5];
         sprintf(name, "C%u", i + 1);
 
@@ -569,7 +568,7 @@ void test_findNakedTriplesInContainer2(void) {
     // allocate memory for strategy variables
     dimension = 3;
     FieldList *includedFields = createFieldList(dimension);
-    FieldsVector *fieldsLeft = (FieldsVector *) xmalloc(sizeof (Field *) * (MAX_NUMBER + 1));
+    FieldsVector *fieldsLeft = (FieldsVector *) xmalloc(sizeof (Field *) * (maxNumber + 1));
 
     // no pairs
     TEST_ASSERT_EQUAL(0, findNakedTuplesInContainer(container, 2, includedFields, fieldsLeft));
@@ -600,8 +599,8 @@ void test_equalNumberOfFieldsAndCandidates(void) {
     unsigned *numbers;
     Field f;
 
-    fieldsVector = (Field **) xmalloc(sizeof (Field *) * MAX_NUMBER);
-    numbers = (unsigned *) xmalloc(sizeof (unsigned) * MAX_NUMBER);
+    fieldsVector = (Field **) xmalloc(sizeof (Field *) * maxNumber);
+    numbers = (unsigned *) xmalloc(sizeof (unsigned) * maxNumber);
 
     fieldsVector[0] = &f;
     fieldsVector[1] = &f;
@@ -658,9 +657,9 @@ void test_findHiddenPairInContainer(void) {
 
     container = (Container *) xmalloc(sizeof (Container));
     container->name = strdup("row C");
-    container->fields = (Field **) xmalloc(sizeof (Field *) * MAX_NUMBER);
+    container->fields = (Field **) xmalloc(sizeof (Field *) * maxNumber);
 
-    for (int i = 0; i < MAX_NUMBER; i++) {
+    for (int i = 0; i < maxNumber; i++) {
         char name[5];
         sprintf(name, "C%u", i + 1);
 
@@ -688,8 +687,8 @@ void test_findHiddenPairInContainer(void) {
 
     // allocate memory for strategy variables
     includedCandidates = createNumberList(MAX_TUPLE_DIMENSION);
-    candidatesLeft = (unsigned *) xmalloc(sizeof (unsigned) * (MAX_NUMBER + 1));
-    fieldsWithCandidates = (FieldsVector *) xmalloc(sizeof (Field *) * (MAX_NUMBER + 1));
+    candidatesLeft = (unsigned *) xmalloc(sizeof (unsigned) * (maxNumber + 1));
+    fieldsWithCandidates = (FieldsVector *) xmalloc(sizeof (Field *) * (maxNumber + 1));
 
     // no pairs
     TEST_ASSERT_EQUAL(1, findHiddenTuplesInContainer(container, 2, includedCandidates, candidatesLeft, fieldsWithCandidates));
