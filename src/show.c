@@ -314,6 +314,10 @@ void showField(Field *field, int showContainers, int appendLf) {
     assert(maxNumber <= 9);
 
     printf("Field %s: ", field->name);
+    if (field->initialValue) {
+        printf(" (initial: %u) ", field->initialValue);
+    } 
+    
     if (field->value) {
         // already solved
         printf("= %u", field->value);

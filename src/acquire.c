@@ -47,11 +47,6 @@ int readSudoku(char *inputFilename) {
         return 0;
     }
 
-    // initialize Sudoku
-    for (f = 0; f < numberOfFields; f++) {
-        fields[f].initialValue = 0;
-    }
-
     // read Sudoku
     ok = 1; // optimistic preassumption
 
@@ -64,10 +59,15 @@ int readSudoku(char *inputFilename) {
             break;
         }
         linecount++;
-
-        sprintf(buffer, "Next line read: %s ...", line);
-        logVerbose(buffer);
-
+        
+        // remove trailing CR/LF
+        if (line[strlen(line) - 1] == '\n') {
+            line[strlen(line) -1 ] = '\0';
+        }
+        if (line[strlen(line) - 1] == '\r') {
+            line[strlen(line) -1 ] = '\0';
+        }
+        
         if (line[0] == '#') {
             // a comment line => ignore it
 
@@ -102,6 +102,13 @@ int readSudoku(char *inputFilename) {
              */
             if (!dimensioned) {
                 dimensionGrid(strlen(line));
+
+                // initialize Sudoku
+                allocateFields(numberOfFields);
+                for (f = 0; f < numberOfFields; f++) {
+                    fields[f].initialValue = 0;
+                }
+
                 dimensioned = 1;
             }
 
@@ -114,6 +121,17 @@ int readSudoku(char *inputFilename) {
                 ok = 0; // oops
                 break;
             }
+            
+            /*
+             * check line length: all data lines must have the same length
+             */
+            if (strlen(line) != maxNumber) {
+                sprintf(buffer, "Error reading the Sudoku from file: first data row has %zu numbers, but line %u has %zu.", maxNumber, linecount, strlen(line));
+                logError(buffer);
+                ok = 0; // oops
+                break;
+            }
+            
             sprintf(buffer, "Storing line %d ...", y);
             logVerbose(buffer);
             for (x = 0; x < maxNumber; x++) {

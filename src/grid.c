@@ -51,6 +51,14 @@ typedef struct EntryRemoveCandidate {
     unsigned removedCandidate;
 } EntryRemoveCandidate;
 
+/**
+ * set default values (which might be overridden by command line parameters
+ * or other settings)
+ */
+void setDefaults() {
+    setSudokuType(GAME_STANDARD_SUDOKU);
+    dimensionGrid(9); // max number of 9
+}
 
 /**
  * set the type of Sudoku, e.g. X_SUDOKU
@@ -58,9 +66,8 @@ typedef struct EntryRemoveCandidate {
  * @param type type of the Sudoku type constants, e.g. X_SUDOKU
  */
 void setSudokuType(unsigned type) {
-  sudokuType = type;
+    sudokuType = type;
 }
-
 
 /**
  * dimensions the Sudoku grid
@@ -72,13 +79,12 @@ void dimensionGrid(size_t _maxNumber) {
     numberOfFields = maxNumber * maxNumber;
 }
 
-
 /**
  * 
  * @param gametype
  */
 void setupGrid() {
-    
+
     // assure that the grid has been dimensioned already
     assert(maxNumber > 1);
 
@@ -90,6 +96,15 @@ void setupGrid() {
 void releaseGrid() {
     freeContainers();
     freeFields();
+}
+
+/**
+ * just allocate memory for fields, do not perform complete setup
+ * 
+ * @param numberOfFields total number of fields to be allocated
+ */
+void allocateFields(size_t numberOfFields) {
+    fields = (Field *) xmalloc(sizeof (Field) * numberOfFields);
 }
 
 /**
@@ -131,8 +146,6 @@ void initFields() {
     unsigned *candidates;
     int i;
 
-    fields = (Field *) xmalloc(sizeof (Field) * numberOfFields);
-
     for (int f = 0; f < numberOfFields; f++) {
         field = fields + f;
 
@@ -148,8 +161,6 @@ void initFields() {
 
         field->candidates = candidates;
         field->candidatesLeft = maxNumber;
-        field->value = 0;
-        field->initialValue = 0;
 
 
         // allocate containerIndexes and referenced containers
@@ -230,7 +241,7 @@ void initContainers() {
 
             containerPtr->name = containerSet->getContainerName(containerIndex);
             containerPtr->type = containerSet->type;
-            
+
             // reserve space for a NULL terminator at the end of the container's field list
             containerPtr->fields = (FieldsVector *) xmalloc(sizeof (FieldsVector) * (maxNumber + 1));
 

@@ -16,6 +16,14 @@
 void printUsage();
 unsigned parseGametypeString(char *gametypeString);
 
+/*
+ * the game settings which can be set via Sudoku file or via command line parameters
+ */
+typedef struct settings_s {
+    unsigned gametype;
+    unsigned maxNumber;
+} settings_s;
+
 int main(int argc, char **argv) {
     int result;
     int c;
@@ -23,7 +31,7 @@ int main(int argc, char **argv) {
     char *inputFilename = NULL;
     char *sudokuString = NULL;
     char *gametypeString = NULL;
-    unsigned gametype = GAME_STANDARD_SUDOKU;
+    settings_s settings;
 
     // if the Sudoku is wider than 26 numbers, we have a memory allocation issue
     // with the field->name (what is right of "Z26"?)
@@ -68,17 +76,6 @@ int main(int argc, char **argv) {
                 abort();
         }
 
-    // FIXME hardcoded example sudoku just to make the exec work without parameters (for GDB))
-    if (!inputFilename) {
-        if (maxNumber == 9) {
-            gametype = GAME_X_SUDOKU;
-            inputFilename = strdup("examples/x-sudoku.standard.3454b");
-        } else if (maxNumber == 4) {
-            inputFilename = strdup("examples/4x4-naked-pair.sudoku");
-        }
-        //        logLevel = LOGLEVEL_VERBOSE;
-    }
-
     // first positional parameter is a Sudoku string
     if (optind < argc) {
         sudokuString = argv[optind];
@@ -99,18 +96,33 @@ int main(int argc, char **argv) {
         openLogFile(outputFilename);
     }
 
-    if (gametypeString) {
-        gametype = parseGametypeString(gametypeString);
-    }
 
 
     // START
     // =====
 
-    setSudokuType(gametype);
+    /*
+     * start with a default Sudoku grid, can be overridden when the command
+     * line parameters or Sudoku file parameters are actually used
+     */
+    setDefaults();
 
-    setupGrid();
+    /*
+     * override defaults with settings passed by command line parameters
+     */
+    if (gametypeString) {
+        setSudokuType(parseGametypeString(gametypeString));
+    }
 
+    /*
+     * read Sudoku and fill the starting numbers
+     * and possibly read grid parameters which override the default settings.
+     * So, the settings which are defined in the Sudoku file will always
+     * override any default or settings via command line parameter.
+     * 
+     * The basic geometry of the board will be implicitly set by the given
+     * numbers. 
+     */
     // try to load Sudoku from file
     if (inputFilename && !readSudoku(inputFilename)) {
         exit(EXIT_FAILURE);
@@ -120,6 +132,16 @@ int main(int argc, char **argv) {
     if (sudokuString && !importSudoku(sudokuString)) {
         exit(EXIT_FAILURE);
     }
+
+
+    /*
+     * now that we definitely know the geometry and characteristics of the
+     * game board, initialize the game
+     */
+    setupGrid();
+
+    sprintf(buffer, "Gametype: %u", sudokuType);
+    logAlways(buffer);
 
     if (logLevel >= LOGLEVEL_VERBOSE) {
         logVerbose("Initial Sudoku:");
@@ -206,4 +228,3 @@ void printUsage() {
     puts("  -h          this help screen");
     puts("  SUDOKU_STRING a Sudoku in the one-string format. If given, overrides the -f setting.");
 }
-
