@@ -2,7 +2,6 @@
 #include <string.h>
 #include <assert.h>
 #include <string.h>
-#include "global.h"
 #include "grid.h"
 #include "logfile.h"
 #include "util.h"
@@ -48,13 +47,13 @@ char *getDiagonalName(unsigned index) {
 // *   does not lie on one of the two diagonals)
 // */
 //int determineDiagonalContainer(unsigned x, unsigned y) {
-//    assert(x >= 0 && x < MAX_NUMBER);
-//    assert(y >= 0 && y < MAX_NUMBER);
+//    assert(x >= 0 && x < maxNumber);
+//    assert(y >= 0 && y < maxNumber);
 //
 //    if (x == y) {
 //        return 0; // on falling diagonal
 //    }
-//    if (x + y + 1 == MAX_NUMBER) {
+//    if (x + y + 1 == maxNumber) {
 //        return 1; // on ascending diagonal
 //    }
 //    return -1;
@@ -73,11 +72,11 @@ void fillContainerFields(unsigned containerIndex, FieldsVector *fields) {
     unsigned x;
     unsigned y;
 
-    for (n = 0; n < MAX_NUMBER; n++) {
+    for (n = 0; n < maxNumber; n++) {
         x = n;
         y = (containerIndex == 0) ?
                 x : // index 0 ... falling diagonal
-                MAX_NUMBER - 1 - x; // index 1 ... ascending diagonal 
+                maxNumber - 1 - x; // index 1 ... ascending diagonal 
 
         fields[n] = getFieldAt(x, y);
     }

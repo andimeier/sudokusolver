@@ -67,7 +67,7 @@ extern "C" {
         unsigned type; // the container type (e.g. 0==row), corresponds with the
         // "unit index" in unitDefs
         Field **fields; // the fields in this container, in "order of 
-        // appearance". This is a vector of MAX_NUMBER fields
+        // appearance". This is a vector of maxNumber fields
     } Container;
 
     /**

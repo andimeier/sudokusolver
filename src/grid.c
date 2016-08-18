@@ -9,7 +9,6 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
-#include "global.h"
 #include "grid.h"
 #include "log.h"
 #include "logfile.h"
@@ -29,7 +28,13 @@ void printLogSetUniqueNumber(void *info);
 void printLogRemoveCandidate(void *info);
 
 
-unsigned gametype; // type of Sudoku
+// grid geometry, initialize with 0 to indicate the state of being not initialized
+unsigned sudokuType = GAME_STANDARD_SUDOKU; // type of Sudoku (e.g. GAME_X_SUDOKU))
+size_t maxNumber = 0;
+size_t numberOfFields = 0; // == maxNumber^2
+
+
+// grid variables
 Field *fields; // the fields of the game board
 Container *allContainers; // all containers of the game board
 ContainerSet *containerSets; // all container types (e.g. [row, column, box])
@@ -47,11 +52,41 @@ typedef struct EntryRemoveCandidate {
 } EntryRemoveCandidate;
 
 /**
+ * set default values (which might be overridden by command line parameters
+ * or other settings)
+ */
+void setDefaults() {
+    setSudokuType(GAME_STANDARD_SUDOKU);
+    dimensionGrid(9); // max number of 9
+}
+
+/**
+ * set the type of Sudoku, e.g. X_SUDOKU
+ * 
+ * @param type type of the Sudoku type constants, e.g. X_SUDOKU
+ */
+void setSudokuType(unsigned type) {
+    sudokuType = type;
+}
+
+/**
+ * dimensions the Sudoku grid
+ * 
+ * @param maxNumber number of numbers = side length of the Sudoku grid
+ */
+void dimensionGrid(size_t _maxNumber) {
+    maxNumber = _maxNumber;
+    numberOfFields = maxNumber * maxNumber;
+}
+
+/**
  * 
  * @param gametype
  */
-void setupGrid(unsigned _gametype) {
-    gametype = _gametype;
+void setupGrid() {
+
+    // assure that the grid has been dimensioned already
+    assert(maxNumber > 1);
 
     initContainerSets();
     initFields();
@@ -64,6 +99,15 @@ void releaseGrid() {
 }
 
 /**
+ * just allocate memory for fields, do not perform complete setup
+ * 
+ * @param numberOfFields total number of fields to be allocated
+ */
+void allocateFields(size_t numberOfFields) {
+    fields = (Field *) xmalloc(sizeof (Field) * numberOfFields);
+}
+
+/**
  * determine the container types (depend on the game type) and provide
  * some basic global variables needed for initFields
  */
@@ -73,7 +117,7 @@ void initContainerSets() {
 
     // assuming a standard Sudoku, 
     // we have 3 types of containers (row, column, box)
-    containerTypes = getContainerTypes(gametype);
+    containerTypes = getContainerTypes(sudokuType);
     numberOfContainerSets = ulength(containerTypes);
 
     assert(numberOfContainerSets > 0);
@@ -102,33 +146,29 @@ void initFields() {
     unsigned *candidates;
     int i;
 
-    fields = (Field *) xmalloc(sizeof (Field) * NUMBER_OF_FIELDS);
-
-    for (int f = 0; f < NUMBER_OF_FIELDS; f++) {
+    for (int f = 0; f < numberOfFields; f++) {
         field = fields + f;
 
-        field->x = f % MAX_NUMBER;
-        field->y = f / MAX_NUMBER;
+        field->x = f % maxNumber;
+        field->y = f / maxNumber;
 
         // allocate candidates
-        candidates = (unsigned *) xmalloc(sizeof (unsigned) * MAX_NUMBER);
+        candidates = (unsigned *) xmalloc(sizeof (unsigned) * maxNumber);
         // allow all candidates for the field
-        for (int n = 0; n < MAX_NUMBER; n++) {
+        for (int n = 0; n < maxNumber; n++) {
             candidates[n] = n + 1;
         }
 
         field->candidates = candidates;
-        field->candidatesLeft = MAX_NUMBER;
-        field->value = 0;
-        field->initialValue = 0;
+        field->candidatesLeft = maxNumber;
 
 
         // allocate containerIndexes and referenced containers
         field->containerIndexes = (int **) xmalloc(sizeof (int *) * numberOfContainerSets);
         field->containers = (Container ***) xmalloc(sizeof (Container **) * numberOfContainerSets);
         for (i = 0; i < numberOfContainerSets; i++) {
-            /* for each containerSet, reserve space for MAX_NUMBER containers, 
-             * as if the field could be member in all (=MAX_NUMBER) container.
+            /* for each containerSet, reserve space for maxNumber containers, 
+             * as if the field could be member in all (=maxNumber) container.
              * In most cases, each field will only be part of ONE container, 
              * e.g. one row. However, in some edge cases, a field could be 
              * member of more than one container of a type, e.g. the center 
@@ -139,9 +179,9 @@ void initFields() {
              * be no member (e.g. the field A2 is not part of any diagonal 
              * container). In other cases there will be more than one member (as
              * described above with the center field with diagonals).
-             * Allocate MAX_NUMBER + 1 to leave a slot for the terminator (-1).
+             * Allocate maxNumber + 1 to leave a slot for the terminator (-1).
              */
-            field->containerIndexes[i] = (int *) xmalloc(sizeof (int) * (MAX_NUMBER + 1));
+            field->containerIndexes[i] = (int *) xmalloc(sizeof (int) * (maxNumber + 1));
 
             // init containerIndexes with an empty list by registering
             // terminator as only member (at the moment)
@@ -150,7 +190,7 @@ void initFields() {
             // the same operations for referenced containers ...
             // -------------------------------------------------
 
-            field->containers[i] = (Container **) xmalloc(sizeof (Container *) * (MAX_NUMBER + 1));
+            field->containers[i] = (Container **) xmalloc(sizeof (Container *) * (maxNumber + 1));
 
             // init containerIndexes with an empty list by registering
             // terminator as only member (at the moment)
@@ -170,7 +210,7 @@ void initFields() {
  */
 void freeFields() {
 
-    for (int f = 0; f < NUMBER_OF_FIELDS; f++) {
+    for (int f = 0; f < numberOfFields; f++) {
 
         free(fields[f].candidates);
     }
@@ -201,20 +241,20 @@ void initContainers() {
 
             containerPtr->name = containerSet->getContainerName(containerIndex);
             containerPtr->type = containerSet->type;
-            
+
             // reserve space for a NULL terminator at the end of the container's field list
-            containerPtr->fields = (FieldsVector *) xmalloc(sizeof (FieldsVector) * (MAX_NUMBER + 1));
+            containerPtr->fields = (FieldsVector *) xmalloc(sizeof (FieldsVector) * (maxNumber + 1));
 
             // fill the field of the container
             (containerSet->fillContainerFields)(containerIndex, containerPtr->fields);
             // add NULL terminator to field list
-            containerPtr->fields[MAX_NUMBER] = NULL;
+            containerPtr->fields[maxNumber] = NULL;
 
             // link fields to containers: containerIndexes and containers
             // ----------------------------------------------------------
 
             // register the field's indexes within the containers of this type
-            for (index = 0; index < MAX_NUMBER; index++) {
+            for (index = 0; index < maxNumber; index++) {
                 Field *field = containerPtr->fields[index];
                 int *containerIndexes = field->containerIndexes[set];
                 Container **containers = field->containers[set];
@@ -282,7 +322,7 @@ void setValue(Field *field, unsigned value) {
     Container **containers;
     Field *otherField;
 
-    assert(value <= MAX_NUMBER);
+    assert(value <= maxNumber);
 
     if (field->correctSolution) {
         assert(value == field->correctSolution);
@@ -298,7 +338,7 @@ void setValue(Field *field, unsigned value) {
             Container *container;
 
             container = *containers;
-            for (int pos = 0; pos < MAX_NUMBER; pos++) {
+            for (int pos = 0; pos < maxNumber; pos++) {
                 otherField = container->fields[pos];
                 if (otherField != field) {
                     /* 
@@ -315,7 +355,7 @@ void setValue(Field *field, unsigned value) {
 
     // remove all candidates from this field
     unsigned *candidates = field->candidates;
-    for (unsigned n = 1; n <= MAX_NUMBER; n++) {
+    for (unsigned n = 1; n <= maxNumber; n++) {
 
         candidates[n - 1] = (n == value) ? value : 0;
     }
@@ -336,7 +376,7 @@ void forbidNumberInNeighbors(Field *field, unsigned n) {
     Container **containers;
     unsigned numbers[2];
 
-    assert(n <= MAX_NUMBER);
+    assert(n <= maxNumber);
 
     sprintf(buffer, "Forbid number %u in neighbors of field %s ...", n, field->name);
     logVerbose(buffer);
@@ -390,7 +430,7 @@ int forbidNumbersInOtherFields(Container *container, unsigned *n, Field **dontTo
     progress = 0; // nothing has changed yet
 
     // walk through entire container
-    for (int pos = 0; pos < MAX_NUMBER; pos++) {
+    for (int pos = 0; pos < maxNumber; pos++) {
         field = container->fields[pos];
 
         // ignore solved fields
@@ -436,7 +476,7 @@ int forbidNumbersInOtherFields(Container *container, unsigned *n, Field **dontTo
 
 int forbidNumber(Field *field, unsigned n) {
 
-    assert(n >= 1 && n <= MAX_NUMBER);
+    assert(n >= 1 && n <= maxNumber);
 
     if (field->candidates[n - 1]) {
 
@@ -488,7 +528,7 @@ int setUniqueNumber(Field *field) {
     assert(!field->value);
 
     unsigned *candidates = field->candidates;
-    for (n = 1; n <= MAX_NUMBER; n++) {
+    for (n = 1; n <= maxNumber; n++) {
         if (candidates[n - 1]) {
             solveField(field, n);
 
@@ -546,10 +586,10 @@ FieldsVector *fieldsWithCandidate(FieldsVector *fields, unsigned n) {
     FieldsVector *found;
     FieldsVector *foundPtr;
 
-    found = (FieldsVector *) xmalloc(sizeof (Field *) * (MAX_NUMBER + 1));
+    found = (FieldsVector *) xmalloc(sizeof (Field *) * (maxNumber + 1));
 
     foundPtr = found;
-    for (ix = 0; ix < MAX_NUMBER; ix++) {
+    for (ix = 0; ix < maxNumber; ix++) {
         field = *(fields + ix);
         if (fieldHasCandidate(field, n)) {
             *foundPtr = field;
@@ -605,17 +645,17 @@ int getUniquePositionInContainer(Field **container, unsigned n) {
     int foundPos;
     Field *field;
 
-    assert(n >= 1 && n <= MAX_NUMBER);
+    assert(n >= 1 && n <= maxNumber);
     sprintf(buffer, "Looking for unique position of %u in container ...", n);
     logVerbose(buffer);
 
-    for (pos = 0; pos < MAX_NUMBER; pos++) { // FIXME debugging output
+    for (pos = 0; pos < maxNumber; pos++) { // FIXME debugging output
         showCandidates(container[pos]);
     }
 
     unique = 0;
     foundPos = 0;
-    for (pos = 0; pos < MAX_NUMBER; pos++) {
+    for (pos = 0; pos < maxNumber; pos++) {
         field = container[pos];
         if ((field->value == n) || (!(field->value) && (field->candidates[n - 1] == n))) {
             sprintf(buffer, "Field %s can contain candidate %u", field->name, n);
@@ -681,7 +721,7 @@ int fieldCandidatesContainAllOf(Field *field, unsigned *numbers) {
 int isFinished() {
     int f;
 
-    for (f = 0; f < NUMBER_OF_FIELDS; f++) {
+    for (f = 0; f < numberOfFields; f++) {
         if (!fields[f].value)
             // ein leeres Feld gefunden => wir sind noch nicht fertig!
 
@@ -702,7 +742,7 @@ void cleanUpCandidates() {
     int f;
     Field *field;
 
-    for (f = 0; f < NUMBER_OF_FIELDS; f++) {
+    for (f = 0; f < numberOfFields; f++) {
         field = fields + f;
 
         if (field->value) {
@@ -765,13 +805,13 @@ void printLogRemoveCandidate(void *info) {
 
 /**
  * identifies the field on the given coordinates 
- * @param x X coordinate, in the range (0 ... MAX_NUMBER-1)
- * @param y Y coordinate, in the range (0 ... MAX_NUMBER-1)
+ * @param x X coordinate, in the range (0 ... maxNumber-1)
+ * @param y Y coordinate, in the range (0 ... maxNumber-1)
  * @return the field on the given coordinates
  */
 Field *getFieldAt(unsigned x, unsigned y) {
-    assert(x >= 0 && x < MAX_NUMBER);
-    assert(y >= 0 && y < MAX_NUMBER);
+    assert(x >= 0 && x < maxNumber);
+    assert(y >= 0 && y < maxNumber);
 
-    return (fields + y * MAX_NUMBER + x);
+    return (fields + y * maxNumber + x);
 }

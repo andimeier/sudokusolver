@@ -8,7 +8,6 @@
 #include <stdlib.h>
 #include <string.h>
 #include <assert.h>
-#include "global.h"
 #include "grid.h"
 #include "show.h"
 #include "util.h"
@@ -37,7 +36,7 @@ void show(int showInit) {
     Field *field;
 
     logAlways(showInit ? "   1 2 3 4 5 6 7 8 9          1 2 3 4 5 6 7 8 9 " : "   1 2 3 4 5 6 7 8 9 ");
-    for (y = 0; y < MAX_NUMBER; y++) {
+    for (y = 0; y < maxNumber; y++) {
 
         if (!(y % 3)) {
             // intermediate header row
@@ -52,13 +51,13 @@ void show(int showInit) {
             buffer[index++] = ' ';
 
             // show starting grid's data row
-            for (x = 0; x < MAX_NUMBER; x++) {
+            for (x = 0; x < maxNumber; x++) {
                 if (x % 3)
                     buffer[index++] = ' ';
                 else
                     buffer[index++] = '|';
 
-                field = &(fields[y * MAX_NUMBER + x]);
+                field = &(fields[y * maxNumber + x]);
 
                 if (field->initialValue)
                     buffer[index++] = (char) (field->initialValue + 48);
@@ -77,13 +76,13 @@ void show(int showInit) {
         buffer[index++] = ' ';
 
         // show current grid's data row
-        for (x = 0; x < MAX_NUMBER; x++) {
+        for (x = 0; x < maxNumber; x++) {
             if (x % 3)
                 buffer[index++] = ' ';
             else
                 buffer[index++] = '|';
 
-            field = &(fields[y * MAX_NUMBER + x]);
+            field = &(fields[y * maxNumber + x]);
 
             if (field->value)
                 buffer[index++] = (char) (field->value + 48);
@@ -178,9 +177,9 @@ void printSudokuString(int showInit) {
     int f;
     int val;
 
-    buffer = (char *) xmalloc(sizeof (char) * NUMBER_OF_FIELDS);
+    buffer = (char *) xmalloc(sizeof (char) * numberOfFields);
 
-    for (f = 0; f < NUMBER_OF_FIELDS; f++) {
+    for (f = 0; f < numberOfFields; f++) {
         val = showInit ? fields[f].initialValue : fields[f].value;
         buffer[f] = (char) (val + '0');
     }
@@ -208,96 +207,96 @@ void printSudokuString(int showInit) {
  * intermediate version
  */
 void printSvg(int finalVersion) {
-    // display sudoku in SVG format
-    int x, y;
-    FILE *svgfile;
-    char *filename;
-    char suffix[20];
-    static int index = 1;
-    Container *rows;
-    Field *field;
-
-    if (!svgFilename) return;
-
-    // build filename
-    if (finalVersion) {
-        filename = svgFilename;
-    } else {
-        sprintf(suffix, ".%d", index);
-        filename = (char *) malloc(sizeof (char)*(strlen(svgFilename) + strlen(suffix) + 1));
-        if (filename == NULL) {
-            exit(EXIT_FAILURE);
-        }
-
-        if (filename == NULL) {
-            perror("Not enough memory to allocate memory for SVG filename.");
-            exit(EXIT_FAILURE);
-        }
-        strcpy(filename, svgFilename);
-        strcat(filename, suffix);
-    }
-
-    if (logLevel >= LOGLEVEL_VERBOSE) {
-        sprintf(buffer, "Writing SVG file [%s]", filename);
-        logVerbose(buffer);
-    }
-
-    svgfile = fopen(filename, "w");
-
-    fputs("<?xml version='1.0'?>"
-            "<?xml-stylesheet href='sudoku_style.css' type='text/css'?>"
-            "<!DOCTYPE svg PUBLIC '-//W3C//DTD SVG 1.1//EN'"
-            "  'http://www.w3.org/Graphics/SVG/1.1/DTD/svg11.dtd'>"
-            ""
-            "<svg version='1.1' xmlns='http://www.w3.org/2000/svg'>"
-            ""
-            "  <g transform='scale(8)'>"
-            "	  <rect class='outer' x='0' y='0' width='81' height='81' />"
-            ""
-            "	  <line class='thin'  x1='0' y1='9' x2='81' y2='9' />"
-            "	  <line class='thin'  x1='0' y1='18' x2='81' y2='18' />"
-            "	  <line class='thick' x1='0' y1='27' x2='81' y2='27' />"
-            "	  <line class='thin'  x1='0' y1='36' x2='81' y2='36' />"
-            "	  <line class='thin'  x1='0' y1='45' x2='81' y2='45' />"
-            "	  <line class='thick' x1='0' y1='54' x2='81' y2='54' />"
-            "	  <line class='thin'  x1='0' y1='63' x2='81' y2='63' />"
-            "	  <line class='thin'  x1='0' y1='72' x2='81' y2='72' />"
-            ""
-            "	  <line class='thin'  x1='09' y1='0' x2='09' y2='81' />"
-            "	  <line class='thin'  x1='18' y1='0' x2='18' y2='81' />"
-            "	  <line class='thick' x1='27' y1='0' x2='27' y2='81' />"
-            "	  <line class='thin'  x1='36' y1='0' x2='36' y2='81' />"
-            "	  <line class='thin'  x1='45' y1='0' x2='45' y2='81' />"
-            "	  <line class='thick' x1='54' y1='0' x2='54' y2='81' />"
-            "	  <line class='thin'  x1='63' y1='0' x2='63' y2='81' />"
-            "	  <line class='thin'  x1='72' y1='0' x2='72' y2='81' />", svgfile);
-
-    rows = containerSets[0].containers;
-    for (y = 0; y < MAX_NUMBER; y++) {
-        for (x = 0; x < MAX_NUMBER; x++) {
-            //            field = rows[y][x];
-            //            if (field->value) {
-            //                float xPos = x * MAX_NUMBER + 4.5;
-            //                float yPos = y * MAX_NUMBER + 7.65;
-            //                fprintf(svgfile, "<text class=\"final\" x=\"%f\"  y=\"%f\" text-anchor=\"middle\">%d</text>\n", xPos, yPos, field->value);
-            //            } else {
-            //                // alle noch moeglichen Zahlen ausgeben
-            //                int n1;
-            //                for (n1 = 1; n1 <= MAX_NUMBER; n1++) {
-            //                    if (field->candidates[n1 - 1] == n1) {
-            //                        float xPos = x * MAX_NUMBER + ((n1 - 1) % 3) * 3 + 1;
-            //                        float yPos = y * MAX_NUMBER + ((int) ((n1 - 1) / 3) * 3 + 2.4);
-            //                        fprintf(svgfile, "<text class=\"possibilities\" x=\"%f\"  y=\"%f\" text-anchor=\"middle\">%d</text>\n", xPos, yPos, n1);
-            //                    }
-            //                }
-            //            }
-        }
-    }
-    fputs("  </g>\n</svg>", svgfile);
-
-    fclose(svgfile);
-
-    if (filename != svgFilename) free(filename);
+//    // display sudoku in SVG format
+//    int x, y;
+//    FILE *svgfile;
+//    char *filename;
+//    char suffix[20];
+//    static int index = 1;
+//    Container *rows;
+//    Field *field;
+//
+//    if (!svgFilename) return;
+//
+//    // build filename
+//    if (finalVersion) {
+//        filename = svgFilename;
+//    } else {
+//        sprintf(suffix, ".%d", index);
+//        filename = (char *) malloc(sizeof (char)*(strlen(svgFilename) + strlen(suffix) + 1));
+//        if (filename == NULL) {
+//            exit(EXIT_FAILURE);
+//        }
+//
+//        if (filename == NULL) {
+//            perror("Not enough memory to allocate memory for SVG filename.");
+//            exit(EXIT_FAILURE);
+//        }
+//        strcpy(filename, svgFilename);
+//        strcat(filename, suffix);
+//    }
+//
+//    if (logLevel >= LOGLEVEL_VERBOSE) {
+//        sprintf(buffer, "Writing SVG file [%s]", filename);
+//        logVerbose(buffer);
+//    }
+//
+//    svgfile = fopen(filename, "w");
+//
+//    fputs("<?xml version='1.0'?>"
+//            "<?xml-stylesheet href='sudoku_style.css' type='text/css'?>"
+//            "<!DOCTYPE svg PUBLIC '-//W3C//DTD SVG 1.1//EN'"
+//            "  'http://www.w3.org/Graphics/SVG/1.1/DTD/svg11.dtd'>"
+//            ""
+//            "<svg version='1.1' xmlns='http://www.w3.org/2000/svg'>"
+//            ""
+//            "  <g transform='scale(8)'>"
+//            "	  <rect class='outer' x='0' y='0' width='81' height='81' />"
+//            ""
+//            "	  <line class='thin'  x1='0' y1='9' x2='81' y2='9' />"
+//            "	  <line class='thin'  x1='0' y1='18' x2='81' y2='18' />"
+//            "	  <line class='thick' x1='0' y1='27' x2='81' y2='27' />"
+//            "	  <line class='thin'  x1='0' y1='36' x2='81' y2='36' />"
+//            "	  <line class='thin'  x1='0' y1='45' x2='81' y2='45' />"
+//            "	  <line class='thick' x1='0' y1='54' x2='81' y2='54' />"
+//            "	  <line class='thin'  x1='0' y1='63' x2='81' y2='63' />"
+//            "	  <line class='thin'  x1='0' y1='72' x2='81' y2='72' />"
+//            ""
+//            "	  <line class='thin'  x1='09' y1='0' x2='09' y2='81' />"
+//            "	  <line class='thin'  x1='18' y1='0' x2='18' y2='81' />"
+//            "	  <line class='thick' x1='27' y1='0' x2='27' y2='81' />"
+//            "	  <line class='thin'  x1='36' y1='0' x2='36' y2='81' />"
+//            "	  <line class='thin'  x1='45' y1='0' x2='45' y2='81' />"
+//            "	  <line class='thick' x1='54' y1='0' x2='54' y2='81' />"
+//            "	  <line class='thin'  x1='63' y1='0' x2='63' y2='81' />"
+//            "	  <line class='thin'  x1='72' y1='0' x2='72' y2='81' />", svgfile);
+//
+//    rows = containerSets[0].containers;
+//    for (y = 0; y < maxNumber; y++) {
+//        for (x = 0; x < maxNumber; x++) {
+//            //            field = rows[y][x];
+//            //            if (field->value) {
+//            //                float xPos = x * maxNumber + 4.5;
+//            //                float yPos = y * maxNumber + 7.65;
+//            //                fprintf(svgfile, "<text class=\"final\" x=\"%f\"  y=\"%f\" text-anchor=\"middle\">%d</text>\n", xPos, yPos, field->value);
+//            //            } else {
+//            //                // alle noch moeglichen Zahlen ausgeben
+//            //                int n1;
+//            //                for (n1 = 1; n1 <= maxNumber; n1++) {
+//            //                    if (field->candidates[n1 - 1] == n1) {
+//            //                        float xPos = x * maxNumber + ((n1 - 1) % 3) * 3 + 1;
+//            //                        float yPos = y * maxNumber + ((int) ((n1 - 1) / 3) * 3 + 2.4);
+//            //                        fprintf(svgfile, "<text class=\"possibilities\" x=\"%f\"  y=\"%f\" text-anchor=\"middle\">%d</text>\n", xPos, yPos, n1);
+//            //                    }
+//            //                }
+//            //            }
+//        }
+//    }
+//    fputs("  </g>\n</svg>", svgfile);
+//
+//    fclose(svgfile);
+//
+//    if (filename != svgFilename) free(filename);
 }
 
 /**
@@ -312,9 +311,13 @@ void showField(Field *field, int showContainers, int appendLf) {
     char *candidates;
     int i;
 
-    assert(MAX_NUMBER <= 9);
+    assert(maxNumber <= 9);
 
     printf("Field %s: ", field->name);
+    if (field->initialValue) {
+        printf(" (initial: %u) ", field->initialValue);
+    } 
+    
     if (field->value) {
         // already solved
         printf("= %u", field->value);
@@ -322,13 +325,13 @@ void showField(Field *field, int showContainers, int appendLf) {
         // not solved yet
 
         candidates = strdup("123456789");
-        for (i = 0; i < MAX_NUMBER; i++) {
+        for (i = 0; i < maxNumber; i++) {
             if (!field->candidates[i]) {
                 candidates[i] = ' ';
             }
         }
         // terminate string
-        candidates[MAX_NUMBER + 1] = '\0';
+        candidates[maxNumber + 1] = '\0';
 
         printf("[%s]", candidates);
         if (field->correctSolution) {
@@ -364,7 +367,7 @@ void showField(Field *field, int showContainers, int appendLf) {
 void showContainer(Container *container) {
 
     printf("Container: %s\n", container->name);
-    showFieldsVector(container->fields, 1, MAX_NUMBER);
+    showFieldsVector(container->fields, 1, maxNumber);
 }
 
 /**

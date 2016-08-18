@@ -5,7 +5,6 @@
  * Created on 2016-07-03
  */
 #include <stdio.h>
-#include "global.h"
 #include "grid.h"
 #include "typedefs.h"
 #include "util.h"
@@ -35,7 +34,7 @@ int findHiddenSingles() {
     for (unsigned c = 0; c < numberOfContainers; c++) {
         container = &(allContainers[c]);
 
-        for (unsigned n = 1; n <= MAX_NUMBER; n++) {
+        for (unsigned n = 1; n <= maxNumber; n++) {
             Field **containerFields = container->fields;
             int pos = getUniquePositionInContainer(containerFields, n);
             if (pos != -1 && !containerFields[pos]->value) {

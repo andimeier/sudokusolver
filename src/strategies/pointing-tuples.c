@@ -8,7 +8,6 @@
 #include <string.h>
 #include <stdlib.h>
 #include <assert.h>
-#include "global.h"
 #include "show.h"
 #include "grid.h"
 #include "typedefs.h"
@@ -36,7 +35,7 @@ int findPointingTuples() {
     int progress; // flag: something has changed
     Container *container;
     FieldsVector *fieldsBuffer;
-    //unsigned tuple[MAX_NUMBER];
+    //unsigned tuple[maxNumber];
     //unsigned n;
 
     progress = 0;
@@ -44,7 +43,7 @@ int findPointingTuples() {
 
     printf("[pii] starting findPointingTuples ...\n");
 
-    fieldsBuffer = (FieldsVector *) xmalloc(sizeof (Field *) * (MAX_NUMBER + 1));
+    fieldsBuffer = (FieldsVector *) xmalloc(sizeof (Field *) * (maxNumber + 1));
 
     // search in all containers (be it rows, cols, boxes, ...) for a tuple of 
     // numbers which form a "pointing tuple"
@@ -90,7 +89,7 @@ unsigned findPointingTuplesInContainer(Container *container, FieldsVector *field
      */
 
     // try all numbers
-    for (unsigned n = 1; n <= MAX_NUMBER; n++) {
+    for (unsigned n = 1; n <= maxNumber; n++) {
         // TODO optimisation step: skip numbers which are already solved in the
         // container
 

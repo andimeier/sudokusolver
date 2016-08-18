@@ -10,7 +10,7 @@
 #include <stdlib.h>
 #include <string.h>
 #include <assert.h>
-#include "global.h"
+#include "grid.h"
 #include "util.h"
 #include "logfile.h"
 
@@ -142,7 +142,7 @@ int fieldCandidatesAreSubsetOf(Field *field, unsigned *numbers) {
         return 0;
     }
 
-    for (int i = 0; i < MAX_NUMBER; i++) {
+    for (int i = 0; i < maxNumber; i++) {
         if (field->candidates[i]) {
 
             // check if field candidate is in the numbers vector
@@ -179,16 +179,16 @@ int countDistinctCandidates(FieldsVector *fields, size_t limit) {
 
     // TODO could already be pre-allocated by the strategy (performance optimisation))
     // ... a strategy-local buffer so to speak ...
-    candidatesSet = (unsigned *) xmalloc(sizeof (unsigned) * MAX_NUMBER);
+    candidatesSet = (unsigned *) xmalloc(sizeof (unsigned) * maxNumber);
 
     // initialize all candidate counters with 0    
-    for (int i = 0; i < MAX_NUMBER; i++) {
+    for (int i = 0; i < maxNumber; i++) {
         candidatesSet[i] = 0;
     }
 
     count = 0;
     while (*fields) {
-        for (int i = 0; i < MAX_NUMBER; i++) {
+        for (int i = 0; i < maxNumber; i++) {
             unsigned candidate;
 
             candidate = (*fields)->candidates[i];
@@ -223,7 +223,7 @@ int countDistinctCandidates(FieldsVector *fields, size_t limit) {
  *   that not every iteration has to allocate buffer, but a "common" buffer is
  *   used
  * @param fields fields in which to search for the given candidate, must be
- *   MAX_NUMBER of entries
+ *   maxNumber of entries
  * @param candidate the candidate to look for
  * @return a NULL-terminated list of field pointers holding all fields of the
  *   given field list for which the given candidate is possible

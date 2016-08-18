@@ -8,7 +8,6 @@
 #include <string.h>
 #include <stdlib.h>
 #include <assert.h>
-#include "global.h"
 #include "show.h"
 #include "grid.h"
 #include "typedefs.h"
@@ -45,8 +44,8 @@ int findHiddenTuples() {
 
     // allocate memory for strategy variables
     includedCandidates = createNumberList(MAX_TUPLE_DIMENSION);
-    candidatesLeft = (unsigned *) xmalloc(sizeof (unsigned) * (MAX_NUMBER + 1));
-    fieldsWithCandidates = (FieldsVector *) xmalloc(sizeof (Field *) * (MAX_NUMBER + 1));
+    candidatesLeft = (unsigned *) xmalloc(sizeof (unsigned) * (maxNumber + 1));
+    fieldsWithCandidates = (FieldsVector *) xmalloc(sizeof (Field *) * (maxNumber + 1));
 
     for (int dimension = 2; dimension <= MAX_TUPLE_DIMENSION; dimension++) {
 
@@ -93,7 +92,7 @@ int findHiddenTuples() {
 unsigned findHiddenTuplesInContainer(Container *container, unsigned dimension, NumberList *includedCandidates, unsigned *candidatesLeft, FieldsVector *fieldsWithCandidates) {
     unsigned progress;
 
-    assert(dimension > 0 && dimension < MAX_NUMBER);
+    assert(dimension > 0 && dimension < maxNumber);
 
     progress = 0;
 
@@ -230,7 +229,7 @@ int eliminateOtherCandidatesFromFields(FieldsVector *fields, unsigned *candidate
     while (*fields) {
 
         candidatesPtr = candidates;
-        for (unsigned n = 1; n <= MAX_NUMBER; n++) {
+        for (unsigned n = 1; n <= maxNumber; n++) {
 
             while (*candidatesPtr && *candidatesPtr < n) {
                 // "catch up" to loop variable
@@ -265,7 +264,7 @@ int eliminateOtherCandidatesFromFields(FieldsVector *fields, unsigned *candidate
  *   the output = the result)
  * @param allFields list of fields from which the remaining candidates should be
  *   determined.
- *   Note that this is not NULL-terminated - instead, it contains MAX_NUMBER
+ *   Note that this is not NULL-terminated - instead, it contains maxNumber
  *   fields (= all fields of the container to be examined)
  */
 void populateCandidatesForHiddenTuples(unsigned *candidatesLeft, FieldsVector *allFields) {
@@ -273,17 +272,17 @@ void populateCandidatesForHiddenTuples(unsigned *candidatesLeft, FieldsVector *a
     int i;
 
     // initialize left candidates with ALL possible candidates
-    for (i = 0; i < MAX_NUMBER; i++) {
+    for (i = 0; i < maxNumber; i++) {
         candidatesLeft[i] = 1; // start with all candidates being possible
     }
 
-    for (i = 0; i < MAX_NUMBER; i++) {
+    for (i = 0; i < maxNumber; i++) {
         field = *allFields++;
 
         if (!field) {
             // in case of NULL-terminated list allFields, exit if the 
             // terminating NULL is found (just a safeguard, since the loop stops
-            // after MAX_NUMBER fields anyway)
+            // after maxNumber fields anyway)
             break;
         }
 
@@ -299,7 +298,7 @@ void populateCandidatesForHiddenTuples(unsigned *candidatesLeft, FieldsVector *a
 
     // compact the list of candidates
     unsigned *compact = candidatesLeft;
-    for (int i = 0; i < MAX_NUMBER; i++) {
+    for (int i = 0; i < maxNumber; i++) {
         if (candidatesLeft[i]) {
             *compact++ = i + 1;
         }
@@ -329,10 +328,10 @@ unsigned countDistinctFields(FieldsVector *fields, unsigned *candidates, size_t 
 
     // TODO could already be pre-allocated by the strategy (performance optimisation))
     // ... a strategy-local buffer so to speak ...
-    fieldsSet = (unsigned *) xmalloc(sizeof (unsigned) * MAX_NUMBER);
+    fieldsSet = (unsigned *) xmalloc(sizeof (unsigned) * maxNumber);
 
     // initialize all candidate counters with 0    
-    for (i = 0; i < MAX_NUMBER; i++) {
+    for (i = 0; i < maxNumber; i++) {
         fieldsSet[i] = 0;
     }
 
@@ -342,7 +341,7 @@ unsigned countDistinctFields(FieldsVector *fields, unsigned *candidates, size_t 
         fieldsIndex = 0;
 
         // iterate through all fields
-        for (i = 0; i < MAX_NUMBER; i++) {
+        for (i = 0; i < maxNumber; i++) {
 
             // only analyse unsolved fields
             if (!(*fieldsPtr)->value) {
@@ -372,7 +371,7 @@ unsigned countDistinctFields(FieldsVector *fields, unsigned *candidates, size_t 
     // no break until now => must be success
 
     // build list of found fields by compacting the fieldsSet
-    for (i = 0; i < MAX_NUMBER; i++) {
+    for (i = 0; i < maxNumber; i++) {
         if (fieldsSet[i]) {
             *fieldsWithCandidates++ = fields[i];
         }

@@ -34,10 +34,17 @@ extern "C" {
     // all containers of the game board
     extern Container *allContainers;
 
+    extern unsigned sudokuType; // type of Sudoku (e.g. GAME_X_SUDOKU))
+    extern size_t maxNumber;
+    extern size_t numberOfFields;
     extern size_t numberOfContainerSets;
     extern size_t numberOfContainers;
 
     // init functions
+    void setDefaults();
+    void setSudokuType(unsigned type);
+    void dimensionGrid(size_t maxNumber);
+    void allocateFields(size_t numberOfFields);
     void setupGrid();
     void releaseGrid();
 
@@ -56,7 +63,7 @@ extern "C" {
     int removeCandidate(Field *field, unsigned candidate);
     void solveField(Field *field, unsigned n);
     Field *getFieldAt(unsigned x, unsigned y);
-    
+
 #ifdef __cplusplus
 }
 #endif

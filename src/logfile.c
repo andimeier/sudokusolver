@@ -6,7 +6,6 @@
  */
 #include <stdio.h>
 #include <string.h>
-#include "global.h"
 #include "grid.h"
 #include "logfile.h"
 
@@ -30,7 +29,7 @@ unsigned logLevel = LOGLEVEL_ERRORS; // 0 ... no logging, 1 ... solved cells, 2 
  * @param field the field for which the candidates should be printed
  */
 void showCandidates(Field *field) {
-    char candidates[2 * MAX_NUMBER + 1];
+    char candidates[2 * maxNumber + 1];
     char *str;
 
     str = candidates;
@@ -39,7 +38,7 @@ void showCandidates(Field *field) {
     *str = '-';
     *(str + 1) = '\0';
 
-    for (int i = 0; i < MAX_NUMBER; i++) {
+    for (int i = 0; i < maxNumber; i++) {
         if (field->candidates[i]) {
             if (str != candidates) {
                 // not the first candidate => append comma-separated
@@ -60,7 +59,7 @@ void showCandidates(Field *field) {
 void showAllCandidates() {
     Field *field;
 
-    for (int f = 0; f < NUMBER_OF_FIELDS; f++) {
+    for (int f = 0; f < numberOfFields; f++) {
         field = fields + f;
 
         if (field->value) {

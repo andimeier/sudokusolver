@@ -2,7 +2,6 @@
 #include <string.h>
 #include <assert.h>
 #include <string.h>
-#include "global.h"
 #include "grid.h"
 #include "logfile.h"
 #include "util.h"
@@ -57,7 +56,7 @@ void fillContainerFields(unsigned containerIndex, FieldsVector *fields) {
     unsigned y;
 
     y = containerIndex;
-    for (x = 0; x < MAX_NUMBER; x++) {
+    for (x = 0; x < maxNumber; x++) {
         fields[x] = getFieldAt(x, y);
     }
 }
@@ -66,12 +65,12 @@ void fillContainerFields(unsigned containerIndex, FieldsVector *fields) {
 /**
  * return number of row containers necessary to hold the Sudoku data.
  * In many cases (like this) the number of containers of this type will be
- * equal to MAX_NUMBER, but in some cases it might not, e.g. for diagonals
+ * equal to maxNumber, but in some cases it might not, e.g. for diagonals
  * there would be only 2 containers.
  * @return the number of needed containers of this type
  */
 unsigned determineRowContainersCount(void) {
-    return MAX_NUMBER;
+    return maxNumber;
 }
 
 /**
@@ -85,9 +84,9 @@ unsigned createRowContainers(ContainerSet *containerSet) {
     char **instanceNames;
     unsigned i;
 
-    instanceNames = (char **) xmalloc(sizeof (char *) * MAX_NUMBER);
+    instanceNames = (char **) xmalloc(sizeof (char *) * maxNumber);
 
-    for (i = 0; i < MAX_NUMBER; i++) {
+    for (i = 0; i < maxNumber; i++) {
         sprintf(buffer, "row %c", (char) ('A' + i));
         instanceNames[i] = strdup(buffer);
     }
@@ -97,12 +96,12 @@ unsigned createRowContainers(ContainerSet *containerSet) {
     assert(i == determineRowContainersCount());
 
     // delegate container creation to generic generator function
-    createContainers(ROWS, strdup("row"), MAX_NUMBER, instanceNames, containerSet);
+    createContainers(ROWS, strdup("row"), maxNumber, instanceNames, containerSet);
 
     containerSet->fillContainerFields = &fillContainerFields;
     containerSet->getContainerName = &getRowName;
 
-    // MAX_NUMBER rows have been generated
-    return MAX_NUMBER;
+    // maxNumber rows have been generated
+    return maxNumber;
 }
 

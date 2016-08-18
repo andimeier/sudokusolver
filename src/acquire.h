@@ -15,6 +15,8 @@ extern "C" {
     int readSudoku(char *inputFilename);
     int importSudoku(char *sudoku);
 
+    unsigned parseGametypeString(char *gametypeString);
+
 #ifdef	__cplusplus
 }
 #endif

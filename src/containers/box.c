@@ -2,7 +2,6 @@
 #include <string.h>
 #include <assert.h>
 #include <string.h>
-#include "global.h"
 #include "grid.h"
 #include "logfile.h"
 #include "util.h"
@@ -45,12 +44,12 @@ char *getBoxName(unsigned index) {
 // *   containers)
 // */
 //int determineBoxContainer(unsigned x, unsigned y) {
-//    assert(x >= 0 && x < MAX_NUMBER);
-//    assert(y >= 0 && y < MAX_NUMBER);
+//    assert(x >= 0 && x < maxNumber);
+//    assert(y >= 0 && y < maxNumber);
 //    assert(boxHeight > 0);
 //    assert(boxWidth > 0);
 //
-//    return (y / boxHeight) * (MAX_NUMBER / boxWidth) + (x / boxWidth);
+//    return (y / boxHeight) * (maxNumber / boxWidth) + (x / boxWidth);
 //}
 
 /**
@@ -71,7 +70,7 @@ void fillContainerFields(unsigned containerIndex, FieldsVector *fields) {
     boxStartX = (containerIndex % 3) * 3;
     boxStartY = (containerIndex / 3) * 3;
     
-    for (n = 0; n < MAX_NUMBER; n++) {
+    for (n = 0; n < maxNumber; n++) {
         boxX = n % 3;
         boxY = n / 3;
 
@@ -83,12 +82,12 @@ void fillContainerFields(unsigned containerIndex, FieldsVector *fields) {
 /**
  * return number of box containers necessary to hold the Sudoku data.
  * In many cases (like this) the number of containers of this type will be
- * equal to MAX_NUMBER, but in some cases it might not, e.g. for diagonals
+ * equal to maxNumber, but in some cases it might not, e.g. for diagonals
  * there would be only 2 containers.
  * @return the number of needed containers of this type
  */
 unsigned determineBoxContainersCount(void) {
-    return MAX_NUMBER;
+    return maxNumber;
 }
 
 /**
@@ -103,22 +102,22 @@ unsigned createBoxContainers(ContainerSet *containerSet) {
     unsigned i;
 
     // FIXME: at the moment, only two dimensions are possible:
-    assert(MAX_NUMBER == 9 || MAX_NUMBER == 4);
+    assert(maxNumber == 9 || maxNumber == 4);
     
-    if (MAX_NUMBER == 9) {
+    if (maxNumber == 9) {
         boxWidth = 3;
         boxHeight = 3;
     }
 
-    if (MAX_NUMBER == 4) {
+    if (maxNumber == 4) {
         boxWidth = 2;
         boxHeight = 2;
     }
 
 
-    instanceNames = (char **) xmalloc(sizeof (char *) * MAX_NUMBER);
+    instanceNames = (char **) xmalloc(sizeof (char *) * maxNumber);
 
-    for (i = 0; i < MAX_NUMBER; i++) {
+    for (i = 0; i < maxNumber; i++) {
         sprintf(buffer, "box %u", i + 1);
         instanceNames[i] = strdup(buffer);
     }
@@ -128,11 +127,11 @@ unsigned createBoxContainers(ContainerSet *containerSet) {
     assert(i == determineBoxContainersCount());
 
     // delegate container creation to generic generator function
-    createContainers(BOXES, strdup("box"), MAX_NUMBER, instanceNames, containerSet);
+    createContainers(BOXES, strdup("box"), maxNumber, instanceNames, containerSet);
 
     containerSet->fillContainerFields = &fillContainerFields;
     containerSet->getContainerName = &getBoxName;
 
-    // MAX_NUMBER boxes have been generated
-    return MAX_NUMBER;
+    // maxNumber boxes have been generated
+    return maxNumber;
 }

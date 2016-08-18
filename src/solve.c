@@ -8,13 +8,11 @@
 #include <string.h>
 #include <stdlib.h>
 #include <assert.h>
-#include "global.h"
 #include "solve.h"
 #include "show.h"
 #include "grid.h"
 #include "typedefs.h"
 #include "util.h"
-#include "grid.h"
 #include "logfile.h"
 #include "fieldlist.h"
 #include "hidden-singles.h"
@@ -179,7 +177,7 @@ int checkForSolvedCells() {
 
     progress = 0;
 
-    for (f = 0; f < NUMBER_OF_FIELDS; f++) {
+    for (f = 0; f < numberOfFields; f++) {
         field = fields + f;
 
         if (field->candidatesLeft == 1 && !field->value) {
