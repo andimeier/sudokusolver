@@ -25,10 +25,11 @@ static void showContainer(Container *container);
 static void showFieldsVector(FieldsVector *fields, int indent, size_t limit);
 
 
-//-------------------------------------------------------------------
-// @param showInit {integer} if falsey, only print current grid. If truish,
-//   print original (init) grid and current grid
-
+/**
+ * show Sudoku board with solved numbers
+ * @param showInit {integer} if falsey, only print current grid. If truish,
+ *   print original (init) grid and current grid
+ */
 void show(int showInit) {
     // display sudoku
     int x, y;
@@ -97,68 +98,6 @@ void show(int showInit) {
 
     // intermediate header row
     logAlways(showInit ? "  +-----+-----+-----+        +-----+-----+-----+" : "  +-----+-----+-----+");
-
-
-
-
-    //		if (showInit) {
-    //			// first show original grid
-    //			if (!(y % 3)) {
-    //				strcpy(buffer, "+-----+-----+-----+      ");
-    //				index = strlen(buffer);
-    //			}
-    //
-    //			for (x = 0; x < 9; x++) {
-    //				if (x % 3)
-    //					buffer[index++] = ' ';
-    //				else
-    //					buffer[index++] = '|';
-    //				if (initfields[y][x])
-    //					buffer[index++] = (char)(initfields[y][x] + 48);
-    //				else
-    //					// leeres Feld
-    //					buffer[index++] = ' ';
-    //			}
-    //			buffer[index++] = '|';
-    //			
-    //			if (y == 4) {
-    //				buffer[index++] = ' ';
-    //				buffer[index++] = ' ';
-    //				buffer[index++] = '-';
-    //				buffer[index++] = '>';
-    //				buffer[index++] = ' ';
-    //				buffer[index++] = ' ';
-    //			} else {
-    //				buffer[index++] = ' ';
-    //				buffer[index++] = ' ';
-    //				buffer[index++] = ' ';
-    //				buffer[index++] = ' ';
-    //				buffer[index++] = ' ';
-    //				buffer[index++] = ' ';
-    //			}
-    //		} else {
-    //		}
-    //		
-    //		if (!(y % 3)) {
-    //			printlog("+-----+-----+-----+");
-    //		}
-    //		
-    //		for (x = 0; x < 9; x++) {
-    //			if (x % 3)
-    //				buffer[index++] = ' ';
-    //			else
-    //				buffer[index++] = '|';
-    //			if (fields[y][x])
-    //				buffer[index++] = (char)(fields[y][x] + 48);
-    //			else
-    //				// leeres Feld
-    //				buffer[index++] = ' ';
-    //		}
-    //		buffer[index++] = '|';
-    //		buffer[index++] = '\0';
-    //		printlog(buffer);
-    //	
-    //	printlog("+-----+-----+-----+");
 }
 
 /**

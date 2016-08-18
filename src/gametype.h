@@ -27,7 +27,8 @@ extern "C" {
 #define GAME_COLOR_SUDOKU  3
 
     unsigned *getContainerTypes(unsigned gameType);
-
+    char *getGameTypeString(unsigned gameType);
+    
 #ifdef	__cplusplus
 }
 #endif

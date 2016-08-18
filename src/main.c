@@ -16,14 +16,6 @@
 void printUsage();
 unsigned parseGametypeString(char *gametypeString);
 
-/*
- * the game settings which can be set via Sudoku file or via command line parameters
- */
-typedef struct settings_s {
-    unsigned gametype;
-    unsigned maxNumber;
-} settings_s;
-
 int main(int argc, char **argv) {
     int result;
     int c;
@@ -31,7 +23,6 @@ int main(int argc, char **argv) {
     char *inputFilename = NULL;
     char *sudokuString = NULL;
     char *gametypeString = NULL;
-    settings_s settings;
 
     // if the Sudoku is wider than 26 numbers, we have a memory allocation issue
     // with the field->name (what is right of "Z26"?)
@@ -140,9 +131,6 @@ int main(int argc, char **argv) {
      */
     setupGrid();
 
-    sprintf(buffer, "Gametype: %u", sudokuType);
-    logAlways(buffer);
-
     if (logLevel >= LOGLEVEL_VERBOSE) {
         logVerbose("Initial Sudoku:");
         show(0);
@@ -153,6 +141,9 @@ int main(int argc, char **argv) {
     result = solve();
 
     printLog();
+
+    sprintf(buffer, "Gametype: %s", getGameTypeString(sudokuType));
+    logAlways(buffer);
 
     show(1);
     printSvg(1);
