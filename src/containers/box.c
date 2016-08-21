@@ -2,6 +2,7 @@
 #include <string.h>
 #include <assert.h>
 #include <string.h>
+#include <stdlib.h>
 #include "grid.h"
 #include "logfile.h"
 #include "util.h"
@@ -10,7 +11,6 @@
 
 
 static char *getBoxName(unsigned index);
-//static int determineBoxContainer(unsigned x, unsigned y);
 static void fillContainerFields(unsigned containerIndex, FieldsVector *fields);
 static unsigned determineBoxContainersCount(void);
 
@@ -67,17 +67,16 @@ void fillContainerFields(unsigned containerIndex, FieldsVector *fields) {
     unsigned boxX;
     unsigned boxY;
 
-    boxStartX = (containerIndex % 3) * 3;
-    boxStartY = (containerIndex / 3) * 3;
-    
+    boxStartX = containerIndex % (maxNumber / boxWidth) * boxWidth;
+    boxStartY = containerIndex / (maxNumber / boxHeight) * boxHeight;
+
     for (n = 0; n < maxNumber; n++) {
-        boxX = n % 3;
-        boxY = n / 3;
+        boxX = n % boxWidth;
+        boxY = n / boxHeight;
 
         fields[n] = getFieldAt(boxStartX + boxX, boxStartY + boxY);
     }
 }
-
 
 /**
  * return number of box containers necessary to hold the Sudoku data.
@@ -101,19 +100,24 @@ unsigned createBoxContainers(ContainerSet *containerSet) {
     char **instanceNames;
     unsigned i;
 
-    // FIXME: at the moment, only two dimensions are possible:
-    assert(maxNumber == 9 || maxNumber == 4);
-    
-    if (maxNumber == 9) {
-        boxWidth = 3;
-        boxHeight = 3;
+    switch (maxNumber) {
+        case 9:
+            boxWidth = 3;
+            boxHeight = 3;
+            break;
+        case 6:
+            boxWidth = 3;
+            boxHeight = 2;
+            break;
+        case 4:
+            boxWidth = 2;
+            boxHeight = 2;
+            break;
+        default:
+            sprintf(buffer, "unable to determine box shapes on a %zux%zu Sudoku", maxNumber, maxNumber);
+            logError(buffer);
+            exit(EXIT_FAILURE);
     }
-
-    if (maxNumber == 4) {
-        boxWidth = 2;
-        boxHeight = 2;
-    }
-
 
     instanceNames = (char **) xmalloc(sizeof (char *) * maxNumber);
 

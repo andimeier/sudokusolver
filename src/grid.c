@@ -786,6 +786,10 @@ int removeCandidate(Field *field, unsigned candidate) {
         info->removedCandidate = (*c + 1);
         writeLog(printLogRemoveCandidate, info);
 
+        if (!(field->candidatesLeft > 0)) {
+            logError("OJE!!");
+        }
+        
         assert(field->candidatesLeft > 0);
 
         return 1;
