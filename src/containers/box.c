@@ -72,7 +72,7 @@ void fillContainerFields(unsigned containerIndex, FieldsVector *fields) {
 
     for (n = 0; n < maxNumber; n++) {
         boxX = n % boxWidth;
-        boxY = n / boxHeight;
+        boxY = n / boxWidth;
 
         fields[n] = getFieldAt(boxStartX + boxX, boxStartY + boxY);
     }

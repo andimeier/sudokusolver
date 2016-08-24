@@ -60,6 +60,7 @@ extern "C" {
     int getUniquePositionInContainer(Field **container, unsigned n);
     int isFinished();
     void cleanUpCandidates();
+    int isCandidate(Field *field, unsigned candidate);
     int removeCandidate(Field *field, unsigned candidate);
     void solveField(Field *field, unsigned n);
     Field *getFieldAt(unsigned x, unsigned y);

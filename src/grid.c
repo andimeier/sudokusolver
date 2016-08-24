@@ -446,7 +446,7 @@ int forbidNumbersInOtherFields(Container *container, unsigned *n, Field **dontTo
                 candidate = *candidates;
 
                 // was a candidate until now => remove candidate now
-                if (!field->value && field->candidates[candidate - 1]) {
+                if (!field->value && isCandidate(field, candidate)) {
 
                     sprintf(buffer, "forbid %u in field %s", candidate, field->name);
                     logReduction(buffer);
@@ -757,6 +757,19 @@ void cleanUpCandidates() {
     logVerbose("Initial candidates are:");
     showAllCandidates();
 }
+
+
+/**
+ * checks if the given number is still a valid candidate for the field
+ * 
+ * @param field the field from which a candidate shall be determined
+ * @param candidate the candidate to be determined
+ * @return 1 if the candidate is still valid for this field, or 0 if it is not
+ */
+int isCandidate(Field *field, unsigned candidate) {
+    return field->candidates[candidate - 1];
+}
+
 
 /**
  * removes one candidate from a field. 
