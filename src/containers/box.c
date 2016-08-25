@@ -13,7 +13,7 @@
 static char *getBoxName(unsigned index);
 static void fillContainerFields(unsigned containerIndex, FieldsVector *fields);
 static unsigned determineBoxContainersCount(void);
-
+static void getBoxDimensions(unsigned maxNumber, unsigned *width, unsigned *height);
 
 static unsigned boxWidth;
 static unsigned boxHeight;
@@ -100,23 +100,12 @@ unsigned createBoxContainers(ContainerSet *containerSet) {
     char **instanceNames;
     unsigned i;
 
-    switch (maxNumber) {
-        case 9:
-            boxWidth = 3;
-            boxHeight = 3;
-            break;
-        case 6:
-            boxWidth = 3;
-            boxHeight = 2;
-            break;
-        case 4:
-            boxWidth = 2;
-            boxHeight = 2;
-            break;
-        default:
-            sprintf(buffer, "unable to determine box shapes on a %zux%zu Sudoku", maxNumber, maxNumber);
-            logError(buffer);
-            exit(EXIT_FAILURE);
+    getBoxDimensions(maxNumber, &boxWidth, &boxHeight);
+
+    if (!boxWidth) {
+        sprintf(buffer, "unable to determine box shapes on a %zux%zu Sudoku", maxNumber, maxNumber);
+        logError(buffer);
+        exit(EXIT_FAILURE);
     }
 
     instanceNames = (char **) xmalloc(sizeof (char *) * maxNumber);
@@ -138,4 +127,41 @@ unsigned createBoxContainers(ContainerSet *containerSet) {
 
     // maxNumber boxes have been generated
     return maxNumber;
+}
+
+/**
+ * determines box height and box width from the maxNumber
+ * 
+ * If maxNumber is a square number, then width/height are the square root
+ * (standard case), otherwise we have rectangular shaped boxes
+ * 
+ * @param maxNumber maximum number (= side length of the Sudoku)
+ * @param *width [out] return the calculated width of the boxes
+ * @param *height [out] return the calculated height of the boxes
+ */
+void getBoxDimensions(unsigned maxNumber, unsigned *width, unsigned *height) {
+    unsigned w = 0;
+    unsigned h = 0;
+    
+    switch (maxNumber) {
+        case 9:
+            w = 3;
+            h = 3;
+            break;
+        case 6:
+            w = 3;
+            h = 2;
+            break;
+        case 4:
+            w = 2;
+            h = 2;
+            break;
+        default:
+            // unknown Sudoku size
+            w = 0;
+            h = 0;
+    }
+    
+    *width = w;
+    *height = h;
 }
