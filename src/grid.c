@@ -820,11 +820,11 @@ int removeCandidate(Field *field, unsigned candidate) {
         info->removedCandidate = (*c + 1);
         writeLog(printLogRemoveCandidate, info);
 
-        if (!(field->candidatesLeft > 0)) {
-            logError("OJE!!");
+        if (field->candidatesLeft == 0) {
+            sprintf(buffer, "no candidates left on field %s", field->name);
+            logError(buffer);
+            exit(EXIT_FAILURE);
         }
-
-        assert(field->candidatesLeft > 0);
 
         return 1;
     }

@@ -6,8 +6,10 @@
  */
 #include <stdio.h>
 #include <string.h>
+#include <stdlib.h>
 #include "grid.h"
 #include "logfile.h"
+#include "util.h"
 
 
 static void printlog(char *text);
@@ -141,11 +143,22 @@ void logVerbose(char *text) {
  * @param text text to be logged. A newline character will be appended.
  */
 void logError(char *text) {
+    char *prefix;
+    char *str;
 
     if (logLevel < LOGLEVEL_ERRORS)
         return;
 
-    printlog(text);
+    prefix = strdup("ERROR ");
+    
+    str = (char *)xmalloc(sizeof(char) * (strlen(prefix) + strlen(text) + 1));
+    strcpy(str, prefix);
+    strcat(str, text);
+    
+    printlog(str);
+    
+    free(prefix);
+    free(str);
 }
 
 /**
