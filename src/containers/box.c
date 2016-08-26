@@ -68,7 +68,7 @@ void fillContainerFields(unsigned containerIndex, FieldsVector *fields) {
     unsigned boxY;
 
     boxStartX = containerIndex % (maxNumber / boxWidth) * boxWidth;
-    boxStartY = containerIndex / (maxNumber / boxHeight) * boxHeight;
+    boxStartY = containerIndex / (maxNumber / boxWidth) * boxHeight;
 
     for (n = 0; n < maxNumber; n++) {
         boxX = n % boxWidth;
