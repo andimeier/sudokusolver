@@ -102,9 +102,9 @@ The following settings are recognized in control lines:
 
 ##### Type
 Specifies the type of Sudoku. Possible values are:
-* standard
-* x
-* color
+* `standard`
+* `x`
+* `color`
 
 Default is "standard". The values are recognized with a minimum of matching characters, so you can abbreviate the setting, e.g. "st" works also for setting a "standard" Sudoku.
 
@@ -113,10 +113,23 @@ Example:
     Type: col
 
 
+##### Box
+Specifies the box dimensions of the "boxes" (rectangular shaped containers). For a standard Sudoku, the boxes are 3x3.
+
+Format: `WIDTHxHEIGHT`
+ 
+Default is "3x3". 
+
+Example:
+
+    Box: 3x2
+
+
 A valid Sudoku input file may look like this:
 
 ```
 type: standard
+box: 3x3
 7....56.4
 6.8...5.7
 ..12..9..
@@ -127,6 +140,13 @@ type: standard
 9.4...3.8
 2.56....1
 ```
+
+Note that you could have omitted each or both of the lines
+
+    type: standard
+    box: 3x3
+
+in this case because these are the default values for these parameters anyway.
 
 ### Bugs
 
