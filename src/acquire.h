@@ -16,6 +16,7 @@ extern "C" {
     int importSudoku(char *sudoku);
 
     unsigned parseGametypeString(char *gametypeString);
+    void parseBoxDimensionString(char *boxDimensionString, unsigned *width, unsigned *height);
 
 #ifdef	__cplusplus
 }

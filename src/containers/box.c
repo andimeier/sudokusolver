@@ -15,8 +15,8 @@ static void fillContainerFields(unsigned containerIndex, FieldsVector *fields);
 static unsigned determineBoxContainersCount(void);
 static void getBoxDimensions(unsigned maxNumber, unsigned *width, unsigned *height);
 
-static unsigned boxWidth;
-static unsigned boxHeight;
+static unsigned boxWidth = 0;
+static unsigned boxHeight = 0;
 
 /**
  * get the name of a box container
@@ -100,7 +100,11 @@ unsigned createBoxContainers(ContainerSet *containerSet) {
     char **instanceNames;
     unsigned i;
 
-    getBoxDimensions(maxNumber, &boxWidth, &boxHeight);
+    // if box dimensions are not yet set manually, try to determine the
+    // dimensions automatically, based on the "side length" of the Sudoku
+    if (!boxWidth) {
+        getBoxDimensions(maxNumber, &boxWidth, &boxHeight);
+    }
 
     if (!boxWidth) {
         sprintf(buffer, "unable to determine box shapes on a %zux%zu Sudoku", maxNumber, maxNumber);
@@ -108,6 +112,16 @@ unsigned createBoxContainers(ContainerSet *containerSet) {
         exit(EXIT_FAILURE);
     }
 
+    sprintf(buffer, "box size: %u x %u", boxWidth, boxHeight);
+    logAlways(buffer);
+
+    // sanity check
+    if (boxWidth * boxHeight != maxNumber) {
+        sprintf(buffer, "illegal box size: a %u x %u box does not hold exactly %zu numbers", boxWidth, boxHeight, maxNumber);
+        logError(buffer);
+        exit(EXIT_FAILURE);
+    }
+    
     instanceNames = (char **) xmalloc(sizeof (char *) * maxNumber);
 
     for (i = 0; i < maxNumber; i++) {
@@ -142,7 +156,7 @@ unsigned createBoxContainers(ContainerSet *containerSet) {
 void getBoxDimensions(unsigned maxNumber, unsigned *width, unsigned *height) {
     unsigned w = 0;
     unsigned h = 0;
-    
+
     switch (maxNumber) {
         case 9:
             w = 3;
@@ -161,7 +175,21 @@ void getBoxDimensions(unsigned maxNumber, unsigned *width, unsigned *height) {
             w = 0;
             h = 0;
     }
-    
+
     *width = w;
     *height = h;
+}
+
+/**
+ * sets the box dimensions
+ * 
+ * will be called if the dimensions should not be determined automatically,
+ * but set manually
+ * 
+ * @param width the width of the boxes
+ * @param height the height of the boxes
+ */
+void setBoxDimensions(unsigned width, unsigned height) {
+    boxWidth = width;
+    boxHeight = height;
 }

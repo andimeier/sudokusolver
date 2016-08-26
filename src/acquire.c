@@ -12,6 +12,7 @@
 #include "logfile.h"
 #include "acquire.h"
 #include "gametype.h"
+#include "box.h"
 
 static void toLowerStr(char *str);
 
@@ -34,6 +35,8 @@ int readSudoku(char *inputFilename) {
     char *settingName;
     char *settingValue;
     unsigned dimensioned;
+    unsigned boxWidth;
+    unsigned boxHeight;
 
     sprintf(buffer, "Reading Sudoku from file %s ...", inputFilename);
     logAlways(buffer);
@@ -59,15 +62,15 @@ int readSudoku(char *inputFilename) {
             break;
         }
         linecount++;
-        
+
         // remove trailing CR/LF
         if (line[strlen(line) - 1] == '\n') {
-            line[strlen(line) -1 ] = '\0';
+            line[strlen(line) - 1 ] = '\0';
         }
         if (line[strlen(line) - 1] == '\r') {
-            line[strlen(line) -1 ] = '\0';
+            line[strlen(line) - 1 ] = '\0';
         }
-        
+
         if (line[0] == '#') {
             // a comment line => ignore it
 
@@ -88,6 +91,10 @@ int readSudoku(char *inputFilename) {
             if (!strcmp(settingName, "type")) {
                 // specify type of Sudoku
                 setSudokuType(parseGametypeString(settingValue));
+            } else if (!strcmp(settingName, "box")) {
+                // specify box size
+                parseBoxDimensionString(settingValue, &boxWidth, &boxHeight);
+                setBoxDimensions(boxWidth, boxHeight);
             }
 
         } else {
@@ -121,7 +128,7 @@ int readSudoku(char *inputFilename) {
                 ok = 0; // oops
                 break;
             }
-            
+
             /*
              * check line length: all data lines must have the same length
              */
@@ -131,7 +138,7 @@ int readSudoku(char *inputFilename) {
                 ok = 0; // oops
                 break;
             }
-            
+
             sprintf(buffer, "Storing line %d ...", y);
             logVerbose(buffer);
             for (x = 0; x < maxNumber; x++) {
@@ -283,3 +290,13 @@ unsigned parseGametypeString(char *gametypeString) {
 
     return gametype;
 }
+
+/**
+ * parse box dimension string, e.g "3x3"
+ * 
+ * @param boxDimensionString box dimension string, e.g. "3x3"
+ */
+void parseBoxDimensionString(char *boxDimensionString, unsigned *width, unsigned *height) {
+    sscanf(boxDimensionString, "%ux%u", width, height);
+}
+

@@ -17,6 +17,7 @@
 #include "numberlist.h"
 #include "logfile.h"
 #include "diagonal.h"
+#include "acquire.h"
 
 // prototypes
 unsigned * uintdup(unsigned *dest, unsigned const *src, size_t len);
@@ -738,6 +739,32 @@ void test_determineDiagonalContainer() {
     TEST_ASSERT_EQUAL(0, determineDiagonalContainer(8, 8));
 }
 
+
+void test_parseBoxDimensionString() {
+    unsigned w, h;
+    
+    parseBoxDimensionString("3x2", &w, &h);
+    TEST_ASSERT_EQUAL(w, 3);
+    TEST_ASSERT_EQUAL(h, 2);
+
+    parseBoxDimensionString("x2", &w, &h);
+    TEST_ASSERT_EQUAL(w, 0);
+    TEST_ASSERT_EQUAL(h, 0);
+
+    parseBoxDimensionString("asdfs", &w, &h);
+    TEST_ASSERT_EQUAL(w, 0);
+    TEST_ASSERT_EQUAL(h, 0);
+
+    parseBoxDimensionString("3 x 2", &w, &h);
+    TEST_ASSERT_EQUAL(w, 0);
+    TEST_ASSERT_EQUAL(h, 0);
+
+    parseBoxDimensionString("13 x 2", &w, &h);
+    TEST_ASSERT_EQUAL(w, 13);
+    TEST_ASSERT_EQUAL(h, 2);
+}
+
+
 int main(void) {
     UNITY_BEGIN();
     RUN_TEST(test_fieldCandidatesContainAllOf);
@@ -753,6 +780,7 @@ int main(void) {
     RUN_TEST(test_findHiddenPairInContainer);
     RUN_TEST(test_determineDiagonalContainer);
     RUN_TEST(test_showCandidates);
+    RUN_TEST(test_parseBoxDimensionString);
     //        RUN_TEST(test_setupGrid);
     return UNITY_END();
 }

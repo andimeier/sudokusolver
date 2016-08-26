@@ -245,10 +245,17 @@ void initContainers() {
             // reserve space for a NULL terminator at the end of the container's field list
             containerPtr->fields = (FieldsVector *) xmalloc(sizeof (FieldsVector) * (maxNumber + 1));
 
+            /*
+             * pre-fill container fields (+1 extra field as terminator) with 
+             * NULL in order to be able to check whether really maxNumber 
+             * fields have been assigned
+             */
+            for (index = 0; index <= maxNumber; index++) {
+                containerPtr->fields[maxNumber] = NULL;
+            }
+
             // fill the field of the container
             (containerSet->fillContainerFields)(containerIndex, containerPtr->fields);
-            // add NULL terminator to field list
-            containerPtr->fields[maxNumber] = NULL;
 
             // link fields to containers: containerIndexes and containers
             // ----------------------------------------------------------
@@ -286,6 +293,22 @@ void initContainers() {
 
             containerPtr++;
         }
+    }
+
+    // sanity check: check that each and every container contains exactly
+    // maxNumber fields
+    for (index = 0; index < numberOfContainers; index++) {
+        Container *container = &(allContainers[index]);
+
+        // check container
+        for (unsigned fieldIndex = 0; fieldIndex < maxNumber; fieldIndex++) {
+            // all maxNumber fields of the container must be initialized,
+            // i.e. must point to a field
+            assert(container->fields[fieldIndex]);
+        }
+
+        // check terminating NULL field pointer
+        assert(container->fields[maxNumber] == NULL);
     }
 }
 
@@ -758,7 +781,6 @@ void cleanUpCandidates() {
     showAllCandidates();
 }
 
-
 /**
  * checks if the given number is still a valid candidate for the field
  * 
@@ -769,7 +791,6 @@ void cleanUpCandidates() {
 int isCandidate(Field *field, unsigned candidate) {
     return field->candidates[candidate - 1];
 }
-
 
 /**
  * removes one candidate from a field. 
@@ -802,7 +823,7 @@ int removeCandidate(Field *field, unsigned candidate) {
         if (!(field->candidatesLeft > 0)) {
             logError("OJE!!");
         }
-        
+
         assert(field->candidatesLeft > 0);
 
         return 1;
