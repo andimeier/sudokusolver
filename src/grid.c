@@ -41,6 +41,14 @@ ContainerSet *containerSets; // all container types (e.g. [row, column, box])
 size_t numberOfContainerSets;
 size_t numberOfContainers;
 
+// aux variable
+
+/*
+ * pointer to container currently be setting up, can be used for additional
+ * debugging info if something goes wrong during container setup
+ */
+static Container *settingUpContainer;
+
 typedef struct EntrySolveField {
     char *fieldName;
     unsigned number;
@@ -242,6 +250,9 @@ void initContainers() {
             containerPtr->name = containerSet->getContainerName(containerIndex);
             containerPtr->type = containerSet->type;
 
+            settingUpContainer = containerPtr;
+
+
             // reserve space for a NULL terminator at the end of the container's field list
             containerPtr->fields = (FieldsVector *) xmalloc(sizeof (FieldsVector) * (maxNumber + 1));
 
@@ -294,6 +305,8 @@ void initContainers() {
             containerPtr++;
         }
     }
+
+    settingUpContainer = NULL;
 
     // sanity check: check that each and every container contains exactly
     // maxNumber fields
@@ -848,6 +861,19 @@ void printLogRemoveCandidate(void *info) {
  * @return the field on the given coordinates
  */
 Field *getFieldAt(unsigned x, unsigned y) {
+ 
+    // sanity check
+    if (!(x >= 0 && x < maxNumber) && settingUpContainer) {
+        sprintf(buffer, "setting up container %s seems to be buggy (requested field at %u / %u)", settingUpContainer->name, x, y);
+        logError(buffer);
+        exit(EXIT_FAILURE);
+    }
+    if (!(y >= 0 && y < maxNumber) && settingUpContainer) {
+        sprintf(buffer, "setting up container %s seems to be buggy (requested field at %u / %u)", settingUpContainer->name, x, y);
+        logError(buffer);
+        exit(EXIT_FAILURE);
+    }
+    
     assert(x >= 0 && x < maxNumber);
     assert(y >= 0 && y < maxNumber);
 
