@@ -15,6 +15,7 @@
 // global variables
 static char *output; // output in memory
 static unsigned lineLength;
+static unsigned lineLengthWithLf;
 static unsigned numberOfLines;
 static unsigned numberOfChars;
 
@@ -25,6 +26,8 @@ static void printBorders();
 static void fillValues(FieldValue whichValue);
 static void print();
 
+
+
 /**
  * prints the Sudoku grid
  * 
@@ -34,9 +37,10 @@ static void print();
 void printGrid(FieldValue whichValue) {
 
     // allocate memory for building the output in memory first
-    lineLength = (maxNumber * 2 + 1) + 1; /* line length plus LF */
-    numberOfLines = (maxNumber * 2 + 1) + 1; /* line length plus LF */
-    numberOfChars = lineLength * numberOfLines; /* times number of lines */
+    lineLength = maxNumber * 2 + 1; /* line length excl. LF */
+    lineLengthWithLf = lineLength + 1; /* line length incl. LF */
+    numberOfLines = maxNumber * 2 + 1;
+    numberOfChars = lineLengthWithLf * numberOfLines; /* times number of lines */
     output = (char *) xmalloc(sizeof (char) * (numberOfChars + 1));
 
     // clear output
@@ -46,7 +50,7 @@ void printGrid(FieldValue whichValue) {
     printBorders();
 
     // fill out numbers
-    fillValues(whichValue);
+//    fillValues(whichValue);
 
     print();
     
@@ -62,11 +66,12 @@ void clear() {
 
     c = output;
 
-    for (i = 0; i < numberOfChars; i++) {
-        if (i % lineLength) {
-            *c = '\n';
+    // start with 1 to not make the modulo operator fire on the very first char
+    for (i = 1; i <= numberOfChars; i++) {
+        if (i % lineLengthWithLf) {
+            *c = '.';
         } else {
-            *c = ' ';
+            *c = '\n';
         }
         c++;
     }
@@ -86,14 +91,14 @@ void printBorders() {
 
     // first line
     line = output;
-    for (i = 0; i < lineLength - 1; i++) {
+    for (i = 1; i < lineLength; i++) {
         *line = '-';
         line++;
     }
 
     // last line
-    line = output + (maxNumber * lineLength);
-    for (i = 0; i < lineLength - 1; i++) {
+    line = output + ((numberOfLines -1) * lineLengthWithLf);
+    for (i = 1; i < lineLength; i++) {
         *line = '-';
         line++;
     }
@@ -102,14 +107,14 @@ void printBorders() {
     line = output;
     for (i = 0; i < numberOfLines; i++) {
         *line = '|';
-        line += lineLength;
+        line += lineLengthWithLf;
     }
 
     // last column
     line = output + lineLength - 1;
     for (i = 0; i < numberOfLines; i++) {
         *line = '|';
-        line += lineLength;
+        line += lineLengthWithLf;
     }
 
 }
@@ -145,4 +150,12 @@ void fillValues(FieldValue whichValue) {
  */
 void print() {
     puts(output);
+}
+
+
+/**
+ * determines the junction type on a specific position
+ */
+void junction() {
+    // 
 }

@@ -69,6 +69,9 @@ unsigned *getContainerTypes(GameType gameType) {
             *ptr++ = DIAGONALS;
             *ptr = 0;
             break;
+            
+        case COLOR_SUDOKU:
+            break;
     }
 
     return containerTypes;

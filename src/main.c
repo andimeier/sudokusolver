@@ -149,7 +149,9 @@ int main(int argc, char **argv) {
     show(1);
     printSvg(1);
 
+    logAlways("");
     printGrid(SOLVED);
+    logAlways("");
     
     if (result) {
         logAlways("-----------------------------------------------");
