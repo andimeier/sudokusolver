@@ -50,7 +50,7 @@ void printGrid(FieldValue whichValue) {
     printBorders();
 
     // fill out numbers
-//    fillValues(whichValue);
+    fillValues(whichValue);
 
     print();
     
@@ -139,7 +139,8 @@ void fillValues(FieldValue whichValue) {
             value = field->value;
         }
         if (value) {
-            *(output + field->y * (lineLength * 2) + field->x * 2) = (char) (value + '0');
+            *(output + ((1 + field->y * 2) * lineLengthWithLf)
+                    + (1 + field->x * 2)) = (char) (value + '0');
         }
     }
 
