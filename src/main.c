@@ -12,6 +12,7 @@
 #include "log.h"
 #include "gametype.h"
 #include "acquire.h"
+#include "printgrid.h"
 
 void printUsage();
 unsigned parseGametypeString(char *gametypeString);
@@ -148,6 +149,8 @@ int main(int argc, char **argv) {
     show(1);
     printSvg(1);
 
+    printGrid(SOLVED);
+    
     if (result) {
         logAlways("-----------------------------------------------");
         logAlways("         SUDOKU HAS BEEN SOLVED!");

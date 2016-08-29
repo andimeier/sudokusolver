@@ -9,6 +9,7 @@
 #define GRID_H
 
 #include "typedefs.h"
+#include "gametype.h"
 
 #ifdef __cplusplus
 extern "C" {
@@ -34,7 +35,7 @@ extern "C" {
     // all containers of the game board
     extern Container *allContainers;
 
-    extern unsigned sudokuType; // type of Sudoku (e.g. GAME_X_SUDOKU))
+    extern GameType sudokuType; // type of Sudoku (e.g. X_SUDOKU))
     extern size_t maxNumber;
     extern size_t numberOfFields;
     extern size_t numberOfContainerSets;
@@ -42,7 +43,7 @@ extern "C" {
 
     // init functions
     void setDefaults();
-    void setSudokuType(unsigned type);
+    void setSudokuType(GameType type);
     void dimensionGrid(size_t maxNumber);
     void allocateFields(size_t numberOfFields);
     void setupGrid();

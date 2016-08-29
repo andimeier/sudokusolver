@@ -270,17 +270,17 @@ void toLowerStr(char *str) {
  * @param gametypeString
  * @return 
  */
-unsigned parseGametypeString(char *gametypeString) {
-    unsigned gametype;
+GameType parseGametypeString(char *gametypeString) {
+    GameType gametype;
 
     if (!strncmp(gametypeString, "standard", strlen(gametypeString))) {
-        gametype = GAME_STANDARD_SUDOKU;
+        gametype = STANDARD_SUDOKU;
         logVerbose("Game type: Standard Sudoku");
     } else if (!strncmp(gametypeString, "x", strlen(gametypeString))) {
-        gametype = GAME_X_SUDOKU;
+        gametype = X_SUDOKU;
         logVerbose("Game type: X-Sudoku");
     } else if (!strncmp(gametypeString, "color", strlen(gametypeString))) {
-        gametype = GAME_COLOR_SUDOKU;
+        gametype = COLOR_SUDOKU;
         logVerbose("Game type: Color Sudoku");
     } else {
         sprintf(buffer, "unnknown game type: %s (must be \"standard\", \"x\" or \"color\")", gametypeString);

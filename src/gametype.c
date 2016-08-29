@@ -13,19 +13,19 @@
  * 
  * @return the string describing the game type, e.g. "X-Sudoku"
  */
-char *getGameTypeString(unsigned gameType) {
+char *getGameTypeString(GameType gameType) {
     char *string;
 
     switch (gameType) {
-        case GAME_STANDARD_SUDOKU:
+        case STANDARD_SUDOKU:
             string = strdup("Standard Sudoku");
             break;
 
-        case GAME_X_SUDOKU:
+        case X_SUDOKU:
             string = strdup("X Sudoku");
             break;
 
-        case GAME_COLOR_SUDOKU:
+        case COLOR_SUDOKU:
             string = strdup("Color Sudoku");
             break;
             
@@ -37,15 +37,13 @@ char *getGameTypeString(unsigned gameType) {
 }
 
 
-unsigned *getContainerTypes(unsigned gameType) {
+unsigned *getContainerTypes(GameType gameType) {
     unsigned *containerTypes;
     size_t numberOfContainerTypes;
     unsigned *ptr;
 
-    assert(gameType >= GAME_STANDARD_SUDOKU && gameType <= GAME_COLOR_SUDOKU);
-
     switch (gameType) {
-        case GAME_STANDARD_SUDOKU:
+        case STANDARD_SUDOKU:
             logVerbose("Game type: Standard Sudoku");
 
             numberOfContainerTypes = 3;
@@ -58,7 +56,7 @@ unsigned *getContainerTypes(unsigned gameType) {
             *ptr = 0;
             break;
 
-        case GAME_X_SUDOKU:
+        case X_SUDOKU:
             logVerbose("Game type: X Sudoku");
 
             numberOfContainerTypes = 4;

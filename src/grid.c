@@ -29,7 +29,7 @@ void printLogRemoveCandidate(void *info);
 
 
 // grid geometry, initialize with 0 to indicate the state of being not initialized
-unsigned sudokuType = GAME_STANDARD_SUDOKU; // type of Sudoku (e.g. GAME_X_SUDOKU))
+unsigned sudokuType = STANDARD_SUDOKU; // type of Sudoku (e.g. X_SUDOKU))
 size_t maxNumber = 0;
 size_t numberOfFields = 0; // == maxNumber^2
 
@@ -64,7 +64,7 @@ typedef struct EntryRemoveCandidate {
  * or other settings)
  */
 void setDefaults() {
-    setSudokuType(GAME_STANDARD_SUDOKU);
+    setSudokuType(STANDARD_SUDOKU);
     dimensionGrid(9); // max number of 9
 }
 

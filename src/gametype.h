@@ -17,17 +17,16 @@
 extern "C" {
 #endif
 
-    // standard Sudoku with rows, columns and boxes
-#define GAME_STANDARD_SUDOKU    1
-
-    // X-Sudoku with rows, columns, boxes and 2 diagonals
-#define GAME_X_SUDOKU  2
-
-    // color Sudoku with rows, columns, boxes and colors
-#define GAME_COLOR_SUDOKU  3
-
-    unsigned *getContainerTypes(unsigned gameType);
-    char *getGameTypeString(unsigned gameType);
+    /*
+     * game types:
+     * STANDARD_SUDOKU: standard Sudoku with rows, columns and boxes
+     * X_SUDOKU: X-Sudoku with rows, columns, boxes and 2 diagonals
+     * COLOR_SUDOKU: with rows, columns, boxes and colors
+     */
+    typedef enum { STANDARD_SUDOKU, X_SUDOKU, COLOR_SUDOKU } GameType;
+    
+    unsigned *getContainerTypes(GameType gameType);
+    char *getGameTypeString(GameType gameType);
     
 #ifdef	__cplusplus
 }
