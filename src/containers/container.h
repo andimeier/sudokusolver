@@ -14,8 +14,8 @@
 extern "C" {
 #endif
 
-    void setContainerSet(ContainerSet *containerSet, unsigned containerType);
-    void createContainers(unsigned type, char *name, size_t numberOfInstances, char *instanceNames[], ContainerSet *containerType);
+    void setContainerSet(ContainerSet *containerSet, ContainerType containerType);
+    void createContainers(ContainerType type, char *name, size_t numberOfInstances, char *instanceNames[], ContainerSet *containerSet);
 
 #ifdef	__cplusplus
 }

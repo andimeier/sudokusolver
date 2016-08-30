@@ -25,7 +25,7 @@ extern "C" {
      */
     typedef enum { STANDARD_SUDOKU, X_SUDOKU, COLOR_SUDOKU } GameType;
     
-    unsigned *getContainerTypes(GameType gameType);
+    ContainerType *getContainerTypes(GameType gameType);
     char *getGameTypeString(GameType gameType);
     
 #ifdef	__cplusplus

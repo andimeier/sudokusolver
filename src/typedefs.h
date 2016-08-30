@@ -14,6 +14,15 @@
 extern "C" {
 #endif
 
+    typedef int Bool;
+
+    // ID values of the container types
+
+    typedef enum {
+        ROWS = 1, COLS, BOXES, DIAGONALS
+    } ContainerType;
+
+
     // forward declarations
     typedef struct Container Container;
     typedef struct Field Field;
@@ -51,8 +60,8 @@ extern "C" {
          * this field is not part of any container of this container type.
          * Possible in e.g. diagonal containers.
          */
-        Container ***containers; 
-        
+        Container ***containers;
+
         unsigned *candidates;
         unsigned initialValue;
         unsigned correctSolution; // if known in advance, can be filled out
@@ -64,8 +73,7 @@ extern "C" {
 
     typedef struct Container {
         char *name; // the name of the container, e.g. "row 3" or "slash diagonal"
-        unsigned type; // the container type (e.g. 0==row), corresponds with the
-        // "unit index" in unitDefs
+        ContainerType type; // the container type (e.g. ROWS)
         Field **fields; // the fields in this container, in "order of 
         // appearance". This is a vector of maxNumber fields
     } Container;
@@ -101,7 +109,7 @@ extern "C" {
         char *name;
 
         // the container type (e.g. 1==row)
-        unsigned type;
+        ContainerType type;
 
         /* the function to determine the fields of the specified container */
         fillContainerFieldsFunc fillContainerFields;

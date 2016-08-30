@@ -11,6 +11,7 @@
 /**
  * returns the game type string
  * 
+ * @param gameType the Sudoku type, e.g. X_SUDOKU
  * @return the string describing the game type, e.g. "X-Sudoku"
  */
 char *getGameTypeString(GameType gameType) {
@@ -36,18 +37,23 @@ char *getGameTypeString(GameType gameType) {
     return string;
 }
 
-
-unsigned *getContainerTypes(GameType gameType) {
-    unsigned *containerTypes;
+/**
+ * determines the types of containers needed for a specific game type
+ * 
+ * @param gameType the Sudoku type, e.g. X_SUDOKU
+ * @return the list of container types needed for this Sudoku type
+ */
+ContainerType *getContainerTypes(GameType gameType) {
+    ContainerType *containerTypes;
     size_t numberOfContainerTypes;
-    unsigned *ptr;
+    ContainerType *ptr;
 
     switch (gameType) {
         case STANDARD_SUDOKU:
             logVerbose("Game type: Standard Sudoku");
 
             numberOfContainerTypes = 3;
-            containerTypes = (unsigned *) xmalloc(sizeof (unsigned) * (numberOfContainerTypes + 1));
+            containerTypes = (unsigned *) xmalloc(sizeof (ContainerType) * (numberOfContainerTypes + 1));
 
             ptr = containerTypes;
             *ptr++ = ROWS;
@@ -60,7 +66,7 @@ unsigned *getContainerTypes(GameType gameType) {
             logVerbose("Game type: X Sudoku");
 
             numberOfContainerTypes = 4;
-            containerTypes = (unsigned *) xmalloc(sizeof (unsigned) * (numberOfContainerTypes + 1));
+            containerTypes = (unsigned *) xmalloc(sizeof (ContainerType) * (numberOfContainerTypes + 1));
 
             ptr = containerTypes;
             *ptr++ = ROWS;

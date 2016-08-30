@@ -15,11 +15,6 @@
 extern "C" {
 #endif
 
-    // ID values of the container types
-#define ROWS 1
-#define COLS 2
-#define BOXES 3
-#define DIAGONALS 4
 
     // the fields of the game board
     extern Field *fields;

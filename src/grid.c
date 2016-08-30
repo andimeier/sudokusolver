@@ -120,7 +120,7 @@ void allocateFields(size_t numberOfFields) {
  * some basic global variables needed for initFields
  */
 void initContainerSets() {
-    unsigned *containerTypes;
+    ContainerType *containerTypes;
     ContainerSet *containerSetPtr;
 
     // assuming a standard Sudoku, 

@@ -19,13 +19,25 @@ static unsigned lineLengthWithLf;
 static unsigned numberOfLines;
 static unsigned numberOfChars;
 
+// line characters, e.g. t ... "line top", i.e. between quadrant I and II
+typedef enum { nil, vert, horiz, tl, lb, br, rt, tlb, lbr, brt, rtl, tlbr } LineChars;
+
 // function prototypes
 static void clear();
 static void junction();
 static void printBorders();
+static void printBoxBoundaries();
+static void printJunctions();
 static void fillValues(FieldValue whichValue);
 static void print();
+static int getBoxAt(unsigned x, unsigned y);
 
+static Bool boxDifferentThanAbove(unsigned x, unsigned y);
+static void drawHorizontalBorderAbove(unsigned x, unsigned y);
+
+// line character set in the order of the enum LineChars
+static char asciiLines[13] = " |-+++++++++";
+static char drawnLines[13] = { 0x20, 0x78, 0x71, 0x6a, 0x6b, 0x6c, 0x6d, 0x75, 0x77, 0x74, 0x76, 0x6e };
 
 
 /**
@@ -49,11 +61,14 @@ void printGrid(FieldValue whichValue) {
     // first print grid
     printBorders();
 
+    printBoxBoundaries();
+    printJunctions();
+
     // fill out numbers
     fillValues(whichValue);
 
     print();
-    
+
     free(output);
 }
 
@@ -69,13 +84,13 @@ void clear() {
     // start with 1 to not make the modulo operator fire on the very first char
     for (i = 1; i <= numberOfChars; i++) {
         if (i % lineLengthWithLf) {
-            *c = '.';
+            *c = ' ';
         } else {
             *c = '\n';
         }
         c++;
     }
-    
+
     // terminate entire string
     *c = '\0';
 }
@@ -88,35 +103,45 @@ void clear() {
 void printBorders() {
     unsigned i;
     char *line;
+    char *charset;
+    
+    charset = asciiLines;
+//    charset = drawnLines;
+    
 
     // first line
     line = output;
     for (i = 1; i < lineLength; i++) {
-        *line = '-';
+        *line = charset[horiz];
         line++;
     }
 
     // last line
-    line = output + ((numberOfLines -1) * lineLengthWithLf);
+    line = output + ((numberOfLines - 1) * lineLengthWithLf);
     for (i = 1; i < lineLength; i++) {
-        *line = '-';
+        *line = charset[horiz];
         line++;
     }
 
     // first column
     line = output;
     for (i = 0; i < numberOfLines; i++) {
-        *line = '|';
+        *line = charset[vert];
         line += lineLengthWithLf;
     }
 
     // last column
     line = output + lineLength - 1;
     for (i = 0; i < numberOfLines; i++) {
-        *line = '|';
+        *line = charset[vert];
         line += lineLengthWithLf;
     }
 
+    // print corners
+    *(output) = charset[tl]; // left top
+    *(output + lineLength - 1) = charset[lb]; // left bottom
+    *(output + (numberOfLines - 1) * lineLengthWithLf) = charset[rt]; // right top
+    *(output + (numberOfLines - 1) * lineLengthWithLf + lineLength - 1) = charset[br]; // right bottom
 }
 
 /**
@@ -153,6 +178,45 @@ void print() {
     puts(output);
 }
 
+/**
+ * prints the boundary lines between boxes (or squiggles)
+ */
+void printBoxBoundaries() {
+    unsigned x;
+    unsigned y;
+
+    for (y = 1; y < maxNumber; y++) {
+        for (x = 1; x < maxNumber; x++) {
+            // horizontal border line?
+            if (boxDifferentThanAbove(x, y)) {
+                drawHorizontalBorderAbove(x, y);
+            }
+        }
+    }
+}
+
+/**
+ * prints the junction points in the middle of 4 adjacent fields
+ */
+void printJunctions() {
+}
+
+/**
+ * determines if a number on the given position is in a different box than
+ * the number above it (one row above)
+ * 
+ * @param x logical X coordinate of (below) field in Sudoku, ranging from 0...maxNumber
+ * @param y logical Y coordinate of (below) field in Sudoku, ranging from 0...maxNumber
+ * @return 
+ */
+Bool boxDifferentThanAbove(unsigned x, unsigned y) {
+    
+}
+
+
+void drawHorizontalBorderAbove(unsigned x, unsigned y) {
+    
+}
 
 /**
  * determines the junction type on a specific position
@@ -160,3 +224,18 @@ void print() {
 void junction() {
     // 
 }
+
+
+
+/**
+ * determines the box number in which the field at (x/y) is located
+ * 
+ * @param x
+ * @param y
+ * @return the box number
+ */
+int getBoxAt(unsigned x, unsigned y) {
+    
+}
+
+

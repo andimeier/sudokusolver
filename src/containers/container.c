@@ -16,6 +16,7 @@
 #include "column.h"
 #include "box.h"
 #include "diagonal.h"
+#include "typedefs.h"
 
 
 /**
@@ -25,7 +26,7 @@
  * @param containerSet the container set structure to be filled
  * @param containerType, e.g. ROWS, COLS or BOXES
  */
-void setContainerSet(ContainerSet *containerSet, unsigned containerType) {
+void setContainerSet(ContainerSet *containerSet, ContainerType containerType) {
 
     assert(containerType >= ROWS && containerType <= DIAGONALS);
 
@@ -56,7 +57,7 @@ void setContainerSet(ContainerSet *containerSet, unsigned containerType) {
  *   container, respectively
  * @param containerSet the container set structure to be filled with data
  */
-void createContainers(unsigned type, char *name, size_t numberOfInstances, char *instanceNames[], ContainerSet *containerSet) {
+void createContainers(ContainerType type, char *name, size_t numberOfInstances, char *instanceNames[], ContainerSet *containerSet) {
 
     containerSet->name = name;
     containerSet->type = type;
