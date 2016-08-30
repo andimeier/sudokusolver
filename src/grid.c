@@ -24,15 +24,14 @@ static void freeFields();
 static void freeContainers();
 
 // static functions
-void printLogSetUniqueNumber(void *info);
-void printLogRemoveCandidate(void *info);
+static void printLogSetUniqueNumber(void *info);
+static void printLogRemoveCandidate(void *info);
 
 
 // grid geometry, initialize with 0 to indicate the state of being not initialized
-unsigned sudokuType = STANDARD_SUDOKU; // type of Sudoku (e.g. X_SUDOKU))
+GameType sudokuType = STANDARD_SUDOKU; // type of Sudoku (e.g. X_SUDOKU))
 size_t maxNumber = 0;
 size_t numberOfFields = 0; // == maxNumber^2
-
 
 // grid variables
 Field *fields; // the fields of the game board
@@ -41,11 +40,10 @@ ContainerSet *containerSets; // all container types (e.g. [row, column, box])
 size_t numberOfContainerSets;
 size_t numberOfContainers;
 
-// aux variable
-
 /*
  * pointer to container currently be setting up, can be used for additional
- * debugging info if something goes wrong during container setup
+ * debugging info if something goes wrong during container setup to have the
+ * "current" container at hand for displaying its name in the debugging output
  */
 static Container *settingUpContainer;
 
@@ -58,6 +56,7 @@ typedef struct EntryRemoveCandidate {
     char *fieldName;
     unsigned removedCandidate;
 } EntryRemoveCandidate;
+
 
 /**
  * set default values (which might be overridden by command line parameters

@@ -40,7 +40,7 @@ extern "C" {
          * instance of this container type (this can be the case in the unit 
          * "diagonal"))
          * This member is an array representing the container sets. Each item
-         * in turn is a -1-separated list of container indexes. For example, 
+         * in turn is a -1-terminated list of container indexes. For example, 
          * if the item #4 is a list of [ 2, -1 ], it means that this field
          * is member of the container #2 in the container set #4. If the same
          * item would be a list of [ -1 ], it indicates that this field is not

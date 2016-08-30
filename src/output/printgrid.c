@@ -18,9 +18,13 @@ static unsigned lineLength;
 static unsigned lineLengthWithLf;
 static unsigned numberOfLines;
 static unsigned numberOfChars;
+static unsigned containerSetIndexForPrintingBoxes;
 
 // line characters, e.g. t ... "line top", i.e. between quadrant I and II
-typedef enum { nil, vert, horiz, tl, lb, br, rt, tlb, lbr, brt, rtl, tlbr } LineChars;
+
+typedef enum {
+    nil, vert, horiz, tl, lb, br, rt, tlb, lbr, brt, rtl, tlbr
+} LineChars;
 
 // function prototypes
 static void clear();
@@ -31,14 +35,15 @@ static void printJunctions();
 static void fillValues(FieldValue whichValue);
 static void print();
 static int getBoxAt(unsigned x, unsigned y);
+static unsigned getContainerSetIndexForPrintingBoxes();
 
 static Bool boxDifferentThanAbove(unsigned x, unsigned y);
 static void drawHorizontalBorderAbove(unsigned x, unsigned y);
 
 // line character set in the order of the enum LineChars
 static char asciiLines[13] = " |-+++++++++";
-static char drawnLines[13] = { 0x20, 0x78, 0x71, 0x6a, 0x6b, 0x6c, 0x6d, 0x75, 0x77, 0x74, 0x76, 0x6e };
-
+static char drawnLines[13] = {0x20, 0x78, 0x71, 0x6a, 0x6b, 0x6c, 0x6d, 0x75, 0x77, 0x74, 0x76, 0x6e};
+static char *charset;
 
 /**
  * prints the Sudoku grid
@@ -47,6 +52,9 @@ static char drawnLines[13] = { 0x20, 0x78, 0x71, 0x6a, 0x6b, 0x6c, 0x6d, 0x75, 0
  *   fields
  */
 void printGrid(FieldValue whichValue) {
+
+    // find out which container holds the boxes info
+    containerSetIndexForPrintingBoxes = getContainerSetIndexForPrintingBoxes();
 
     // allocate memory for building the output in memory first
     lineLength = maxNumber * 2 + 1; /* line length excl. LF */
@@ -103,11 +111,10 @@ void clear() {
 void printBorders() {
     unsigned i;
     char *line;
-    char *charset;
-    
+
     charset = asciiLines;
-//    charset = drawnLines;
-    
+    //    charset = drawnLines;
+
 
     // first line
     line = output;
@@ -210,12 +217,19 @@ void printJunctions() {
  * @return 
  */
 Bool boxDifferentThanAbove(unsigned x, unsigned y) {
-    
+    int boxAbove;
+
+    assert(y > 0);
+    assert(y < maxNumber);
+
+    boxAbove = getBoxAt(x, y - 1);
+    return boxAbove != getBoxAt(x, y);
 }
 
 
 void drawHorizontalBorderAbove(unsigned x, unsigned y) {
-    
+    *(output + (y * 2 * lineLengthWithLf)
+            + (1 + x * 2)) = charset[horiz];
 }
 
 /**
@@ -225,17 +239,59 @@ void junction() {
     // 
 }
 
-
-
 /**
- * determines the box number in which the field at (x/y) is located
+ * determines the box number in which the field at (x/y) is located.
+ * 
+ * It is assumed (and only makes sense) that the container type used for drawing
+ * the boxes is non-overlapping, so the *first* container index is used as
+ * the result.
  * 
  * @param x
  * @param y
  * @return the box number
  */
 int getBoxAt(unsigned x, unsigned y) {
-    
+    Field *field;
+
+    field = getFieldAt(x, y);
+    return field->containerIndexes[containerSetIndexForPrintingBoxes][0];
 }
 
+/**
+ * determines which of the container sets should be used as an input for
+ * drawing boxes.
+ * 
+ * For a standard Sudoku, this will be the container BOXES, for a squiggle
+ * Sudoku, this will be the container SQUIGGLES.
+ * 
+ * @return the index of container set containing the "boxes" info
+ */
+unsigned getContainerSetIndexForPrintingBoxes() {
+    ContainerType containerTypeContainingBoxes;
+    int i;
+    unsigned containerSetIndex;
 
+    switch (sudokuType) {
+        case STANDARD_SUDOKU:
+        case X_SUDOKU:
+        case COLOR_SUDOKU:
+            containerTypeContainingBoxes = BOXES;
+            break;
+        default:
+            // we should never get here
+            assert(0);
+    }
+
+    // find out the container set index of this container type
+    containerSetIndex = -1;
+    for (i = 0; i < numberOfContainerSets; i++) {
+        if (containerSets[i].type == containerTypeContainingBoxes) {
+            containerSetIndex = i;
+            break;
+        }
+    }
+
+    assert(containerSetIndex > -1);
+
+    return containerSetIndex;
+}
