@@ -266,7 +266,6 @@ Bool boxDifferentThanLeft(unsigned x, unsigned y) {
  */
 void drawHorizontalBorderAbove(unsigned x, unsigned y) {
     printChar(x, y, 0, 1, charset[vert]);
-    printChar(x, y, 1, 1, charset[vert]);
 }
 
 /**
@@ -277,7 +276,6 @@ void drawHorizontalBorderAbove(unsigned x, unsigned y) {
  */
 void drawVerticalBorderLeft(unsigned x, unsigned y) {
     printChar(x, y, 1, 0, charset[vert]);
-    printChar(x, y, 1, 1, charset[vert]);
 }
 
 /**
