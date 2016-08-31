@@ -36,6 +36,7 @@ static void fillValues(FieldValue whichValue);
 static void print();
 static int getBoxAt(unsigned x, unsigned y);
 static unsigned getContainerSetIndexForPrintingBoxes();
+static void printChar(unsigned x, unsigned y, int deltaX, int deltaY, char c);
 
 static Bool boxDifferentThanAbove(unsigned x, unsigned y);
 static Bool boxDifferentThanLeft(unsigned x, unsigned y);
@@ -264,10 +265,8 @@ Bool boxDifferentThanLeft(unsigned x, unsigned y) {
  * @param y
  */
 void drawHorizontalBorderAbove(unsigned x, unsigned y) {
-    *(output + (y * 2 * lineLengthWithLf)
-            + (1 + x * 2)) = charset[horiz];
-    *(output + (y * 2 * lineLengthWithLf)
-            + (2 + x * 2)) = charset[horiz];
+    printChar(x, y, 0, 1, charset[vert]);
+    printChar(x, y, 1, 1, charset[vert]);
 }
 
 /**
@@ -277,10 +276,8 @@ void drawHorizontalBorderAbove(unsigned x, unsigned y) {
  * @param y
  */
 void drawVerticalBorderLeft(unsigned x, unsigned y) {
-    *(output + ((1 + y) * lineLengthWithLf)
-            + (x * 2)) = charset[vert];
-    *(output + ((2 + y * 2) * lineLengthWithLf)
-            + (x * 2)) = charset[vert];
+    printChar(x, y, 1, 0, charset[vert]);
+    printChar(x, y, 1, 1, charset[vert]);
 }
 
 /**
@@ -345,4 +342,19 @@ unsigned getContainerSetIndexForPrintingBoxes() {
     assert(containerSetIndex > -1);
 
     return containerSetIndex;
+}
+
+/**
+ * print a single character on the specified grid position
+ * 
+ * @param x x position of field in the grid (logical position)
+ * @param x y position of field in the grid (logical position)
+ * @param deltaX horizontal offset in screen character positions. A positive
+ *   offset means a shift to the right, a negative to the left
+ * @param deltaY verticall offset in screen character positions. A positive
+ *   offset means a shift to the bottom, a negative to the top
+ */
+void printChar(unsigned x, unsigned y, int deltaX, int deltaY, char c) {
+    *(output + ((1 + (y - 1) + deltaY) * lineLengthWithLf)
+            + (1 + (x - 1) * 2 + deltaX)) = c;
 }
