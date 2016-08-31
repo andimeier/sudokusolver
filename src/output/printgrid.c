@@ -38,7 +38,9 @@ static int getBoxAt(unsigned x, unsigned y);
 static unsigned getContainerSetIndexForPrintingBoxes();
 
 static Bool boxDifferentThanAbove(unsigned x, unsigned y);
+static Bool boxDifferentThanLeft(unsigned x, unsigned y);
 static void drawHorizontalBorderAbove(unsigned x, unsigned y);
+static void drawVerticalBorderLeft(unsigned x, unsigned y);
 
 // line character set in the order of the enum LineChars
 static char asciiLines[13] = " |-+++++++++";
@@ -66,10 +68,14 @@ void printGrid(FieldValue whichValue) {
     // clear output
     clear();
 
-    // first print grid
-    printBorders();
+    charset = asciiLines;
+    //    charset = drawnLines;
+
 
     printBoxBoundaries();
+
+    printBorders();
+
     printJunctions();
 
     // fill out numbers
@@ -111,10 +117,6 @@ void clear() {
 void printBorders() {
     unsigned i;
     char *line;
-
-    charset = asciiLines;
-    //    charset = drawnLines;
-
 
     // first line
     line = output;
@@ -202,15 +204,15 @@ void printBoxBoundaries() {
         }
     }
 
-//    // vertical border lines
-//    for (y = 0; y < maxNumber; y++) {
-//        for (x = 1; x < maxNumber; x++) {
-//            // vertical border line?
-//            if (boxDifferentThanLeft(x, y)) {
-//                drawHorizontalBorderLeft(x, y);
-//            }
-//        }
-//    }
+    // vertical border lines
+    for (y = 0; y < maxNumber; y++) {
+        for (x = 1; x < maxNumber; x++) {
+            // vertical border line?
+            if (boxDifferentThanLeft(x, y)) {
+                drawVerticalBorderLeft(x, y);
+            }
+        }
+    }
 }
 
 /**
@@ -237,6 +239,23 @@ Bool boxDifferentThanAbove(unsigned x, unsigned y) {
     return boxAbove != getBoxAt(x, y);
 }
 
+/**
+ * determines if a number on the given position is in a different box than
+ * the number above it (one row above)
+ * 
+ * @param x logical X coordinate of (below) field in Sudoku, ranging from 0...maxNumber
+ * @param y logical Y coordinate of (below) field in Sudoku, ranging from 0...maxNumber
+ * @return 
+ */
+Bool boxDifferentThanLeft(unsigned x, unsigned y) {
+    int boxLeft;
+
+    assert(x > 0);
+    assert(x < maxNumber);
+
+    boxLeft = getBoxAt(x - 1, y);
+    return boxLeft != getBoxAt(x, y);
+}
 
 /**
  * draws a horizontal border between two boxes
@@ -247,6 +266,21 @@ Bool boxDifferentThanAbove(unsigned x, unsigned y) {
 void drawHorizontalBorderAbove(unsigned x, unsigned y) {
     *(output + (y * 2 * lineLengthWithLf)
             + (1 + x * 2)) = charset[horiz];
+    *(output + (y * 2 * lineLengthWithLf)
+            + (2 + x * 2)) = charset[horiz];
+}
+
+/**
+ * draws a vertical border between two boxes
+ * 
+ * @param x
+ * @param y
+ */
+void drawVerticalBorderLeft(unsigned x, unsigned y) {
+    *(output + ((1 + y) * lineLengthWithLf)
+            + (x * 2)) = charset[vert];
+    *(output + ((2 + y * 2) * lineLengthWithLf)
+            + (x * 2)) = charset[vert];
 }
 
 /**
