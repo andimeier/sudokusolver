@@ -287,7 +287,7 @@ void initContainers() {
                 }
 
                 // append containerIndex to existing list of containerIndexes
-                *containerIndexes++ = index;
+                *containerIndexes++ = containerIndex;
                 *containerIndexes = -1; // terminate list
 
                 *containers++ = containerPtr;

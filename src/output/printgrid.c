@@ -192,6 +192,7 @@ void printBoxBoundaries() {
     unsigned x;
     unsigned y;
 
+    // horizontal border lines
     for (y = 1; y < maxNumber; y++) {
         for (x = 0; x < maxNumber; x++) {
             // horizontal border line?
@@ -200,6 +201,16 @@ void printBoxBoundaries() {
             }
         }
     }
+
+//    // vertical border lines
+//    for (y = 0; y < maxNumber; y++) {
+//        for (x = 1; x < maxNumber; x++) {
+//            // vertical border line?
+//            if (boxDifferentThanLeft(x, y)) {
+//                drawHorizontalBorderLeft(x, y);
+//            }
+//        }
+//    }
 }
 
 /**
@@ -227,6 +238,12 @@ Bool boxDifferentThanAbove(unsigned x, unsigned y) {
 }
 
 
+/**
+ * draws a horizontal border between two boxes
+ * 
+ * @param x
+ * @param y
+ */
 void drawHorizontalBorderAbove(unsigned x, unsigned y) {
     *(output + (y * 2 * lineLengthWithLf)
             + (1 + x * 2)) = charset[horiz];
