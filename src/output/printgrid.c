@@ -193,7 +193,7 @@ void printBoxBoundaries() {
     unsigned y;
 
     for (y = 1; y < maxNumber; y++) {
-        for (x = 1; x < maxNumber; x++) {
+        for (x = 0; x < maxNumber; x++) {
             // horizontal border line?
             if (boxDifferentThanAbove(x, y)) {
                 drawHorizontalBorderAbove(x, y);
@@ -269,7 +269,7 @@ int getBoxAt(unsigned x, unsigned y) {
 unsigned getContainerSetIndexForPrintingBoxes() {
     ContainerType containerTypeContainingBoxes;
     int i;
-    unsigned containerSetIndex;
+    int containerSetIndex;
 
     switch (sudokuType) {
         case STANDARD_SUDOKU:
