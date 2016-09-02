@@ -11,6 +11,7 @@
 #include "printgrid.h"
 #include "grid.h"
 #include "util.h"
+#include "logfile.h"
 
 // global variables
 static char *output; // output in memory
@@ -24,19 +25,39 @@ static unsigned containerSetIndexForPrintingBoxes;
 
 typedef enum {
     nil, vert, horiz, tl, lb, br, rt, tlb, lbr, brt, rtl, tlbr
-} LineChars;
+} LineChar;
+
+#define RIGHT 0x01
+#define TOP 0x02
+#define LEFT 0x04
+#define BOTTOM 0x08
+
+// junction types
+#define JUNCTION_NIL   0
+#define JUNCTION_VERT  (TOP | BOTTOM)
+#define JUNCTION_HORIZ (LEFT | RIGHT)
+#define JUNCTION_TL    (TOP | LEFT)
+#define JUNCTION_LB    (LEFT | BOTTOM)
+#define JUNCTION_BR    (BOTTOM | RIGHT)
+#define JUNCTION_RT    (RIGHT | TOP)
+#define JUNCTION_TLB   (TOP | LEFT | BOTTOM)
+#define JUNCTION_LBR   (LEFT | BOTTOM | RIGHT)
+#define JUNCTION_BRT   (BOTTOM | RIGHT | TOP)
+#define JUNCTION_RTL   (RIGHT | TOP | LEFT)
+#define JUNCTION_TLBR  (TOP | LEFT | BOTTOM | RIGHT)
 
 // function prototypes
 static void clear();
-static void junction();
+static LineChar junction(unsigned junctionX, unsigned junctionY);
 static void printBorders();
 static void printBoxBoundaries();
 static void printJunctions();
 static void fillValues(FieldValue whichValue);
-static void print();
+static void printOutput();
 static int getBoxAt(unsigned x, unsigned y);
 static unsigned getContainerSetIndexForPrintingBoxes();
 static void printChar(unsigned x, unsigned y, int deltaX, int deltaY, char c);
+static void printCharAtJunction(unsigned junctionX, unsigned junctionY, char c);
 
 static Bool boxDifferentThanAbove(unsigned x, unsigned y);
 static Bool boxDifferentThanLeft(unsigned x, unsigned y);
@@ -82,7 +103,7 @@ void printGrid(FieldValue whichValue) {
     // fill out numbers
     fillValues(whichValue);
 
-    print();
+    printOutput();
 
     free(output);
 }
@@ -183,7 +204,7 @@ void fillValues(FieldValue whichValue) {
 /**
  * prints the assembled output on stdout
  */
-void print() {
+void printOutput() {
     puts(output);
 }
 
@@ -219,6 +240,14 @@ void printBoxBoundaries() {
  * prints the junction points in the middle of 4 adjacent fields
  */
 void printJunctions() {
+    unsigned junctionX;
+    unsigned junctionY;
+    
+    for (junctionY = 0; junctionY <= maxNumber; junctionY++) {
+        for (junctionX = 0; junctionX <= maxNumber; junctionX++) {
+            printCharAtJunction(junctionX, junctionY, charset[junction(junctionX, junctionY)]);
+        }
+    }
 }
 
 /**
@@ -278,13 +307,101 @@ void drawVerticalBorderLeft(unsigned x, unsigned y) {
 }
 
 /**
- * determines the junction type on a specific position
+ * determines the junction type on a specific position. The junction position
+ * is a coordinate in a special coordinate system which is "between" the 
+ * normal coordinate system of the Sudoku fields.
  * 
- * @param x the X position of the left top number of the quadrant
- * @param y the Y position of the left top number of the quadrant
+ * 0 +----+----+
+ *   |    |    | 
+ * 1 +----+----+
+ *   |    |    |
+ * 2 +----+----+
+ *   |    |    |
+ * 3 +----+----+
+ * 
+ * @param junctionX the X position of the junction. 0 means the very first
+ *   column, i.e. left to the first field. maxNumber means the column right to
+ *   the very last column.
+ * @param junctionY the Y position of the junction. 0 means the very first
+ *   row, i.e. top of the first field. maxNumber means the row below the
+ *   very last field.
+ * @return the junction type
  */
-void junction(unsigned x, unsigned y) {
-    // 
+LineChar junction(unsigned junctionX, unsigned junctionY) {
+    int junctionType;
+    int rightTop;
+    int topLeft;
+    int leftBottom;
+    int bottomRight;
+    LineChar lineChar;
+
+    rightTop = getBoxAt(junctionX, junctionY - 1);
+    topLeft = getBoxAt(junctionX - 1, junctionY - 1);
+    leftBottom = getBoxAt(junctionX - 1, junctionY);
+    bottomRight = getBoxAt(junctionX, junctionY);
+
+    // determine box borders within the quadrant
+    junctionType = 0;
+    if (topLeft != rightTop) {
+        junctionType |= TOP;
+    }
+    if (leftBottom != bottomRight) {
+        junctionType |= BOTTOM;
+    }
+    if (topLeft != leftBottom) {
+        junctionType |= LEFT;
+    }
+    if (rightTop != bottomRight) {
+        junctionType |= RIGHT;
+    }
+
+    /* 
+     * depending on the borders in the quadrant, a junction type is determined
+     */
+    switch (junctionType) {
+        case JUNCTION_NIL:
+            lineChar = nil;
+            break;
+        case JUNCTION_VERT:
+            lineChar = vert;
+            break;
+        case JUNCTION_HORIZ:
+            lineChar = horiz;
+            break;
+        case JUNCTION_TL:
+            lineChar = tl;
+            break;
+        case JUNCTION_LB:
+            lineChar = lb;
+            break;
+        case JUNCTION_BR:
+            lineChar = br;
+            break;
+        case JUNCTION_RT:
+            lineChar = rt;
+            break;
+        case JUNCTION_TLB:
+            lineChar = tlb;
+            break;
+        case JUNCTION_LBR:
+            lineChar = lbr;
+            break;
+        case JUNCTION_BRT:
+            lineChar = brt;
+            break;
+        case JUNCTION_RTL:
+            lineChar = rtl;
+            break;
+        case JUNCTION_TLBR:
+            lineChar = tlbr;
+            break;
+        default:
+            lineChar = nil;
+            sprintf(buffer, "unknown junction type: %d", junctionType);
+            logError(buffer);
+    }
+
+    return lineChar;
 }
 
 /**
@@ -300,9 +417,19 @@ void junction(unsigned x, unsigned y) {
  */
 int getBoxAt(unsigned x, unsigned y) {
     Field *field;
+    int box;
 
-    field = getFieldAt(x, y);
-    return field->containerIndexes[containerSetIndexForPrintingBoxes][0];
+    // on out of bounds, return -2
+    if (x < 0 || x >= maxNumber) {
+        box = -2;
+    } else if (y < 0 || y >= maxNumber) {
+        box = -2;
+    } else {
+        field = getFieldAt(x, y);
+        box = field->containerIndexes[containerSetIndexForPrintingBoxes][0];
+    }
+
+    return box;
 }
 
 /**
@@ -329,7 +456,6 @@ unsigned getContainerSetIndexForPrintingBoxes() {
             // we should never get here
             assert(0);
     }
-
     // find out the container set index of this container type
     containerSetIndex = -1;
     for (i = 0; i < numberOfContainerSets; i++) {
@@ -348,7 +474,7 @@ unsigned getContainerSetIndexForPrintingBoxes() {
  * print a single character on the specified grid position
  * 
  * @param x x position of field in the grid (logical position)
- * @param x y position of field in the grid (logical position)
+ * @param y y position of field in the grid (logical position)
  * @param deltaX horizontal offset in screen character positions. A positive
  *   offset means a shift to the right, a negative to the left
  * @param deltaY verticall offset in screen character positions. A positive
@@ -357,4 +483,16 @@ unsigned getContainerSetIndexForPrintingBoxes() {
 void printChar(unsigned x, unsigned y, int deltaX, int deltaY, char c) {
     *(output + ((1 + y * 2 + deltaY) * lineLengthWithLf)
             + (1 + x * 2 + deltaX)) = c;
+}
+
+/**
+ * print a single character on a junction point
+ * 
+ * @param junctionX x position of the junction
+ * @param junctionY y position of the junction
+ * @param c junction character
+ */
+void printCharAtJunction(unsigned junctionX, unsigned junctionY, char c) {
+    *(output + (junctionY * 2 * lineLengthWithLf)
+            + (junctionX * 2)) = c;
 }
