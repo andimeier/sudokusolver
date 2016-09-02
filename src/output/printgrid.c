@@ -174,8 +174,7 @@ void fillValues(FieldValue whichValue) {
             value = field->value;
         }
         if (value) {
-            *(output + ((1 + field->y * 2) * lineLengthWithLf)
-                    + (1 + field->x * 2)) = (char) (value + '0');
+            printChar(field->x, field->y, 0, 0, (char) (value + '0'));
         }
     }
 
@@ -265,8 +264,7 @@ Bool boxDifferentThanLeft(unsigned x, unsigned y) {
  * @param y
  */
 void drawHorizontalBorderAbove(unsigned x, unsigned y) {
-    printChar(x, y, 0, 1, charset[vert]);
-    printChar(x, y, 1, 1, charset[vert]);
+    printChar(x, y, 0, -1, charset[horiz]);
 }
 
 /**
@@ -276,8 +274,7 @@ void drawHorizontalBorderAbove(unsigned x, unsigned y) {
  * @param y
  */
 void drawVerticalBorderLeft(unsigned x, unsigned y) {
-    printChar(x, y, 1, 0, charset[vert]);
-    printChar(x, y, 1, 1, charset[vert]);
+    printChar(x, y, -1, 0, charset[vert]);
 }
 
 /**
@@ -355,6 +352,6 @@ unsigned getContainerSetIndexForPrintingBoxes() {
  *   offset means a shift to the bottom, a negative to the top
  */
 void printChar(unsigned x, unsigned y, int deltaX, int deltaY, char c) {
-    *(output + ((1 + (y - 1) + deltaY) * lineLengthWithLf)
-            + (1 + (x - 1) * 2 + deltaX)) = c;
+    *(output + ((1 + y * 2 + deltaY) * lineLengthWithLf)
+            + (1 + x * 2 + deltaX)) = c;
 }
