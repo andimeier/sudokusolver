@@ -2,16 +2,12 @@
 <configurationDescriptor version="95">
   <logicalFolder name="root" displayName="root" projectFiles="true" kind="ROOT">
     <df root="src" name="0">
+      <df name="output">
+        <in>printgrid.c</in>
+        <in>printgrid.h</in>
+      </df>
       <in>acquire.c</in>
       <in>acquire.h</in>
-      <in>box.c</in>
-      <in>box.h</in>
-      <in>column.c</in>
-      <in>column.h</in>
-      <in>container.c</in>
-      <in>container.h</in>
-      <in>diagonal.c</in>
-      <in>diagonal.h</in>
       <in>fieldlist.c</in>
       <in>grid.c</in>
       <in>log.c</in>
@@ -20,8 +16,6 @@
       <in>logfile.h</in>
       <in>main.c</in>
       <in>numberlist.c</in>
-      <in>row.c</in>
-      <in>row.h</in>
       <in>show.c</in>
       <in>show.h</in>
       <in>solve.c</in>
@@ -70,22 +64,6 @@
       </item>
       <item path="src/acquire.h" ex="false" tool="3" flavor2="0">
       </item>
-      <item path="src/box.c" ex="false" tool="0" flavor2="0">
-      </item>
-      <item path="src/box.h" ex="false" tool="3" flavor2="0">
-      </item>
-      <item path="src/column.c" ex="false" tool="0" flavor2="0">
-      </item>
-      <item path="src/column.h" ex="false" tool="3" flavor2="0">
-      </item>
-      <item path="src/container.c" ex="false" tool="0" flavor2="0">
-      </item>
-      <item path="src/container.h" ex="false" tool="3" flavor2="0">
-      </item>
-      <item path="src/diagonal.c" ex="false" tool="0" flavor2="0">
-      </item>
-      <item path="src/diagonal.h" ex="false" tool="3" flavor2="0">
-      </item>
       <item path="src/fieldlist.c" ex="false" tool="0" flavor2="2">
       </item>
       <item path="src/grid.c" ex="false" tool="0" flavor2="2">
@@ -102,9 +80,9 @@
       </item>
       <item path="src/numberlist.c" ex="false" tool="0" flavor2="2">
       </item>
-      <item path="src/row.c" ex="false" tool="0" flavor2="0">
+      <item path="src/output/printgrid.c" ex="false" tool="0" flavor2="0">
       </item>
-      <item path="src/row.h" ex="false" tool="3" flavor2="0">
+      <item path="src/output/printgrid.h" ex="false" tool="3" flavor2="0">
       </item>
       <item path="src/show.c" ex="false" tool="0" flavor2="0">
       </item>

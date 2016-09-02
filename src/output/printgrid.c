@@ -279,8 +279,11 @@ void drawVerticalBorderLeft(unsigned x, unsigned y) {
 
 /**
  * determines the junction type on a specific position
+ * 
+ * @param x the X position of the left top number of the quadrant
+ * @param y the Y position of the left top number of the quadrant
  */
-void junction() {
+void junction(unsigned x, unsigned y) {
     // 
 }
 
