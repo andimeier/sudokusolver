@@ -116,7 +116,7 @@ void printSudokuString(int showInit) {
     int f;
     int val;
 
-    buffer = (char *) xmalloc(sizeof (char) * numberOfFields);
+    buffer = (char *) xmalloc(sizeof (char) * (numberOfFields + 1));
 
     for (f = 0; f < numberOfFields; f++) {
         val = showInit ? fields[f].initialValue : fields[f].value;
