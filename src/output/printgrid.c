@@ -15,24 +15,30 @@
 
 // global variables
 static char *output; // output in memory
+static unsigned gridLineLength;
 static unsigned lineLength;
 static unsigned lineLengthWithLf;
 static unsigned numberOfLines;
 static unsigned numberOfChars;
 static unsigned containerSetIndexForPrintingBoxes;
 
-// line characters, e.g. t ... "line top", i.e. between quadrant I and II
+/* 2 characters are reserved for row header */
+static const int rowHeaderChars = 2;
 
+/*
+ * line characters, e.g. t ... "line top", i.e. between quadrant I and II
+ */
 typedef enum {
     nil, vert, horiz, tl, lb, br, rt, tlb, lbr, brt, rtl, tlbr
 } LineChar;
 
+/* box separators on a junction point */
 #define RIGHT 0x01
 #define TOP 0x02
 #define LEFT 0x04
 #define BOTTOM 0x08
 
-// junction types
+/* junction types */
 #define JUNCTION_NIL   0
 #define JUNCTION_VERT  (TOP | BOTTOM)
 #define JUNCTION_HORIZ (LEFT | RIGHT)
@@ -52,12 +58,15 @@ static LineChar junction(unsigned junctionX, unsigned junctionY);
 static void printBorders();
 static void printBoxBoundaries();
 static void printJunctions();
+static void printCoordinates();
 static void fillValues(FieldValue whichValue);
 static void printOutput();
 static int getBoxAt(unsigned x, unsigned y);
 static unsigned getContainerSetIndexForPrintingBoxes();
-static void printChar(unsigned x, unsigned y, int deltaX, int deltaY, char c);
+static void printCharAtRawPosition(unsigned x, unsigned y, char c);
+static void printCharAtGridPosition(unsigned x, unsigned y, int deltaX, int deltaY, char c);
 static void printCharAtJunction(unsigned junctionX, unsigned junctionY, char c);
+static char *gridRow(unsigned y, int deltaY);
 
 static Bool boxDifferentThanAbove(unsigned x, unsigned y);
 static Bool boxDifferentThanLeft(unsigned x, unsigned y);
@@ -80,10 +89,14 @@ void printGrid(FieldValue whichValue) {
     // find out which container holds the boxes info
     containerSetIndexForPrintingBoxes = getContainerSetIndexForPrintingBoxes();
 
-    // allocate memory for building the output in memory first
-    lineLength = maxNumber * 2 + 1; /* line length excl. LF */
+    /* 
+     * allocate memory for building the output in memory first
+     * reserve 2 chars for row header and 1 line for the column header
+     */
+    gridLineLength = maxNumber * 2 + 1; /* grid line length excl. LF */
+    lineLength = gridLineLength + rowHeaderChars; /* line length excl. LF */
     lineLengthWithLf = lineLength + 1; /* line length incl. LF */
-    numberOfLines = maxNumber * 2 + 1;
+    numberOfLines = 1 + maxNumber * 2 + 1; /* column header + data lines + terminating grid border */
     numberOfChars = lineLengthWithLf * numberOfLines; /* times number of lines */
     output = (char *) xmalloc(sizeof (char) * (numberOfChars + 1));
 
@@ -93,12 +106,13 @@ void printGrid(FieldValue whichValue) {
     charset = asciiLines;
     //    charset = drawnLines;
 
-
     printBoxBoundaries();
 
     printBorders();
 
     printJunctions();
+
+    printCoordinates();
 
     // fill out numbers
     fillValues(whichValue);
@@ -141,38 +155,32 @@ void printBorders() {
     char *line;
 
     // first line
-    line = output;
-    for (i = 1; i < lineLength; i++) {
+    line = gridRow(0, -1);
+    for (i = 1; i < gridLineLength; i++) {
         *line = charset[horiz];
         line++;
     }
 
     // last line
-    line = output + ((numberOfLines - 1) * lineLengthWithLf);
-    for (i = 1; i < lineLength; i++) {
+    line = gridRow(maxNumber, -1);
+    for (i = 1; i < gridLineLength; i++) {
         *line = charset[horiz];
         line++;
     }
 
     // first column
-    line = output;
+    line = gridRow(0, -1);
     for (i = 0; i < numberOfLines; i++) {
         *line = charset[vert];
         line += lineLengthWithLf;
     }
 
     // last column
-    line = output + lineLength - 1;
+    line = gridRow(0, -1) + gridLineLength - 1;
     for (i = 0; i < numberOfLines; i++) {
         *line = charset[vert];
         line += lineLengthWithLf;
     }
-
-    // print corners
-    *(output) = charset[tl]; // left top
-    *(output + lineLength - 1) = charset[lb]; // left bottom
-    *(output + (numberOfLines - 1) * lineLengthWithLf) = charset[rt]; // right top
-    *(output + (numberOfLines - 1) * lineLengthWithLf + lineLength - 1) = charset[br]; // right bottom
 }
 
 /**
@@ -195,7 +203,7 @@ void fillValues(FieldValue whichValue) {
             value = field->value;
         }
         if (value) {
-            printChar(field->x, field->y, 0, 0, (char) (value + '0'));
+            printCharAtGridPosition(field->x, field->y, 0, 0, (char) (value + '0'));
         }
     }
 
@@ -242,11 +250,33 @@ void printBoxBoundaries() {
 void printJunctions() {
     unsigned junctionX;
     unsigned junctionY;
-    
+
     for (junctionY = 0; junctionY <= maxNumber; junctionY++) {
         for (junctionX = 0; junctionX <= maxNumber; junctionX++) {
             printCharAtJunction(junctionX, junctionY, charset[junction(junctionX, junctionY)]);
         }
+    }
+}
+
+/**
+ * print the Sudoku coordinates (row and column headers)
+ */
+void printCoordinates() {
+    unsigned i;
+    char *line;
+
+    /* column headers */
+    line = gridRow(0, -2) + 1;
+    for (i = 0; i < maxNumber; i++) {
+        *line = (char)(i + 1 + '0');
+        line += 2;
+    }
+
+    /* row headers */
+    line = output + 2 * lineLengthWithLf;
+    for (i = 0; i < maxNumber; i++) {
+        *line = (char)(i + 'A');
+        line += lineLengthWithLf * 2;
     }
 }
 
@@ -293,7 +323,7 @@ Bool boxDifferentThanLeft(unsigned x, unsigned y) {
  * @param y
  */
 void drawHorizontalBorderAbove(unsigned x, unsigned y) {
-    printChar(x, y, 0, -1, charset[horiz]);
+    printCharAtGridPosition(x, y, 0, -1, charset[horiz]);
 }
 
 /**
@@ -303,7 +333,7 @@ void drawHorizontalBorderAbove(unsigned x, unsigned y) {
  * @param y
  */
 void drawVerticalBorderLeft(unsigned x, unsigned y) {
-    printChar(x, y, -1, 0, charset[vert]);
+    printCharAtGridPosition(x, y, -1, 0, charset[vert]);
 }
 
 /**
@@ -471,6 +501,17 @@ unsigned getContainerSetIndexForPrintingBoxes() {
 }
 
 /**
+ * print a single character on the specified raw position
+ * 
+ * @param x x position (raw)
+ * @param y y position (raw)
+ * @param c character to be printed
+ */
+void printCharAtRawPosition(unsigned x, unsigned y, char c) {
+    *(output + (y * lineLengthWithLf) + x) = c;
+}
+
+/**
  * print a single character on the specified grid position
  * 
  * @param x x position of field in the grid (logical position)
@@ -479,10 +520,11 @@ unsigned getContainerSetIndexForPrintingBoxes() {
  *   offset means a shift to the right, a negative to the left
  * @param deltaY verticall offset in screen character positions. A positive
  *   offset means a shift to the bottom, a negative to the top
+ * @param c character to be printed
  */
-void printChar(unsigned x, unsigned y, int deltaX, int deltaY, char c) {
-    *(output + ((1 + y * 2 + deltaY) * lineLengthWithLf)
-            + (1 + x * 2 + deltaX)) = c;
+void printCharAtGridPosition(unsigned x, unsigned y, int deltaX, int deltaY, char c) {
+    *(output + ((2 + y * 2 + deltaY) * lineLengthWithLf)
+            + (rowHeaderChars + 1 + x * 2 + deltaX)) = c;
 }
 
 /**
@@ -493,6 +535,18 @@ void printChar(unsigned x, unsigned y, int deltaX, int deltaY, char c) {
  * @param c junction character
  */
 void printCharAtJunction(unsigned junctionX, unsigned junctionY, char c) {
-    *(output + (junctionY * 2 * lineLengthWithLf)
-            + (junctionX * 2)) = c;
+    *(output + ((1 + junctionY * 2) * lineLengthWithLf)
+            + (rowHeaderChars + junctionX * 2)) = c;
+}
+
+/**
+ * returns a pointer to the start of the specified row of the grid 
+ * 
+ * @param y logical Y coordinate
+ * @param deltaY
+ * @return 
+ */
+char *gridRow(unsigned y, int deltaY) {
+    return output + ((1 + 1 + y * 2 + deltaY) * lineLengthWithLf)
+            + rowHeaderChars;
 }
