@@ -125,6 +125,25 @@ Example:
     Box: 3x2
 
 
+##### Shapes
+
+Specifies the shapes in a squiggly Sudoku (a Sudoku with irregular shaped boxes).
+
+The following lines specify the "squiggle index" each field belongs to. The indexes
+must range from 1 to maxNumber.
+
+There is no default - with squiggle Sudokus it is mandatory to specify the
+shapes with this directive.
+
+Example:
+
+    Shapes:
+    111222333
+    112222233
+    111123333
+    ... [etc]
+
+
 A valid Sudoku input file may look like this:
 
 ```

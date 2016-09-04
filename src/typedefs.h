@@ -16,6 +16,9 @@ extern "C" {
 
     typedef int Bool;
 
+#define FALSE 0
+#define TRUE !FALSE
+
     // ID values of the container types
 
     typedef enum {

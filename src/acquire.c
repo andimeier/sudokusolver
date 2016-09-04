@@ -22,19 +22,20 @@ static void toLowerStr(char *str);
  * Space or dot will be interpreted as emtpy fields.
  * 
  * @param inputFilename
- * @return success flag: 1 if Sudoku could be read successfully, 0 if not
+ * @return success flag: TRUE if Sudoku could be read successfully, FALSE if not
  */
-int readSudoku(char *inputFilename) {
+Bool readSudoku(char *inputFilename) {
     char line[201];
     int linecount;
     char c;
-    int ok;
+    Bool ok;
     int x, y;
     int f;
     FILE *file;
     char *settingName;
     char *settingValue;
-    unsigned dimensioned;
+    Bool dimensioned;
+    Bool shapes;
     unsigned boxWidth;
     unsigned boxHeight;
 
@@ -51,11 +52,12 @@ int readSudoku(char *inputFilename) {
     }
 
     // read Sudoku
-    ok = 1; // optimistic preassumption
+    ok = TRUE; // optimistic preassumption
 
     linecount = 0;
     y = 0;
     dimensioned = 0; // we do not know the Sudoku dimension yet
+    shapes = 0; // not in the defiition of squiggle shapes
     while (ok && !feof(file)) {
 
         if (!fgets(line, 200, file)) {
@@ -125,7 +127,7 @@ int readSudoku(char *inputFilename) {
              */
             if (y >= maxNumber) {
                 logError("Error reading the Sudoku from file: too many data rows.");
-                ok = 0; // oops
+                ok = FALSE; // oops
                 break;
             }
 
@@ -135,7 +137,7 @@ int readSudoku(char *inputFilename) {
             if (strlen(line) != maxNumber) {
                 sprintf(buffer, "Error reading the Sudoku from file: first data row has %zu numbers, but line %u has %zu.", maxNumber, linecount, strlen(line));
                 logError(buffer);
-                ok = 0; // oops
+                ok = FALSE; // oops
                 break;
             }
 
@@ -150,7 +152,7 @@ int readSudoku(char *inputFilename) {
                 } else {
                     sprintf(buffer, "Error reading the Sudoku from file: illegal character ('%c') in line %d at position %d.", c, x + 1, linecount);
                     logError(buffer);
-                    ok = 0; // oops, this was no number
+                    ok = FALSE; // oops, this was no number
                     break;
                 }
             }
@@ -163,7 +165,7 @@ int readSudoku(char *inputFilename) {
 
     if (ok && y != maxNumber) {
         logError("Error reading the Sudoku from file: too few data rows.");
-        ok = 0;
+        ok = FALSE;
     }
 
     logVerbose("Copy original grid ...");
@@ -203,7 +205,7 @@ int readSudoku(char *inputFilename) {
  * @param sudoku the Sudoku string
  * @result success flag: 1 if the Sudoku could be read successfully, 0 if not
  */
-int importSudoku(char *sudoku) {
+Bool importSudoku(char *sudoku) {
     int f;
     char c;
 
@@ -212,7 +214,7 @@ int importSudoku(char *sudoku) {
         if (c == '\0') {
             sprintf(buffer, "Error parsing the Sudoku input: unexpected end of Sudoku data after character #%d", f);
             logError(buffer);
-            return 0;
+            return FALSE;
         }
 
         if ((c >= '0') && (c <= (char) (maxNumber + (int) '0'))) {
@@ -222,7 +224,7 @@ int importSudoku(char *sudoku) {
         } else {
             sprintf(buffer, "Error parsing the Sudoku input: illegal character ('%c') at position %d.", c, f);
             logError(buffer);
-            return 0;
+            return FALSE;
         }
     }
 
@@ -231,7 +233,7 @@ int importSudoku(char *sudoku) {
         fields[f].value = fields[f].initialValue;
     }
 
-    return 1;
+    return TRUE;
 }
 
 /**
@@ -244,9 +246,9 @@ int importSudoku(char *sudoku) {
  *   of Sudoku (will be 9 for a standard Sudoku)
  * @return 
  */
-int parseSudokuString(char *sudoku, int maxNumber) {
+Bool parseSudokuString(char *sudoku, int maxNumber) {
     // FIXME not used yet, should be the common function which readSudoku and importSudoku uses
-    return 0;
+    return FALSE;
 }
 
 /**
