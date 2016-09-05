@@ -16,6 +16,8 @@
 
 static void toLowerStr(char *str);
 
+typedef enum { VALUES, SHAPES } DataLine;
+
 /**
  * read Sudoku from file.
  * Ignore lines starting with '#'.
@@ -26,7 +28,7 @@ static void toLowerStr(char *str);
  */
 Bool readSudoku(char *inputFilename) {
     char line[201];
-    int linecount;
+    unsigned linecount;
     char c;
     Bool ok;
     int x, y;
@@ -35,7 +37,7 @@ Bool readSudoku(char *inputFilename) {
     char *settingName;
     char *settingValue;
     Bool dimensioned;
-    Bool shapes;
+    DataLine dataLine;
     unsigned boxWidth;
     unsigned boxHeight;
 
@@ -56,8 +58,8 @@ Bool readSudoku(char *inputFilename) {
 
     linecount = 0;
     y = 0;
-    dimensioned = 0; // we do not know the Sudoku dimension yet
-    shapes = 0; // not in the defiition of jigsaw shapes
+    dimensioned = FALSE; // we do not know the Sudoku dimension yet
+    dataLine = VALUES; // not in the definition of jigsaw shapes
     while (ok && !feof(file)) {
 
         if (!fgets(line, 200, file)) {
@@ -80,6 +82,24 @@ Bool readSudoku(char *inputFilename) {
             // a control line containing the setting name and the value
             settingName = strtok(line, ":");
             settingValue = strtok(NULL, "\r\n");
+
+            // the following settings do not need a settingValue
+            if (!strcmp(settingName, "shapes")) {
+                // switch on "shapes interpretation mode"
+                dataLine = SHAPES;
+                continue;
+            } else if (!strcmp(settingName, "value")) {
+                // switch off "shapes interpretation mode"
+                dataLine = VALUES;
+                continue;
+            }
+
+            // all other settings need a corresponding settingValue
+            if (!settingValue) {
+                sprintf(buffer, "missing value for setting \"%s\" in line %u", settingName, linecount);
+                logError(buffer);
+                continue;
+            }
 
             // skip spaces at the beginning of the value
             while (*settingValue == ' ') {
@@ -118,7 +138,7 @@ Bool readSudoku(char *inputFilename) {
                     fields[f].initialValue = 0;
                 }
 
-                dimensioned = 1;
+                dimensioned = TRUE;
             }
 
             /*
@@ -126,7 +146,7 @@ Bool readSudoku(char *inputFilename) {
              * spaces
              */
             if (y >= maxNumber) {
-                logError("Error reading the Sudoku from file: too many data rows.");
+                logError("Error reading the Sudoku from file: too many data rows in line %u.", linecount);
                 ok = FALSE; // oops
                 break;
             }
@@ -141,6 +161,11 @@ Bool readSudoku(char *inputFilename) {
                 break;
             }
 
+            /*
+             * depending on the dataLine type, interpret the line as values
+             * or shape information
+             */
+            
             sprintf(buffer, "Storing line %d ...", y);
             logVerbose(buffer);
             for (x = 0; x < maxNumber; x++) {

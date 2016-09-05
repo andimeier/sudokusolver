@@ -14,8 +14,7 @@
 extern "C" {
 #endif
 
-    unsigned createBoxContainers(ContainerSet *containerSet);
-    void setBoxDimensions(unsigned width, unsigned height);
+    unsigned createShapeContainers(ContainerSet *containerSet);
 
 #ifdef	__cplusplus
 }
