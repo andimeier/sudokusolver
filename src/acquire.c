@@ -57,7 +57,7 @@ Bool readSudoku(char *inputFilename) {
     linecount = 0;
     y = 0;
     dimensioned = 0; // we do not know the Sudoku dimension yet
-    shapes = 0; // not in the defiition of squiggle shapes
+    shapes = 0; // not in the defiition of jigsaw shapes
     while (ok && !feof(file)) {
 
         if (!fgets(line, 200, file)) {

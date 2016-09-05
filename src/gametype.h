@@ -23,11 +23,16 @@ extern "C" {
      * X_SUDOKU: X-Sudoku with rows, columns, boxes and 2 diagonals
      * COLOR_SUDOKU: with rows, columns, boxes and colors
      */
-    typedef enum { STANDARD_SUDOKU, X_SUDOKU, COLOR_SUDOKU } GameType;
-    
+    typedef enum {
+        STANDARD_SUDOKU,
+        X_SUDOKU,
+        COLOR_SUDOKU,
+        JIGSAW_SUDOKU
+    } GameType;
+
     ContainerType *getContainerTypes(GameType gameType);
     char *getGameTypeString(GameType gameType);
-    
+
 #ifdef	__cplusplus
 }
 #endif

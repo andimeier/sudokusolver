@@ -217,7 +217,7 @@ void printOutput() {
 }
 
 /**
- * prints the boundary lines between boxes (or squiggles)
+ * prints the boundary lines between boxes (or shapes)
  */
 void printBoxBoundaries() {
     unsigned x;
@@ -466,8 +466,8 @@ int getBoxAt(unsigned x, unsigned y) {
  * determines which of the container sets should be used as an input for
  * drawing boxes.
  * 
- * For a standard Sudoku, this will be the container BOXES, for a squiggle
- * Sudoku, this will be the container SQUIGGLES.
+ * For a standard Sudoku, this will be the container BOXES, for a jigsaw
+ * Sudoku, this will be the container SHAPES.
  * 
  * @return the index of container set containing the "boxes" info
  */

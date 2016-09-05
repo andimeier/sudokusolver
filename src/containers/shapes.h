@@ -1,12 +1,12 @@
 /* 
- * File:   squiggle.h
+ * File:   shape.h
  * Author: alex
  *
  * Created on 2016-07-09
  */
 
-#ifndef SQUIGGLE_H
-#define	SQUIGGLE_H
+#ifndef SHAPE_H
+#define	SHAPE_H
 
 #include "typedefs.h"
 
@@ -21,5 +21,5 @@ extern "C" {
 }
 #endif
 
-#endif	/* SQUIGGLE_H */
+#endif	/* SHAPE_H */
 

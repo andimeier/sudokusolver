@@ -30,6 +30,10 @@ char *getGameTypeString(GameType gameType) {
             string = strdup("Color Sudoku");
             break;
             
+        case JIGSAW_SUDOKU:
+            string = strdup("Jigsaw Sudoku");
+            break;
+            
         default:
             string = strdup("UNKNOWN GAME TYPE");
     }
