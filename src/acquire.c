@@ -15,6 +15,8 @@
 #include "box.h"
 
 static void toLowerStr(char *str);
+static void readLineWithValue(char *line);
+static void readLineWithShapes(char *line);
 
 typedef enum { VALUES, SHAPES } DataLine;
 
@@ -146,7 +148,8 @@ Bool readSudoku(char *inputFilename) {
              * spaces
              */
             if (y >= maxNumber) {
-                logError("Error reading the Sudoku from file: too many data rows in line %u.", linecount);
+                sprintf(buffer, "Error reading the Sudoku from file: too many data rows in line %u.", linecount); 
+                logError(buffer);
                 ok = FALSE; // oops
                 break;
             }
@@ -165,6 +168,12 @@ Bool readSudoku(char *inputFilename) {
              * depending on the dataLine type, interpret the line as values
              * or shape information
              */
+
+            if (dataLine == VALUES) {
+                ok &= readLineWithValue(line);
+            } else if (dataLine == SHAPES) {
+                readLineWithShapes(line);
+            }
             
             sprintf(buffer, "Storing line %d ...", y);
             logVerbose(buffer);
@@ -327,3 +336,11 @@ void parseBoxDimensionString(char *boxDimensionString, unsigned *width, unsigned
     sscanf(boxDimensionString, "%ux%u", width, height);
 }
 
+/**
+ * read a line and parses the values. The read values are used as initial
+ * values of the Sudoku
+ * 
+ * @param line
+ */
+void readLineWithValue(char *line) {
+}

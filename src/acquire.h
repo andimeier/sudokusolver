@@ -12,6 +12,20 @@
 extern "C" {
 #endif
 
+    /*
+     * entire set of the Sudoku input parameters. All parameters which are
+     * read from the Sudoku file or from other sources (e.g. as switches from
+     * the command line) are included in this structure.
+     */
+    typedef struct {
+        GameType gameType;
+        unsigned maxNumber;
+        unsigned boxWidth;
+        unsigned boxHeight;
+        unsigned *initialValues;
+        unsigned *shapes;
+    } Parameters;
+    
     int readSudoku(char *inputFilename);
     int importSudoku(char *sudoku);
 
