@@ -97,7 +97,6 @@ unsigned determineShapeContainersCount(void) {
  */
 unsigned createShapeContainers(ContainerSet *containerSet) {
     char **instanceNames;
-    unsigned i;
 
 //    sprintf(buffer, "box size: %u x %u", boxWidth, boxHeight);
 //    logAlways(buffer);

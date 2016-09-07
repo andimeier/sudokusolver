@@ -14,8 +14,8 @@
 #include "acquire.h"
 #include "printgrid.h"
 
-void printUsage();
-unsigned parseGametypeString(char *gametypeString);
+static void printUsage();
+static void initSudoku(Parameters *parameters);
 
 int main(int argc, char **argv) {
     int result;
@@ -24,6 +24,7 @@ int main(int argc, char **argv) {
     char *inputFilename = NULL;
     char *sudokuString = NULL;
     char *gametypeString = NULL;
+    Parameters *parameters;
 
     // if the Sudoku is wider than 26 numbers, we have a memory allocation issue
     // with the field->name (what is right of "Z26"?)
@@ -32,7 +33,7 @@ int main(int argc, char **argv) {
     // read command line arguments
     opterr = 0;
 
-    while ((c = getopt(argc, argv, "f:hvVl:s:t:")) != -1)
+    while ((c = getopt(argc, argv, "hvVl:s:")) != -1)
         switch (c) {
             case 'v':
                 logLevel = LOGLEVEL_VERBOSE;
@@ -45,12 +46,6 @@ int main(int argc, char **argv) {
                 break;
             case 'l':
                 outputFilename = optarg;
-                break;
-            case 'f':
-                inputFilename = optarg;
-                break;
-            case 't':
-                gametypeString = optarg;
                 break;
             case 'h':
                 printUsage();
@@ -68,18 +63,14 @@ int main(int argc, char **argv) {
                 abort();
         }
 
-    // first positional parameter is a Sudoku string
+    // first positional parameter is the filename of the Sudoku definition file
     if (optind < argc) {
-        sudokuString = argv[optind];
-    }
-
-    for (int i = optind; i < argc; i++) {
-        //  process positional parameters
+        inputFilename = argv[optind];
     }
 
     // if no sudoku is given
     if (!sudokuString && !inputFilename) {
-        fprintf(stderr, "No Sudoku data given. Please either specify a file with -f or a Sudoku string.\n");
+        fprintf(stderr, "Missing Sudoku filename\n");
         fprintf(stderr, "See usage page for details: -h");
         exit(EXIT_FAILURE);
     }
@@ -100,13 +91,6 @@ int main(int argc, char **argv) {
     setDefaults();
 
     /*
-     * override defaults with settings passed by command line parameters
-     */
-    if (gametypeString) {
-        setSudokuType(parseGametypeString(gametypeString));
-    }
-
-    /*
      * read Sudoku and fill the starting numbers
      * and possibly read grid parameters which override the default settings.
      * So, the settings which are defined in the Sudoku file will always
@@ -116,14 +100,14 @@ int main(int argc, char **argv) {
      * numbers. 
      */
     // try to load Sudoku from file
-    if (inputFilename && !readSudoku(inputFilename)) {
+    parameters = readSudoku(inputFilename);
+    if (!parameters) {
         exit(EXIT_FAILURE);
     }
 
-    // try to parse Sudoku string
-    if (sudokuString && !importSudoku(sudokuString)) {
-        exit(EXIT_FAILURE);
-    }
+
+    // dimension Sudoku and allocate fields
+    initSudoku(parameters);
 
 
     /*
@@ -152,7 +136,7 @@ int main(int argc, char **argv) {
     logAlways("");
     printGrid(SOLVED);
     logAlways("");
-    
+
     if (result) {
         logAlways("-----------------------------------------------");
         logAlways("         SUDOKU HAS BEEN SOLVED!");
@@ -223,4 +207,31 @@ void printUsage() {
     puts("  -V          very verbose logging");
     puts("  -h          this help screen");
     puts("  SUDOKU_STRING a Sudoku in the one-string format. If given, overrides the -f setting.");
+}
+
+/**
+ * dimension Sudoku and allocate fields
+ * 
+ * @param parameters the Sudoku parameters (read from the Sudoku file)
+ */
+void initSudoku(Parameters *parameters) {
+    unsigned i;
+    unsigned *initialValues;
+    unsigned value;
+
+    // initialize Sudoku data lines
+    dimensionGrid(parameters->maxNumber);
+
+    allocateFields(numberOfFields);
+
+    initialValues = parameters->initialValues;
+    for (i = 0; i < numberOfFields; i++) {
+        value = initialValues[i];
+        fields[i].initialValue = value;
+        fields[i].value = value;
+        fields[i].correctSolution = 0;
+    }
+
+    setSudokuType(parameters->gameType);
+    setBoxDimensions(parameters->boxWidth, parameters->boxHeight);
 }
