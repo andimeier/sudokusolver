@@ -26,7 +26,7 @@ extern "C" {
         unsigned *shapes;
     } Parameters;
     
-    int readSudoku(char *inputFilename);
+    Parameters readSudoku(char *inputFilename);
     int importSudoku(char *sudoku);
 
     unsigned parseGametypeString(char *gametypeString);
