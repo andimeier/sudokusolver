@@ -7,25 +7,33 @@
 #include <stdlib.h>
 #include <string.h>
 #include <ctype.h>
+#include <assert.h>
 #include "typedefs.h"
-#include "grid.h"
 #include "logfile.h"
+#include "util.h"
 #include "acquire.h"
 #include "gametype.h"
-#include "box.h"
-
-static void toLowerStr(char *str);
-static void readLineWithValue(char *line);
-static void readLineWithShapes(char *line);
+#include "parameters.h"
 
 typedef enum {
     VALUES, SHAPES
-} DataLine;
+} DataLineType;
 
 typedef struct {
     Bool dimensioned;
-    DataLine dataLine;
-} ReadMode;
+    DataLineType dataLineType;
+    unsigned sudokuLinesRead;
+    unsigned fileLineNo; // number of the line read (starting with 1). For
+    // debugging messages
+
+} ReadStatus;
+
+static void processLine(ReadStatus *readStatus, Parameters *parameters, char *line);
+static void processControlLine(ReadStatus *readStatus, Parameters *parameters, char *line);
+static void processDataLine(ReadStatus *readStatus, Parameters *parameters, char *line);
+static void readLineWithValues(ReadStatus *readStatus, Parameters *parameters, char *line);
+static void allocateValues(Parameters *parameters);
+static void set(Parameters *parameters, char *name, char *value);
 
 Parameters parameters;
 
@@ -33,18 +41,16 @@ Parameters parameters;
  * read Sudoku from file.
  * Ignore lines starting with '#'.
  * Space or dot will be interpreted as emtpy fields.
- * 
+ *
  * @param inputFilename
  * @return the Sudoku parameters or NULL on error
  */
-Parameters readSudoku(char *inputFilename) {
+Parameters *readSudoku(char *inputFilename) {
     char line[201];
-    unsigned linecount;
-    char c;
-    Bool ok;
-    int x, y;
     FILE *file;
-    ReadMode readMode;
+    ReadStatus readStatus;
+
+    assert(inputFilename != NULL);
 
     sprintf(buffer, "Reading Sudoku from file %s ...", inputFilename);
     logAlways(buffer);
@@ -58,22 +64,20 @@ Parameters readSudoku(char *inputFilename) {
         return NULL;
     }
 
-    // read Sudoku
-    ok = TRUE; // optimistic preassumption
+    // initialize read mode
+    readStatus.dimensioned = FALSE; // we do not know the Sudoku dimension yet
+    readStatus.dataLineType = VALUES; // not in the definition of jigsaw shapes
+    readStatus.sudokuLinesRead = 0; // 0 data lines read until now
+    readStatus.fileLineNo = 0; // no line read from file
 
-    linecount = 0;
-    y = 0;
+    parameters.maxNumber = 0; // undimensioned
 
-    // initialize read mode    
-    readMode.dimensioned = FALSE; // we do not know the Sudoku dimension yet
-    readMode.dataLine = VALUES; // not in the definition of jigsaw shapes
-
-    while (ok && !feof(file)) {
+    while (!feof(file)) {
 
         if (!fgets(line, 200, file)) {
             break;
         }
-        linecount++;
+        readStatus.fileLineNo++;
 
         // remove trailing CR/LF
         if (line[strlen(line) - 1] == '\n') {
@@ -83,55 +87,30 @@ Parameters readSudoku(char *inputFilename) {
             line[strlen(line) - 1 ] = '\0';
         }
 
-        processLine(&readMode, linecount, line);
+        processLine(&readStatus, &parameters, line);
     }
     logVerbose("Sudoku read");
 
     fclose(file);
 
-    if (ok && y != maxNumber) {
+    if (readStatus.sudokuLinesRead != parameters.maxNumber) {
         logError("Error reading the Sudoku from file: too few data rows.");
-        ok = FALSE;
+        exit(EXIT_FAILURE);
     }
 
-    logVerbose("Copy original grid ...");
-
-    // copy original grid
-    for (f = 0; f < numberOfFields; f++) {
-        fields[f].value = fields[f].initialValue;
-        fields[f].correctSolution = 0; // no solution known
-    }
-
-    //#define NAKED_TRIPLE
-#ifdef NAKED_TRIPLE
-    // FIXME fill out final solution in each field, if given
-    char solution[82] = "928547316431986572567312894195673428384251769276894153749168235612435987853729641";
-    for (f = 0; f < numberOfFields; f++) {
-        fields[f].correctSolution = (unsigned) (solution[f] - '0');
-    }
-#endif
-    //#define POINTING_PAIR
-#ifdef POINTING_PAIR
-    // FIXME fill out final solution in each field, if given
-    char solution[82] = "981724365324615879765983142197836254642571938853249716476398521538162497219457683";
-    for (f = 0; f < numberOfFields; f++) {
-        fields[f].correctSolution = (unsigned) (solution[f] - '0');
-    }
-#endif
-
-    logVerbose("Initial values filled.");
-
-    return parameters;
+    return &parameters;
 }
+
+#ifdef READ_SUDOKU_STRING
 
 /**
  * import a sudoku as a sequence of characters representing the initial numbers.
  * Empty fields can be defined by using 0, _ or .
- * 
+ *
  * @param sudoku the Sudoku string
  * @result success flag: 1 if the Sudoku could be read successfully, 0 if not
  */
-Bool importSudoku(char *sudoku) {
+Bool parseSudokuString(char *sudoku) {
     int f;
     char c;
 
@@ -164,169 +143,48 @@ Bool importSudoku(char *sudoku) {
 
 /**
  * parse Sudoku string 409176000610389040...
- * 
+ *
  * @param sudoku the Sudoku string: all numbers concatenated in one string
  *   or - if maxNumber > 9 - characters beginning with 'A', concatenated in
  *   one string // FIXME characters not implenented
  * @param maxNumber maximum number in the Sudoku = width of Sudoku = height
  *   of Sudoku (will be 9 for a standard Sudoku)
- * @return 
+ * @return
  */
 Bool parseSudokuString(char *sudoku, int maxNumber) {
     // FIXME not used yet, should be the common function which readSudoku and importSudoku uses
     return FALSE;
 }
-
-/**
- * converts a string to lower case.
- * 
- * @param str the string to be lowercased
- */
-void toLowerStr(char *str) {
-    int i;
-
-    for (i = 0; str[i]; i++) {
-        str[i] = tolower(str[i]);
-    }
-}
-
-/**
- * parses the game type from the command line and tries to find out which
- * game type has to be chosen. Game types are "standard", "x" (X-Sudoku) or
- * "color" (color Sudoku).
- * 
- * @param gametypeString
- * @return 
- */
-GameType parseGametypeString(char *gametypeString) {
-    GameType gametype;
-
-    if (!strncmp(gametypeString, "standard", strlen(gametypeString))) {
-        gametype = STANDARD_SUDOKU;
-        logVerbose("Game type: Standard Sudoku");
-    } else if (!strncmp(gametypeString, "x", strlen(gametypeString))) {
-        gametype = X_SUDOKU;
-        logVerbose("Game type: X-Sudoku");
-    } else if (!strncmp(gametypeString, "color", strlen(gametypeString))) {
-        gametype = COLOR_SUDOKU;
-        logVerbose("Game type: Color Sudoku");
-    } else {
-        sprintf(buffer, "unnknown game type: %s (must be \"standard\", \"x\" or \"color\")", gametypeString);
-        logError(buffer);
-        exit(EXIT_FAILURE);
-    }
-
-    return gametype;
-}
-
-/**
- * parse box dimension string, e.g "3x3"
- * 
- * @param boxDimensionString box dimension string, e.g. "3x3"
- */
-void parseBoxDimensionString(char *boxDimensionString, unsigned *width, unsigned *height) {
-    sscanf(boxDimensionString, "%ux%u", width, height);
-}
+#endif
 
 /**
  * processes one line read from the file
- * 
- * @param readMode
- * @param lineNo number of the line read (starting with 1). For debugging 
- *   messages
+ *
+ * @param readStatus
+ * @param parameters
  * @param line
  */
-void processLine(ReadMode *readMode, unsigned lineNo, char *line) {
-    int f;
+void processLine(ReadStatus *readStatus, Parameters *parameters, char *line) {
 
     if (line[0] == '#') {
         // a comment line => ignore it
 
     } else if (strchr(line, ':')) {
-        processControlLine(readMode, lineNo, line);
+        processControlLine(readStatus, parameters, line);
 
     } else {
-        // so this must be a standard data line
-        sprintf(buffer, "... is a data line and contains row %d ...", y);
-        logVerbose(buffer);
-
-        /*
-         * the first data line determines intrinsically the geometry of
-         * out Sudoku. By reading the first data line, we know how many
-         * fields to expect
-         */
-        if (!readMode->dimensioned) {
-            dimensionGrid(strlen(line));
-
-            // initialize Sudoku
-            allocateFields(numberOfFields);
-            for (f = 0; f < numberOfFields; f++) {
-                fields[f].initialValue = 0;
-            }
-
-            readMode->dimensioned = TRUE;
-        }
-
-        /*
-         * go through all chars of the line, should be only digits and 
-         * spaces
-         */
-        if (y >= maxNumber) {
-            sprintf(buffer, "Error reading the Sudoku from file: too many data rows in line %u.", linecount);
-            logError(buffer);
-            ok = FALSE; // oops
-            break;
-        }
-
-        /*
-         * check line length: all data lines must have the same length
-         */
-        if (strlen(line) != maxNumber) {
-            sprintf(buffer, "Error reading the Sudoku from file: first data row has %zu numbers, but line %u has %zu.", maxNumber, linecount, strlen(line));
-            logError(buffer);
-            ok = FALSE; // oops
-            break;
-        }
-
-        /*
-         * depending on the dataLine type, interpret the line as values
-         * or shape information
-         */
-
-        if (dataLine == VALUES) {
-            ok &= readLineWithValue(line);
-        } else if (dataLine == SHAPES) {
-            readLineWithShapes(line);
-        }
-
-        sprintf(buffer, "Storing line %d ...", y);
-        logVerbose(buffer);
-        for (x = 0; x < maxNumber; x++) {
-            c = line[x];
-            if ((c >= '0') && (c <= (char) (maxNumber + (int) '0'))) {
-                fields[y * maxNumber + x].initialValue = (int) (c - '0');
-            } else if ((c == ' ') || (c == '.') || (c == '_')) {
-                fields[y * maxNumber + x].initialValue = 0;
-            } else {
-                sprintf(buffer, "Error reading the Sudoku from file: illegal character ('%c') in line %d at position %d.", c, x + 1, linecount);
-                logError(buffer);
-                ok = FALSE; // oops, this was no number
-                break;
-            }
-        }
-        y++;
+        processDataLine(readStatus, parameters, line);
     }
 }
 
 /**
  * processes a "control line", i.e. a line containing a setting
- * 
+ *
  * @param readMode
- * @param lineNo number of the line read (starting with 1). For debugging 
- *   messages
+ * @param parameters
  * @param line
  */
-void processControlLine(ReadMode *readMode, unsigned lineNo, char *line) {
+void processControlLine(ReadStatus *readStatus, Parameters *parameters, char *line) {
     char *settingName;
     char *settingValue;
 
@@ -334,49 +192,168 @@ void processControlLine(ReadMode *readMode, unsigned lineNo, char *line) {
     settingName = strtok(line, ":");
     settingValue = strtok(NULL, "\r\n");
 
+    // settingName should be case-insensitive
+    toLowerStr(settingName);
+
+    if (settingValue) {
+
+        // skip spaces at the beginning of the value
+        while (*settingValue == ' ') {
+            settingValue++;
+        }
+
+        if (settingValue[0] == '\0') {
+            settingValue = NULL;
+        }
+    }
+
+
     // the following settings do not need a settingValue
     if (!strcmp(settingName, "shapes")) {
         // switch on "shapes interpretation mode"
-        readMode->dataLine = SHAPES;
+        readStatus->dataLineType = SHAPES;
         return;
     } else if (!strcmp(settingName, "value")) {
         // switch off "shapes interpretation mode"
-        readMode->dataLine = VALUES;
+        readStatus->dataLineType = VALUES;
         return;
     }
 
     // all other settings need a corresponding settingValue
     if (!settingValue) {
-        sprintf(buffer, "missing value for setting \"%s\" in line %u", settingName, lineNo);
+        sprintf(buffer, "missing value for setting \"%s\" in line %u", settingName, readStatus->fileLineNo);
         logError(buffer);
+        exit(EXIT_FAILURE);
         return;
     }
 
-    // skip spaces at the beginning of the value
-    while (*settingValue == ' ') {
-        settingValue++;
+    set(parameters, settingName, settingValue);
+}
+
+/**
+ * processes a data line, i.e. a line containing values or shapes
+ *
+ * @param readMode
+ * @param parameters
+ * @param line
+ */
+void processDataLine(ReadStatus *readStatus, Parameters *parameters, char *line) {
+
+    /*
+     * the first data line determines intrinsically the geometry of
+     * out Sudoku. By reading the first data line, we know how many
+     * fields to expect
+     */
+    if (!readStatus->dimensioned) {
+        parameters->maxNumber = strlen(line);
+        parameters->numberOfFields = parameters->maxNumber * parameters->maxNumber;
+        allocateValues(parameters);
+
+        readStatus->dimensioned = TRUE;
     }
 
-    // settingName should be case-insensitive
-    toLowerStr(settingName);
-
-    // interpret the setting
-    if (!strcmp(settingName, "type")) {
-        // specify type of Sudoku
-        setSudokuType(parseGametypeString(settingValue));
-    } else if (!strcmp(settingName, "box")) {
-        // specify box size
-        parseBoxDimensionString(settingValue, &boxWidth, &boxHeight);
-        setBoxDimensions(boxWidth, boxHeight);
+    /*
+     * check line length: all data lines must have the same length
+     */
+    if (strlen(line) != parameters->maxNumber) {
+        sprintf(buffer, "Error reading the Sudoku from file: first data row has %u numbers, but line %u has %zu.", parameters->maxNumber, readStatus->fileLineNo, strlen(line));
+        logError(buffer);
+        exit(EXIT_FAILURE);
     }
 
+    /*
+     * depending on the dataLine type, interpret the line as values
+     * or shape information
+     */
+
+    if (readStatus->dataLineType == VALUES) {
+        readLineWithValues(readStatus, parameters, line);
+        //    } else if (readStatus->dataLineType == SHAPES) {
+        //        readLineWithShapes(readStatus, line);
+    }
 }
 
 /**
  * read a line and parses the values. The read values are used as initial
  * values of the Sudoku
- * 
+ *
+ * @param readStatus
  * @param line
  */
-void readLineWithValue(char *line) {
+void readLineWithValues(ReadStatus *readStatus, Parameters *parameters, char *line) {
+    unsigned x;
+    char c;
+    unsigned y;
+    unsigned maxNumber;
+
+    y = readStatus->sudokuLinesRead;
+    maxNumber = parameters->maxNumber;
+
+    if (readStatus->sudokuLinesRead >= maxNumber) {
+        sprintf(buffer, "Error reading the Sudoku from file: too many data rows in line %u.", readStatus->fileLineNo);
+        logError(buffer);
+        exit(EXIT_FAILURE);
+    }
+
+
+    /*
+     * go through all chars of the line, should be only digits and
+     * spaces
+     */
+    for (x = 0; x < maxNumber; x++) {
+        c = line[x];
+
+        if ((c >= '0') && (c <= (char) (maxNumber + (int) '0'))) {
+            parameters->initialValues[y * parameters->maxNumber + x] = (int) (c - '0');
+
+        } else if ((c == ' ') || (c == '.') || (c == '_')) {
+            parameters->initialValues[y * parameters->maxNumber + x] = 0;
+
+        } else {
+            sprintf(buffer, "Error reading the Sudoku from file: illegal character ('%c') in line %d at position %d.", c, readStatus->fileLineNo, x + 1);
+            logError(buffer);
+            exit(EXIT_FAILURE);
+        }
+    }
+    readStatus->sudokuLinesRead++;
+}
+
+/**
+ * allocate memory for the values
+ *
+ * @param parameters
+ */
+void allocateValues(Parameters *parameters) {
+    unsigned i;
+    unsigned *initialValues;
+
+    // initialize Sudoku data lines
+    initialValues = (unsigned *) xmalloc(sizeof (unsigned) * parameters->numberOfFields);
+
+    for (i = parameters->numberOfFields - 1; i >= 0; i--) {
+        initialValues[i] = 0; // default for each field: no value given
+    }
+
+    parameters->initialValues = initialValues;
+}
+
+/**
+ * sets a setting
+ *
+ * @param parameters
+ * @param name the name of the setting
+ * @param value the value the setting should be set to or NULL if it is a
+ *   parameter without a value (e.g. 'Shapes')
+ */
+void set(Parameters *parameters, char *name, char *value) {
+
+    // interpret the setting
+    if (!strcmp(name, "type")) {
+        // specify type of Sudoku
+        parameters->gameType = parseGametypeString(value);
+
+    } else if (!strcmp(name, "box")) {
+        // specify box size
+        parseBoxDimensionString(value, &(parameters->boxWidth), &(parameters->boxHeight));
+    }
 }
