@@ -233,5 +233,9 @@ void initSudoku(Parameters *parameters) {
     }
 
     setSudokuType(parameters->gameType);
+    
+    if (parameters->gameType == JIGSAW_SUDOKU) {
+        setShapes(parameters->shapes);
+    }
     setBoxDimensions(parameters->boxWidth, parameters->boxHeight);
 }

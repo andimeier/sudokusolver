@@ -47,6 +47,19 @@ ContainerType *getContainerTypes(GameType gameType) {
             *ptr = 0;
             break;
 
+        case JIGSAW_SUDOKU:
+            logVerbose("Game type: Jigsaw Sudoku");
+
+            numberOfContainerTypes = 3;
+            containerTypes = (unsigned *) xmalloc(sizeof (ContainerType) * (numberOfContainerTypes + 1));
+
+            ptr = containerTypes;
+            *ptr++ = ROWS;
+            *ptr++ = COLS;
+            *ptr++ = SHAPES;
+            *ptr = 0;
+            break;
+
         case X_SUDOKU:
             logVerbose("Game type: X Sudoku");
 

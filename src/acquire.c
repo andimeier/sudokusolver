@@ -23,16 +23,18 @@ typedef struct {
     Bool dimensioned;
     DataLineType dataLineType;
     unsigned sudokuLinesRead;
+    unsigned shapeLinesRead;
     unsigned fileLineNo; // number of the line read (starting with 1). For
     // debugging messages
-
 } ReadStatus;
 
 static void processLine(ReadStatus *readStatus, Parameters *parameters, char *line);
 static void processControlLine(ReadStatus *readStatus, Parameters *parameters, char *line);
 static void processDataLine(ReadStatus *readStatus, Parameters *parameters, char *line);
 static void readLineWithValues(ReadStatus *readStatus, Parameters *parameters, char *line);
+static void readLineWithShapes(ReadStatus *readStatus, Parameters *parameters, char *line);
 static void allocateValues(Parameters *parameters);
+static void allocateShapeDefinitions(Parameters *parameters);
 static void set(Parameters *parameters, char *name, char *value);
 
 Parameters parameters;
@@ -68,6 +70,7 @@ Parameters *readSudoku(char *inputFilename) {
     readStatus.dimensioned = FALSE; // we do not know the Sudoku dimension yet
     readStatus.dataLineType = VALUES; // not in the definition of jigsaw shapes
     readStatus.sudokuLinesRead = 0; // 0 data lines read until now
+    readStatus.shapeLinesRead = 0; // 0 lines containing shape IDs read until now
     readStatus.fileLineNo = 0; // no line read from file
 
     parameters.maxNumber = 0; // undimensioned
@@ -95,6 +98,19 @@ Parameters *readSudoku(char *inputFilename) {
 
     if (readStatus.sudokuLinesRead != parameters.maxNumber) {
         logError("Error reading the Sudoku from file: too few data rows.");
+        exit(EXIT_FAILURE);
+    }
+
+    if (parameters.gameType == JIGSAW_SUDOKU 
+            && readStatus.shapeLinesRead != parameters.maxNumber) {
+        logError("Error reading the Jigsaw Sudoku from file: too few rows with shape definitions.");
+        exit(EXIT_FAILURE);
+    }
+
+    return &parameters;
+ 
+    if (parameters.gameType != JIGSAW_SUDOKU && readStatus.shapeLinesRead) {
+        logError("shape definitions found, but game type is not \"Jigsaw\".");
         exit(EXIT_FAILURE);
     }
 
@@ -248,6 +264,7 @@ void processDataLine(ReadStatus *readStatus, Parameters *parameters, char *line)
         parameters->maxNumber = strlen(line);
         parameters->numberOfFields = parameters->maxNumber * parameters->maxNumber;
         allocateValues(parameters);
+        allocateShapeDefinitions(parameters);
 
         readStatus->dimensioned = TRUE;
     }
@@ -268,8 +285,8 @@ void processDataLine(ReadStatus *readStatus, Parameters *parameters, char *line)
 
     if (readStatus->dataLineType == VALUES) {
         readLineWithValues(readStatus, parameters, line);
-        //    } else if (readStatus->dataLineType == SHAPES) {
-        //        readLineWithShapes(readStatus, line);
+    } else if (readStatus->dataLineType == SHAPES) {
+        readLineWithShapes(readStatus, parameters, line);
     }
 }
 
@@ -319,12 +336,53 @@ void readLineWithValues(ReadStatus *readStatus, Parameters *parameters, char *li
 }
 
 /**
- * allocate memory for the values
+ * read a line and parses the shapes' IDs. This is only relevant with jigsaw
+ * Sudokus.
+ *
+ * @param readStatus
+ * @param line
+ */
+void readLineWithShapes(ReadStatus *readStatus, Parameters *parameters, char *line) {
+    unsigned x;
+    char c;
+    unsigned y;
+    unsigned maxNumber;
+
+    y = readStatus->shapeLinesRead;
+    maxNumber = parameters->maxNumber;
+
+    if (readStatus->shapeLinesRead >= maxNumber) {
+        sprintf(buffer, "Error reading the Jigsaw Sudoku from file: too many lines with shape definitions in line %u.", readStatus->fileLineNo);
+        logError(buffer);
+        exit(EXIT_FAILURE);
+    }
+
+
+    /*
+     * go through all chars of the line, should be only digits
+     */
+    for (x = 0; x < maxNumber; x++) {
+        c = line[x];
+
+        if ((c >= '0') && (c <= (char) (maxNumber + (int) '0'))) {
+            parameters->initialValues[y * parameters->maxNumber + x] = (int) (c - '0');
+
+        } else {
+            sprintf(buffer, "Error reading the Sudoku from file: illegal character ('%c') in shape definitions in line %d at position %d.", c, readStatus->fileLineNo, x + 1);
+            logError(buffer);
+            exit(EXIT_FAILURE);
+        }
+    }
+    readStatus->shapeLinesRead++;
+}
+
+/**
+ * allocate memory for the initial values
  *
  * @param parameters
  */
 void allocateValues(Parameters *parameters) {
-    unsigned i;
+    int i;
     unsigned *initialValues;
 
     // initialize Sudoku data lines
@@ -335,6 +393,25 @@ void allocateValues(Parameters *parameters) {
     }
 
     parameters->initialValues = initialValues;
+}
+
+/**
+ * allocate memory for the shape definitions
+ *
+ * @param parameters
+ */
+void allocateShapeDefinitions(Parameters *parameters) {
+    int i;
+    unsigned *shapeDefinitions;
+
+    // initialize Sudoku data lines
+    shapeDefinitions = (unsigned *) xmalloc(sizeof (unsigned) * parameters->numberOfFields);
+
+    for (i = parameters->numberOfFields - 1; i >= 0; i--) {
+        shapeDefinitions[i] = 0; // default for each field: no shape ID given
+    }
+
+    parameters->shapes = shapeDefinitions;
 }
 
 /**

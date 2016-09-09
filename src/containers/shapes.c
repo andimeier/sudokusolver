@@ -6,7 +6,7 @@
 #include "grid.h"
 #include "logfile.h"
 #include "util.h"
-#include "box.h"
+#include "shapes.h"
 #include "container.h"
 
 
@@ -14,42 +14,21 @@ static char *getShapeName(unsigned index);
 static void fillContainerFields(unsigned containerIndex, FieldsVector *fields);
 static unsigned determineShapeContainersCount(void);
 
-static unsigned boxWidth = 0;
-static unsigned boxHeight = 0;
+static unsigned *shapes;
 
 /**
- * get the name of a box container
+ * get the name of a shape container
  * 
- * @param index index of the box container = number of box
- * @return a newly allocated string representing the "label" of the box 
- *   container, e.g. "box 2"
+ * @param index index of the shape container = number of shape
+ * @return a newly allocated string representing the "label" of the shape 
+ *   container, e.g. "shape 2"
  */
 char *getShapeName(unsigned index) {
     assert(index >= 0 && index < 26);
 
-    sprintf(buffer, "box %u", index + 1);
+    sprintf(buffer, "shape %u", index + 1);
     return strdup(buffer);
 }
-
-///**
-// * determines the index of the box container which contains the field on the
-// * given Sudoku coordinates
-// * 
-// * @param x X coordinate (starting with 0) of the specified field
-// * @param y Y coordinate (starting with 0) of the specified field
-// * @return index of the box container which contains the specified field, 
-// *   or -1 if no such container contains the specified field (which is not
-// *   possible with box containers, but might be possible for other types of
-// *   containers)
-// */
-//int determineBoxContainer(unsigned x, unsigned y) {
-//    assert(x >= 0 && x < maxNumber);
-//    assert(y >= 0 && y < maxNumber);
-//    assert(boxHeight > 0);
-//    assert(boxWidth > 0);
-//
-//    return (y / boxHeight) * (maxNumber / boxWidth) + (x / boxWidth);
-//}
 
 /**
  * fills the given fields vector with the list of fields which are members
@@ -61,24 +40,24 @@ char *getShapeName(unsigned index) {
  */
 void fillContainerFields(unsigned containerIndex, FieldsVector *fields) {
     unsigned n;
-    unsigned boxStartX;
-    unsigned boxStartY;
-    unsigned boxX;
-    unsigned boxY;
+    unsigned shapeStartX;
+    unsigned shapeStartY;
+    unsigned shapeX;
+    unsigned shapeY;
 
-    boxStartX = containerIndex % (maxNumber / boxWidth) * boxWidth;
-    boxStartY = containerIndex / (maxNumber / boxWidth) * boxHeight;
+    shapeStartX = containerIndex % (maxNumber / shapeWidth) * shapeWidth;
+    shapeStartY = containerIndex / (maxNumber / shapeWidth) * shapeHeight;
 
     for (n = 0; n < maxNumber; n++) {
-        boxX = n % boxWidth;
-        boxY = n / boxWidth;
+        shapeX = n % shapeWidth;
+        shapeY = n / shapeWidth;
 
-        fields[n] = getFieldAt(boxStartX + boxX, boxStartY + boxY);
+        fields[n] = getFieldAt(shapeStartX + shapeX, shapeStartY + shapeY);
     }
 }
 
 /**
- * return number of box containers necessary to hold the Sudoku data.
+ * return number of shape containers necessary to hold the Sudoku data.
  * In many cases (like this) the number of containers of this type will be
  * equal to maxNumber, but in some cases it might not, e.g. for diagonals
  * there would be only 2 containers.
@@ -89,7 +68,7 @@ unsigned determineShapeContainersCount(void) {
 }
 
 /**
- * creates a container set for boxes, along with all needed containers 
+ * creates a container set for shapees, along with all needed containers 
  * instances of this type
  * 
  * @param the container set structure to be filled with data
@@ -98,33 +77,43 @@ unsigned determineShapeContainersCount(void) {
 unsigned createShapeContainers(ContainerSet *containerSet) {
     char **instanceNames;
 
-//    sprintf(buffer, "box size: %u x %u", boxWidth, boxHeight);
-//    logAlways(buffer);
-//
-//    // sanity check
-//    if (boxWidth * boxHeight != maxNumber) {
-//        sprintf(buffer, "illegal box size: a %u x %u box does not hold exactly %zu numbers", boxWidth, boxHeight, maxNumber);
-//        logError(buffer);
-//        exit(EXIT_FAILURE);
-//    }
-//    
-//    instanceNames = (char **) xmalloc(sizeof (char *) * maxNumber);
-//
-//    for (i = 0; i < maxNumber; i++) {
-//        sprintf(buffer, "box %u", i + 1);
-//        instanceNames[i] = strdup(buffer);
-//    }
-//
-//    // check that the number of instance names is equal to the containers
-//    // count stated by the auxiliary count function
-//    assert(i == determineBoxContainersCount());
+    //    sprintf(buffer, "shape size: %u x %u", shapeWidth, shapeHeight);
+    //    logAlways(buffer);
+    //
+    //    // sanity check
+    //    if (shapeWidth * shapeHeight != maxNumber) {
+    //        sprintf(buffer, "illegal shape size: a %u x %u shape does not hold exactly %zu numbers", shapeWidth, shapeHeight, maxNumber);
+    //        logError(buffer);
+    //        exit(EXIT_FAILURE);
+    //    }
+    //    
+    //    instanceNames = (char **) xmalloc(sizeof (char *) * maxNumber);
+    //
+    //    for (i = 0; i < maxNumber; i++) {
+    //        sprintf(buffer, "shape %u", i + 1);
+    //        instanceNames[i] = strdup(buffer);
+    //    }
+    //
+    //    // check that the number of instance names is equal to the containers
+    //    // count stated by the auxiliary count function
+    //    assert(i == determineShapeContainersCount());
 
     // delegate container creation to generic generator function
-    createContainers(BOXES, strdup("box"), maxNumber, instanceNames, containerSet);
+    createContainers(SHAPEES, strdup("shape"), maxNumber, instanceNames, containerSet);
 
     containerSet->fillContainerFields = &fillContainerFields;
     containerSet->getContainerName = &getShapeName;
 
-    // maxNumber boxes have been generated
+    // maxNumber shapees have been generated
     return maxNumber;
+}
+
+/**
+ * creates the shapes definitions
+ * 
+ * @param shapes the shape definitions, as an array of numbers representing the
+ *   shape IDs
+ */
+void setShapes(unsigned *_shapes) {
+    shapes = _shapes;
 }
