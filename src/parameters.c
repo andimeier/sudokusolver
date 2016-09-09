@@ -23,35 +23,6 @@ void toLowerStr(char *str) {
 }
 
 /**
- * parses the game type from the command line and tries to find out which
- * game type has to be chosen. Game types are "standard", "x" (X-Sudoku) or
- * "color" (color Sudoku).
- *
- * @param gametypeString
- * @return
- */
-GameType parseGametypeString(char *gametypeString) {
-    GameType gametype;
-
-    if (!strncmp(gametypeString, "standard", strlen(gametypeString))) {
-        gametype = STANDARD_SUDOKU;
-        logVerbose("Game type: Standard Sudoku");
-    } else if (!strncmp(gametypeString, "x", strlen(gametypeString))) {
-        gametype = X_SUDOKU;
-        logVerbose("Game type: X-Sudoku");
-    } else if (!strncmp(gametypeString, "color", strlen(gametypeString))) {
-        gametype = COLOR_SUDOKU;
-        logVerbose("Game type: Color Sudoku");
-    } else {
-        sprintf(buffer, "unnknown game type: %s (must be \"standard\", \"x\" or \"color\")", gametypeString);
-        logError(buffer);
-        exit(EXIT_FAILURE);
-    }
-
-    return gametype;
-}
-
-/**
  * parse box dimension string, e.g "3x3"
  *
  * @param boxDimensionString box dimension string, e.g. "3x3"

@@ -32,6 +32,9 @@ extern "C" {
 
     ContainerType *getContainerTypes(GameType gameType);
     char *getGameTypeString(GameType gameType);
+    void setGameType(GameType gameType);
+    GameType getGameType();
+    void parseGameType(char *gameTypeString);
 
 #ifdef	__cplusplus
 }

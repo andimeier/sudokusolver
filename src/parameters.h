@@ -15,7 +15,6 @@ extern "C" {
 #include "gametype.h"
 
     void toLowerStr(char *str);
-    GameType parseGametypeString(char *gametypeString);
     void parseBoxDimensionString(char *boxDimensionString, unsigned *width, unsigned *height);
 
 #ifdef	__cplusplus
