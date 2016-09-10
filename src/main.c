@@ -18,7 +18,6 @@
 #include "box.h"
 
 static void printUsage();
-static void initSudoku(Parameters *parameters);
 
 int main(int argc, char **argv) {
     int result;
@@ -169,37 +168,3 @@ void printUsage() {
     puts("  SUDOKU_STRING a Sudoku in the one-string format. If given, overrides the -f setting.");
 }
 
-/**
- * dimension Sudoku and allocate fields
- * 
- * FIXME: move function to grid.c
- * 
- * @param parameters the Sudoku parameters (read from the Sudoku file)
- */
-void initSudoku(Parameters *parameters) {
-    unsigned i;
-    unsigned *initialValues;
-    unsigned value;
-
-    setGameType(parameters->gameType);
-
-    // initialize Sudoku data lines
-    dimensionGrid(parameters->maxNumber);
-
-    allocateFields(numberOfFields);
-
-    initialValues = parameters->initialValues;
-    for (i = 0; i < numberOfFields; i++) {
-        value = initialValues[i];
-        fields[i].initialValue = value;
-        fields[i].value = value;
-        fields[i].correctSolution = 0;
-    }
-
-    setSudokuType(parameters->gameType);
-
-    if (parameters->gameType == JIGSAW_SUDOKU) {
-        setShapes(parameters->shapes);
-    }
-    setBoxDimensions(parameters->boxWidth, parameters->boxHeight);
-}

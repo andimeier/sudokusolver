@@ -15,6 +15,9 @@
 #include "util.h"
 #include "container.h"
 #include "gametype.h"
+#include "box.h"
+#include "shapes.h"
+
 
 // function prototypes
 static void initContainerSets();
@@ -882,4 +885,38 @@ Field *getFieldAt(unsigned x, unsigned y) {
     assert(y >= 0 && y < maxNumber);
 
     return (fields + y * maxNumber + x);
+}
+
+
+/**
+ * dimension Sudoku and allocate fields
+ * 
+ * @param parameters the Sudoku parameters (read from the Sudoku file)
+ */
+void initSudoku(Parameters *parameters) {
+    unsigned i;
+    unsigned *initialValues;
+    unsigned value;
+
+    setGameType(parameters->gameType);
+
+    // initialize Sudoku data lines
+    dimensionGrid(parameters->maxNumber);
+
+    allocateFields(numberOfFields);
+
+    initialValues = parameters->initialValues;
+    for (i = 0; i < numberOfFields; i++) {
+        value = initialValues[i];
+        fields[i].initialValue = value;
+        fields[i].value = value;
+        fields[i].correctSolution = 0;
+    }
+
+    setSudokuType(parameters->gameType);
+
+    if (parameters->gameType == JIGSAW_SUDOKU) {
+        setShapes(parameters->shapes);
+    }
+    setBoxDimensions(parameters->boxWidth, parameters->boxHeight);
 }

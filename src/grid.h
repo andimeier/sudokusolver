@@ -10,6 +10,7 @@
 
 #include "typedefs.h"
 #include "gametype.h"
+#include "acquire.h"
 
 #ifdef __cplusplus
 extern "C" {
@@ -37,6 +38,7 @@ extern "C" {
     extern size_t numberOfContainers;
 
     // init functions
+    void initSudoku(Parameters *parameters);
     void setDefaults();
     void setSudokuType(GameType type);
     void dimensionGrid(size_t maxNumber);
