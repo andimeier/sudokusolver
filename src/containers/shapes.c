@@ -45,15 +45,15 @@ void fillContainerFields(unsigned containerIndex, FieldsVector *fields) {
     unsigned shapeX;
     unsigned shapeY;
 
-    shapeStartX = containerIndex % (maxNumber / shapeWidth) * shapeWidth;
-    shapeStartY = containerIndex / (maxNumber / shapeWidth) * shapeHeight;
-
-    for (n = 0; n < maxNumber; n++) {
-        shapeX = n % shapeWidth;
-        shapeY = n / shapeWidth;
-
-        fields[n] = getFieldAt(shapeStartX + shapeX, shapeStartY + shapeY);
-    }
+//    shapeStartX = containerIndex % (maxNumber / shapeWidth) * shapeWidth;
+//    shapeStartY = containerIndex / (maxNumber / shapeWidth) * shapeHeight;
+//
+//    for (n = 0; n < maxNumber; n++) {
+//        shapeX = n % shapeWidth;
+//        shapeY = n / shapeWidth;
+//
+//        fields[n] = getFieldAt(shapeStartX + shapeX, shapeStartY + shapeY);
+//    }
 }
 
 /**
@@ -99,7 +99,7 @@ unsigned createShapeContainers(ContainerSet *containerSet) {
     //    assert(i == determineShapeContainersCount());
 
     // delegate container creation to generic generator function
-    createContainers(SHAPEES, strdup("shape"), maxNumber, instanceNames, containerSet);
+    createContainers(SHAPES, strdup("shape"), maxNumber, instanceNames, containerSet);
 
     containerSet->fillContainerFields = &fillContainerFields;
     containerSet->getContainerName = &getShapeName;

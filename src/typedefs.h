@@ -22,7 +22,7 @@ extern "C" {
     // ID values of the container types
 
     typedef enum {
-        ROWS = 1, COLS, BOXES, DIAGONALS
+        ROWS = 1, COLS, BOXES, DIAGONALS, SHAPES
     } ContainerType;
 
 

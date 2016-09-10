@@ -188,12 +188,10 @@ void printUsage() {
     // print program usage
 
     puts("Usage: ");
-    puts(" sudoku-solver -l LOGFILE -s SVGFILE -v -h [ SUDOKU_STRING ]");
+    puts(" sudoku-solver -l LOGFILE -s SVGFILE -v -h SUDOKU_FILE");
     puts("");
     puts("Parameters:");
     puts("");
-    puts("  -f SUDOKUFILE  the Sudoku input file containing 9 lines of 9 number each.");
-    puts("              This represents the starting state of the Sudoku.");
     puts("  -l LOGFILE  printlog into LOGFILE (filename) instead of stdout");
     puts("  -s SVGFILE  write SVG representation of Sudoku grid into SVG files, each iteration will write");
     puts("              another SVG file with a numeric suffix appended. The SVG file without an additional");
@@ -201,8 +199,6 @@ void printUsage() {
     puts("              For example, when the parameter -s test.svg is specified, you will end up with SVG");
     puts("              files of test.svg.1, test.svg.2, test.svg.3 etc. plus the final grid, stored in the");
     puts("              file test.svg (without additional suffix).");
-    puts("  -t          game type, can be s(tandard), c(olor) or x (X-Sudoku). If not specified, standard");
-    puts("              is assumed");
     puts("  -v          verbose logging");
     puts("  -V          very verbose logging");
     puts("  -h          this help screen");
@@ -219,6 +215,8 @@ void initSudoku(Parameters *parameters) {
     unsigned *initialValues;
     unsigned value;
 
+    setGameType(parameters->gameType);
+    
     // initialize Sudoku data lines
     dimensionGrid(parameters->maxNumber);
 

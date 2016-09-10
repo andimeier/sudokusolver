@@ -4,6 +4,7 @@
 #include <assert.h>
 #include <string.h>
 #include <stdlib.h>
+#include <stdio.h>
 #include "grid.h"
 #include "gametype.h"
 #include "logfile.h"
@@ -93,23 +94,19 @@ ContainerType *getContainerTypes(GameType gameType) {
 GameType parseGametypeString(char *gametypeString) {
 
     if (!strncmp(gametypeString, "standard", strlen(gametypeString))) {
-        gameType = STANDARD_SUDOKU;
-        gameTypeString = strdup("Standard Sudoku");
+        setGameType(STANDARD_SUDOKU);
         logVerbose("Game type: Standard Sudoku");
 
     } else if (!strncmp(gametypeString, "x", strlen(gametypeString))) {
-        gameType = X_SUDOKU;
-        gameTypeString = strdup("X Sudoku");
+        setGameType(X_SUDOKU);
         logVerbose("Game type: X-Sudoku");
 
     } else if (!strncmp(gametypeString, "color", strlen(gametypeString))) {
-        gameType = COLOR_SUDOKU;
-        gameTypeString = strdup("Color Sudoku");
+        setGameType(COLOR_SUDOKU);
         logVerbose("Game type: Color Sudoku");
 
     } else if (!strncmp(gametypeString, "jigsaw", strlen(gametypeString))) {
-        gameType = JIGSAW_SUDOKU;
-        gameTypeString = strdup("Jigsaw Sudoku");
+        setGameType(JIGSAW_SUDOKU);
         logVerbose("Game type: Color Sudoku");
 
     } else {
@@ -128,7 +125,29 @@ GameType parseGametypeString(char *gametypeString) {
  * @param gameType the game type to be set
  */
 void setGameType(GameType _gameType) {
+
     gameType = _gameType;
+
+    switch (gameType) {
+        case STANDARD_SUDOKU:
+            gameTypeString = strdup("Standard Sudoku");
+            break;
+
+        case X_SUDOKU:
+            gameTypeString = strdup("X Sudoku");
+            break;
+
+        case COLOR_SUDOKU:
+            gameTypeString = strdup("Color Sudoku");
+            break;
+            
+        case JIGSAW_SUDOKU:
+            gameTypeString = strdup("Jigsaw Sudoku");
+            break;
+            
+        default:
+            gameTypeString = strdup("UNKNOWN GAME TYPE");
+    }
 }
 
 /**

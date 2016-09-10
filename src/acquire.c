@@ -16,7 +16,7 @@
 #include "parameters.h"
 
 typedef enum {
-    VALUES, SHAPES
+    VALUES_DATA, SHAPES_DATA
 } DataLineType;
 
 typedef struct {
@@ -68,7 +68,7 @@ Parameters *readSudoku(char *inputFilename) {
 
     // initialize read mode
     readStatus.dimensioned = FALSE; // we do not know the Sudoku dimension yet
-    readStatus.dataLineType = VALUES; // not in the definition of jigsaw shapes
+    readStatus.dataLineType = VALUES_DATA; // not in the definition of jigsaw shapes
     readStatus.sudokuLinesRead = 0; // 0 data lines read until now
     readStatus.shapeLinesRead = 0; // 0 lines containing shape IDs read until now
     readStatus.fileLineNo = 0; // no line read from file
@@ -227,11 +227,11 @@ void processControlLine(ReadStatus *readStatus, Parameters *parameters, char *li
     // the following settings do not need a settingValue
     if (!strcmp(settingName, "shapes")) {
         // switch on "shapes interpretation mode"
-        readStatus->dataLineType = SHAPES;
+        readStatus->dataLineType = SHAPES_DATA;
         return;
     } else if (!strcmp(settingName, "value")) {
         // switch off "shapes interpretation mode"
-        readStatus->dataLineType = VALUES;
+        readStatus->dataLineType = VALUES_DATA;
         return;
     }
 
@@ -283,9 +283,9 @@ void processDataLine(ReadStatus *readStatus, Parameters *parameters, char *line)
      * or shape information
      */
 
-    if (readStatus->dataLineType == VALUES) {
+    if (readStatus->dataLineType == VALUES_DATA) {
         readLineWithValues(readStatus, parameters, line);
-    } else if (readStatus->dataLineType == SHAPES) {
+    } else if (readStatus->dataLineType == SHAPES_DATA) {
         readLineWithShapes(readStatus, parameters, line);
     }
 }
