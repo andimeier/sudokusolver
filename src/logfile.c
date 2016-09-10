@@ -23,7 +23,16 @@ char buffer[1000];
 
 static char buffer2[1000];
 
-unsigned logLevel = LOGLEVEL_ERRORS; // 0 ... no logging, 1 ... solved cells, 2 ... changes, 9 ... debug
+static LogLevel logLevel = LOGLEVEL_ERRORS; // 0 ... no logging, 1 ... solved cells, 2 ... changes, 9 ... debug
+
+/**
+ * sets the log level
+ * 
+ * @param logLevel
+ */
+void setLogLevel(LogLevel _logLevel) {
+    logLevel = _logLevel;
+}
 
 /**
  * show the remaining candidates for the specified field

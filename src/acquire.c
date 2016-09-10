@@ -28,6 +28,7 @@ typedef struct {
     // debugging messages
 } ReadStatus;
 
+static void initParameters();
 static void processLine(ReadStatus *readStatus, Parameters *parameters, char *line);
 static void processControlLine(ReadStatus *readStatus, Parameters *parameters, char *line);
 static void processDataLine(ReadStatus *readStatus, Parameters *parameters, char *line);
@@ -73,7 +74,7 @@ Parameters *readSudoku(char *inputFilename) {
     readStatus.shapeLinesRead = 0; // 0 lines containing shape IDs read until now
     readStatus.fileLineNo = 0; // no line read from file
 
-    parameters.maxNumber = 0; // undimensioned
+    initParameters();
 
     while (!feof(file)) {
 
@@ -101,14 +102,14 @@ Parameters *readSudoku(char *inputFilename) {
         exit(EXIT_FAILURE);
     }
 
-    if (parameters.gameType == JIGSAW_SUDOKU 
+    if (parameters.gameType == JIGSAW_SUDOKU
             && readStatus.shapeLinesRead != parameters.maxNumber) {
         logError("Error reading the Jigsaw Sudoku from file: too few rows with shape definitions.");
         exit(EXIT_FAILURE);
     }
 
     return &parameters;
- 
+
     if (parameters.gameType != JIGSAW_SUDOKU && readStatus.shapeLinesRead) {
         logError("shape definitions found, but game type is not \"Jigsaw\".");
         exit(EXIT_FAILURE);
@@ -427,10 +428,23 @@ void set(Parameters *parameters, char *name, char *value) {
     // interpret the setting
     if (!strcmp(name, "type")) {
         // specify type of Sudoku
-        parameters->gameType = parseGametypeString(value);
+        parameters->gameType = parseGameTypeString(value);
 
     } else if (!strcmp(name, "box")) {
         // specify box size
         parseBoxDimensionString(value, &(parameters->boxWidth), &(parameters->boxHeight));
     }
+}
+
+/**
+ * initialize parameters structure
+ */
+void initParameters() {
+    parameters.gameType = STANDARD_SUDOKU;
+    parameters.maxNumber = 0; // uninitialized yet
+    parameters.numberOfFields = 0; // uninitialized yet
+    parameters.boxWidth = 0; // uninitialized yet
+    parameters.boxHeight = 0; // uninitialized yet
+    parameters.initialValues = NULL;
+    parameters.shapes = NULL;
 }

@@ -5,6 +5,7 @@
 #include <stdlib.h>
 #include <string.h>
 #include <ctype.h>
+#include <unistd.h>
 #include <assert.h>
 #include "logfile.h"
 #include "parameters.h"
@@ -17,9 +18,9 @@ static CommandLineArgs arguments;
  * 
  * @param argc
  * @param argv
- * @return parsed command line arguments
+ * @return parsed command line arguments or NULL on error
  */
-CommandLineArgs parseCommandLineArguments(int argc, char **argv) {
+CommandLineArgs *parseCommandLineArguments(int argc, char **argv) {
     int c;
 
     // set default values, if not overridden by command line arguments
@@ -27,6 +28,7 @@ CommandLineArgs parseCommandLineArguments(int argc, char **argv) {
     arguments.gametypeString = NULL;
     arguments.outputFilename = NULL; // filename of printlog file
     arguments.inputFilename = NULL;
+    arguments.help = FALSE;
     
     // read command line arguments
     opterr = 0;
@@ -36,16 +38,19 @@ CommandLineArgs parseCommandLineArguments(int argc, char **argv) {
             case 'v':
                 arguments.logLevel = LOGLEVEL_VERBOSE;
                 break;
+
             case 'V':
                 arguments.logLevel = LOGLEVEL_VERBOSE;
                 break;
+
             case 'l':
                 arguments.outputFilename = optarg;
                 break;
+
             case 'h':
-                printUsage();
-                return NULL;
+                arguments.help = TRUE;
                 break;
+
             case '?':
                 if (optopt == 'l' || optopt == 's')
                     fprintf(stderr, "Option -%d requires an argument.\n", optopt);
@@ -53,9 +58,10 @@ CommandLineArgs parseCommandLineArguments(int argc, char **argv) {
                     fprintf(stderr, "Unknown option `-%c'.\n", optopt);
                 else
                     fprintf(stderr, "Unknown option character `\\x%x'.\n", optopt);
-                return 1;
+                return NULL;
+
             default:
-                abort();
+                abort(); // should never happen, if getopt works
         }
 
     // first positional parameter is the filename of the Sudoku definition file
@@ -67,10 +73,10 @@ CommandLineArgs parseCommandLineArguments(int argc, char **argv) {
     if (!arguments.inputFilename) {
         fprintf(stderr, "Missing Sudoku filename\n");
         fprintf(stderr, "See usage page for details: -h");
-        exit(EXIT_FAILURE);
+        return NULL;
     }
 
-    return arguments;
+    return &arguments;
 }
 
 /**

@@ -16,6 +16,7 @@
 #include "column.h"
 #include "box.h"
 #include "diagonal.h"
+#include "shapes.h"
 #include "typedefs.h"
 
 
@@ -42,6 +43,9 @@ void setContainerSet(ContainerSet *containerSet, ContainerType containerType) {
             break;
         case DIAGONALS:
             createDiagonalContainers(containerSet);
+            break;
+        case SHAPES:
+            createShapeContainers(containerSet);
             break;
     }
 }

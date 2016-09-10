@@ -13,6 +13,9 @@
 #include "gametype.h"
 #include "acquire.h"
 #include "printgrid.h"
+#include "parameters.h"
+#include "shapes.h"
+#include "box.h"
 
 static void printUsage();
 static void initSudoku(Parameters *parameters);
@@ -20,18 +23,32 @@ static void initSudoku(Parameters *parameters);
 int main(int argc, char **argv) {
     int result;
     Parameters *parameters;
+    CommandLineArgs *args;
 
-    CommandLineArgs arguments = parseCommandLineArguments(argc, argv);
-    
+    // command line parsing
+    // ====================
 
-    if (outputFilename) {
-        openLogFile(outputFilename);
+    args = parseCommandLineArguments(argc, argv);
+
+    if (!args) {
+        // error in command line argument processing
+        exit(EXIT_FAILURE);
     }
 
+    if (args->help) {
+        // help requested
+        printUsage();
+        exit(EXIT_SUCCESS);
+    }
 
+    // init phase
+    // ==========
 
-    // START
-    // =====
+    setLogLevel(args->logLevel);
+
+    if (args->outputFilename) {
+        openLogFile(args->outputFilename);
+    }
 
     /*
      * start with a default Sudoku grid, can be overridden when the command
@@ -49,7 +66,7 @@ int main(int argc, char **argv) {
      * numbers. 
      */
     // try to load Sudoku from file
-    parameters = readSudoku(inputFilename);
+    parameters = readSudoku(args->inputFilename);
     if (!parameters) {
         exit(EXIT_FAILURE);
     }
@@ -65,12 +82,10 @@ int main(int argc, char **argv) {
      */
     setupGrid();
 
-    if (logLevel >= LOGLEVEL_VERBOSE) {
-        logVerbose("Initial Sudoku:");
-        show(0);
-    }
-
     initLog();
+
+    // START (solve Sudoku)
+    // ====================
 
     result = solve();
 
@@ -157,6 +172,8 @@ void printUsage() {
 /**
  * dimension Sudoku and allocate fields
  * 
+ * FIXME: move function to grid.c
+ * 
  * @param parameters the Sudoku parameters (read from the Sudoku file)
  */
 void initSudoku(Parameters *parameters) {
@@ -165,7 +182,7 @@ void initSudoku(Parameters *parameters) {
     unsigned value;
 
     setGameType(parameters->gameType);
-    
+
     // initialize Sudoku data lines
     dimensionGrid(parameters->maxNumber);
 
@@ -180,7 +197,7 @@ void initSudoku(Parameters *parameters) {
     }
 
     setSudokuType(parameters->gameType);
-    
+
     if (parameters->gameType == JIGSAW_SUDOKU) {
         setShapes(parameters->shapes);
     }

@@ -91,7 +91,7 @@ ContainerType *getContainerTypes(GameType gameType) {
  * @param gametypeString
  * @return
  */
-GameType parseGametypeString(char *gametypeString) {
+GameType parseGameTypeString(char *gametypeString) {
 
     if (!strncmp(gametypeString, "standard", strlen(gametypeString))) {
         setGameType(STANDARD_SUDOKU);

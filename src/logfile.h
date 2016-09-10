@@ -23,8 +23,7 @@ extern "C" {
 
     extern char buffer[1000];
 
-    // one of the LOGLEVEL_* constants
-    extern LogLevel logLevel;
+    void setLogLevel(LogLevel logLevel);
     void logVerbose(char *text);
     void logError(char *text);
     void logAlways(char *text);
