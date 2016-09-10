@@ -14,15 +14,17 @@
 extern "C" {
 #endif
 
-#define LOGLEVEL_ERRORS   0
-#define LOGLEVEL_SOLVED_CELLS   1
-#define LOGLEVEL_CHANGES    2
-#define LOGLEVEL_VERBOSE    9
+    typedef enum {
+        LOGLEVEL_ERRORS,
+        LOGLEVEL_SOLVED_CELLS,
+        LOGLEVEL_CHANGES,
+        LOGLEVEL_VERBOSE
+    } LogLevel;
 
     extern char buffer[1000];
 
     // one of the LOGLEVEL_* constants
-    extern unsigned logLevel;
+    extern LogLevel logLevel;
     void logVerbose(char *text);
     void logError(char *text);
     void logAlways(char *text);

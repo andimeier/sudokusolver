@@ -82,6 +82,11 @@ void setSudokuType(unsigned type) {
  * @param maxNumber number of numbers = side length of the Sudoku grid
  */
 void dimensionGrid(size_t _maxNumber) {
+
+    // if the Sudoku is wider than 26 numbers, we might have a memory 
+    // allocation issue with the field->name (what is right of "Z26"?)
+    assert(_maxNumber <= 26);
+
     maxNumber = _maxNumber;
     numberOfFields = maxNumber * maxNumber;
 }

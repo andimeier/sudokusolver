@@ -13,6 +13,16 @@ extern "C" {
 #endif
 
 #include "gametype.h"
+#include "logfile.h"
+
+    typedef struct {
+        LogLevel logLevel;
+        char *gametypeString;
+        char *outputFilename;
+        char *inputFilename;
+    } CommandLineArgs;
+
+    CommandLineArgs parseCommandLineArguments(int argc, char **argv);
 
     void toLowerStr(char *str);
     void parseBoxDimensionString(char *boxDimensionString, unsigned *width, unsigned *height);

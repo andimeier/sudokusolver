@@ -19,61 +19,10 @@ static void initSudoku(Parameters *parameters);
 
 int main(int argc, char **argv) {
     int result;
-    int c;
-    char *outputFilename = NULL; // filename of printlog file
-    char *inputFilename = NULL;
-    char *sudokuString = NULL;
-    char *gametypeString = NULL;
     Parameters *parameters;
 
-    // if the Sudoku is wider than 26 numbers, we have a memory allocation issue
-    // with the field->name (what is right of "Z26"?)
-    assert(maxNumber <= 26);
-
-    // read command line arguments
-    opterr = 0;
-
-    while ((c = getopt(argc, argv, "hvVl:s:")) != -1)
-        switch (c) {
-            case 'v':
-                logLevel = LOGLEVEL_VERBOSE;
-                break;
-            case 'V':
-                logLevel = LOGLEVEL_VERBOSE;
-                break;
-            case 's':
-                svgFilename = optarg;
-                break;
-            case 'l':
-                outputFilename = optarg;
-                break;
-            case 'h':
-                printUsage();
-                return 0;
-                break;
-            case '?':
-                if (optopt == 'l' || optopt == 's')
-                    fprintf(stderr, "Option -%d requires an argument.\n", optopt);
-                else if (isprint(optopt))
-                    fprintf(stderr, "Unknown option `-%c'.\n", optopt);
-                else
-                    fprintf(stderr, "Unknown option character `\\x%x'.\n", optopt);
-                return 1;
-            default:
-                abort();
-        }
-
-    // first positional parameter is the filename of the Sudoku definition file
-    if (optind < argc) {
-        inputFilename = argv[optind];
-    }
-
-    // if no sudoku is given
-    if (!sudokuString && !inputFilename) {
-        fprintf(stderr, "Missing Sudoku filename\n");
-        fprintf(stderr, "See usage page for details: -h");
-        exit(EXIT_FAILURE);
-    }
+    CommandLineArgs arguments = parseCommandLineArguments(argc, argv);
+    
 
     if (outputFilename) {
         openLogFile(outputFilename);
