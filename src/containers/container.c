@@ -29,8 +29,6 @@
  */
 void setContainerSet(ContainerSet *containerSet, ContainerType containerType) {
 
-    assert(containerType >= ROWS && containerType <= DIAGONALS);
-
     switch (containerType) {
         case ROWS:
             createRowContainers(containerSet);
