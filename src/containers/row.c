@@ -11,7 +11,6 @@
 static char *getRowName(unsigned index);
 //static int determineRowContainer(unsigned x, unsigned y);
 static void fillContainerFields(unsigned containerIndex, FieldsVector *fields);
-static unsigned determineRowContainersCount(void);
 
 /**
  * get the name of a row container
@@ -61,17 +60,6 @@ void fillContainerFields(unsigned containerIndex, FieldsVector *fields) {
     }
 }
 
-
-/**
- * return number of row containers necessary to hold the Sudoku data.
- * In many cases (like this) the number of containers of this type will be
- * equal to maxNumber, but in some cases it might not, e.g. for diagonals
- * there would be only 2 containers.
- * @return the number of needed containers of this type
- */
-unsigned determineRowContainersCount(void) {
-    return maxNumber;
-}
 
 /**
  * creates a container set for rows, along with all needed containers instances

@@ -12,7 +12,6 @@
 static char *getDiagonalName(unsigned index);
 //static int determineDiagonalContainer(unsigned x, unsigned y);
 static void fillContainerFields(unsigned containerIndex, FieldsVector *fields);
-static unsigned determineDiagonalContainersCount(void);
 
 /**
  * get the name of a diagonal container
@@ -80,15 +79,6 @@ void fillContainerFields(unsigned containerIndex, FieldsVector *fields) {
 
         fields[n] = getFieldAt(x, y);
     }
-}
-
-/**
- * return number of diagonal containers necessary to hold the Sudoku data.
- * There are only 2 diagonals.
- * @return the number of needed containers of this type
- */
-unsigned determineDiagonalContainersCount(void) {
-    return 2;
 }
 
 /**

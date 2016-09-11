@@ -12,7 +12,6 @@
 
 static char *getBoxName(unsigned index);
 static void fillContainerFields(unsigned containerIndex, FieldsVector *fields);
-static unsigned determineBoxContainersCount(void);
 static void getBoxDimensions(unsigned maxNumber, unsigned *width, unsigned *height);
 
 static unsigned boxWidth = 0;
@@ -76,17 +75,6 @@ void fillContainerFields(unsigned containerIndex, FieldsVector *fields) {
 
         fields[n] = getFieldAt(boxStartX + boxX, boxStartY + boxY);
     }
-}
-
-/**
- * return number of box containers necessary to hold the Sudoku data.
- * In many cases (like this) the number of containers of this type will be
- * equal to maxNumber, but in some cases it might not, e.g. for diagonals
- * there would be only 2 containers.
- * @return the number of needed containers of this type
- */
-unsigned determineBoxContainersCount(void) {
-    return maxNumber;
 }
 
 /**

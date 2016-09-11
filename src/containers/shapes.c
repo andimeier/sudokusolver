@@ -12,7 +12,6 @@
 
 static char *getShapeName(unsigned index);
 static void fillContainerFields(unsigned containerIndex, FieldsVector *fields);
-static unsigned determineShapeContainersCount(void);
 
 static unsigned *shapes;
 
@@ -47,17 +46,6 @@ void fillContainerFields(unsigned containerIndex, FieldsVector *containerFields)
             containerFields++;
         }
     }
-}
-
-/**
- * return number of shape containers necessary to hold the Sudoku data.
- * In many cases (like this) the number of containers of this type will be
- * equal to maxNumber, but in some cases it might not, e.g. for diagonals
- * there would be only 2 containers.
- * @return the number of needed containers of this type
- */
-unsigned determineShapeContainersCount(void) {
-    return maxNumber;
 }
 
 /**
