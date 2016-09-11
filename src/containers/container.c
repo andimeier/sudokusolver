@@ -16,7 +16,7 @@
 #include "column.h"
 #include "box.h"
 #include "diagonal.h"
-#include "shapes.h"
+#include "shape.h"
 #include "typedefs.h"
 
 

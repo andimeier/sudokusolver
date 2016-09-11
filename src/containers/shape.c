@@ -6,7 +6,7 @@
 #include "grid.h"
 #include "logfile.h"
 #include "util.h"
-#include "shapes.h"
+#include "shape.h"
 #include "container.h"
 
 

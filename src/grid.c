@@ -16,7 +16,7 @@
 #include "container.h"
 #include "gametype.h"
 #include "box.h"
-#include "shapes.h"
+#include "shape.h"
 
 
 // function prototypes

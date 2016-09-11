@@ -14,7 +14,7 @@
 #include "acquire.h"
 #include "printgrid.h"
 #include "parameters.h"
-#include "shapes.h"
+#include "shape.h"
 #include "box.h"
 
 static void printUsage();
