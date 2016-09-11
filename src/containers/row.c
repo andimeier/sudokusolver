@@ -81,22 +81,9 @@ unsigned determineRowContainersCount(void) {
  * @return the number of generated container children of this container set
  */
 unsigned createRowContainers(ContainerSet *containerSet) {
-    char **instanceNames;
-    unsigned i;
-
-    instanceNames = (char **) xmalloc(sizeof (char *) * maxNumber);
-
-    for (i = 0; i < maxNumber; i++) {
-        sprintf(buffer, "row %c", (char) ('A' + i));
-        instanceNames[i] = strdup(buffer);
-    }
-
-    // check that the number of instance names is equal to the containers
-    // count stated by the auxiliary count function
-    assert(i == determineRowContainersCount());
 
     // delegate container creation to generic generator function
-    createContainers(ROWS, strdup("row"), maxNumber, instanceNames, containerSet);
+    createContainers(ROWS, strdup("row"), maxNumber, containerSet);
 
     containerSet->fillContainerFields = &fillContainerFields;
     containerSet->getContainerName = &getRowName;

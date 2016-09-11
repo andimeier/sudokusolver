@@ -35,25 +35,18 @@ char *getShapeName(unsigned index) {
  * of this container
  * 
  * @param containerIndex the index of the container which should be filled
- * @param fields pre-allocated vector of fields which will be filled by this
+ * @param containerFields pre-allocated vector of fields which will be filled by this
  *   function
  */
-void fillContainerFields(unsigned containerIndex, FieldsVector *fields) {
-    unsigned n;
-    unsigned shapeStartX;
-    unsigned shapeStartY;
-    unsigned shapeX;
-    unsigned shapeY;
-
-//    shapeStartX = containerIndex % (maxNumber / shapeWidth) * shapeWidth;
-//    shapeStartY = containerIndex / (maxNumber / shapeWidth) * shapeHeight;
-//
-//    for (n = 0; n < maxNumber; n++) {
-//        shapeX = n % shapeWidth;
-//        shapeY = n / shapeWidth;
-//
-//        fields[n] = getFieldAt(shapeStartX + shapeX, shapeStartY + shapeY);
-//    }
+void fillContainerFields(unsigned containerIndex, FieldsVector *containerFields) {
+    unsigned i;
+    
+    for (i = 0; i < numberOfFields; i++) {
+        if (shapes[i] == containerIndex) {
+            *containerFields = &(fields[i]);
+            containerFields++;
+        }
+    }
 }
 
 /**
@@ -75,31 +68,9 @@ unsigned determineShapeContainersCount(void) {
  * @return the number of generated container children of this container set
  */
 unsigned createShapeContainers(ContainerSet *containerSet) {
-    char **instanceNames;
-
-    //    sprintf(buffer, "shape size: %u x %u", shapeWidth, shapeHeight);
-    //    logAlways(buffer);
-    //
-    //    // sanity check
-    //    if (shapeWidth * shapeHeight != maxNumber) {
-    //        sprintf(buffer, "illegal shape size: a %u x %u shape does not hold exactly %zu numbers", shapeWidth, shapeHeight, maxNumber);
-    //        logError(buffer);
-    //        exit(EXIT_FAILURE);
-    //    }
-    //    
-    //    instanceNames = (char **) xmalloc(sizeof (char *) * maxNumber);
-    //
-    //    for (i = 0; i < maxNumber; i++) {
-    //        sprintf(buffer, "shape %u", i + 1);
-    //        instanceNames[i] = strdup(buffer);
-    //    }
-    //
-    //    // check that the number of instance names is equal to the containers
-    //    // count stated by the auxiliary count function
-    //    assert(i == determineShapeContainersCount());
-
+ 
     // delegate container creation to generic generator function
-    createContainers(SHAPES, strdup("shape"), maxNumber, instanceNames, containerSet);
+    createContainers(SHAPES, strdup("shape"), maxNumber, containerSet);
 
     containerSet->fillContainerFields = &fillContainerFields;
     containerSet->getContainerName = &getShapeName;

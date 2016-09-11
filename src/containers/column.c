@@ -80,22 +80,9 @@ unsigned determineColumnContainersCount(void) {
  * @return the number of generated container children of this container set
  */
 unsigned createColumnContainers(ContainerSet * containerSet) {
-    char **instanceNames;
-    unsigned i;
-
-    instanceNames = (char **) xmalloc(sizeof (char *) * maxNumber);
-
-    for (i = 0; i < maxNumber; i++) {
-        sprintf(buffer, "column %u", i + 1);
-        instanceNames[i] = strdup(buffer);
-    }
-
-    // check that the number of instance names is equal to the containers
-    // count stated by the auxiliary count function
-    assert(i == determineColumnContainersCount());
 
     // delegate container creation to generic generator function
-    createContainers(COLS, strdup("column"), maxNumber, instanceNames, containerSet);
+    createContainers(COLS, strdup("column"), maxNumber, containerSet);
 
     containerSet->fillContainerFields = &fillContainerFields;
     containerSet->getContainerName = &getColumnName;

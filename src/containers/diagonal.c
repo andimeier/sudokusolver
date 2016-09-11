@@ -99,19 +99,9 @@ unsigned determineDiagonalContainersCount(void) {
  * @return the number of generated container children of this container set
  */
 unsigned createDiagonalContainers(ContainerSet *containerSet) {
-    char **instanceNames;
-
-    instanceNames = (char **) xmalloc(sizeof (char *) * 2);
-
-    instanceNames[0] = strdup("falling diagonal");
-    instanceNames[1] = strdup("asending diagonal");
-
-    // check that the number of instance names is equal to the containers
-    // count stated by the auxiliary count function
-    assert(2 == determineDiagonalContainersCount());
 
     // delegate container creation to generic generator function
-    createContainers(DIAGONALS, strdup("diagonals"), 2, instanceNames, containerSet);
+    createContainers(DIAGONALS, strdup("diagonals"), 2, containerSet);
 
     containerSet->fillContainerFields = &fillContainerFields;
     containerSet->getContainerName = &getDiagonalName;

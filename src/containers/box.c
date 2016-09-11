@@ -97,8 +97,6 @@ unsigned determineBoxContainersCount(void) {
  * @return the number of generated container children of this container set
  */
 unsigned createBoxContainers(ContainerSet *containerSet) {
-    char **instanceNames;
-    unsigned i;
 
     // if box dimensions are not yet set manually, try to determine the
     // dimensions automatically, based on the "side length" of the Sudoku
@@ -122,19 +120,8 @@ unsigned createBoxContainers(ContainerSet *containerSet) {
         exit(EXIT_FAILURE);
     }
     
-    instanceNames = (char **) xmalloc(sizeof (char *) * maxNumber);
-
-    for (i = 0; i < maxNumber; i++) {
-        sprintf(buffer, "box %u", i + 1);
-        instanceNames[i] = strdup(buffer);
-    }
-
-    // check that the number of instance names is equal to the containers
-    // count stated by the auxiliary count function
-    assert(i == determineBoxContainersCount());
-
     // delegate container creation to generic generator function
-    createContainers(BOXES, strdup("box"), maxNumber, instanceNames, containerSet);
+    createContainers(BOXES, strdup("box"), maxNumber, containerSet);
 
     containerSet->fillContainerFields = &fillContainerFields;
     containerSet->getContainerName = &getBoxName;

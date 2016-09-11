@@ -57,16 +57,12 @@ void setContainerSet(ContainerSet *containerSet, ContainerType containerType) {
  * @param name name of the container set, e.g. "row"
  * @param numberOfInstances the number of container instance (child containers).
  *   For a container set ROWS, this is the number of rows.
- * @param instanceNames list of strings representing the name of each child 
- *   container, respectively
  * @param containerSet the container set structure to be filled with data
  */
-void createContainers(ContainerType type, char *name, size_t numberOfInstances, char *instanceNames[], ContainerSet *containerSet) {
+void createContainers(ContainerType type, char *name, size_t numberOfInstances, ContainerSet *containerSet) {
 
     containerSet->name = name;
     containerSet->type = type;
     containerSet->numberOfContainers = numberOfInstances;
     containerSet->containers = (Container **) xmalloc(sizeof (Container *) * (numberOfInstances + 1));
-
-    // FIXME instanceNames cannot used here because containers are not allocated yet
 }
