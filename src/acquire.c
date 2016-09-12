@@ -366,7 +366,7 @@ void readLineWithShapes(ReadStatus *readStatus, Parameters *parameters, char *li
         c = line[x];
 
         if ((c >= '0') && (c <= (char) (maxNumber + (int) '0'))) {
-            parameters->initialValues[y * parameters->maxNumber + x] = (int) (c - '0');
+            parameters->shapes[y * parameters->maxNumber + x] = (int) (c - '0');
 
         } else {
             sprintf(buffer, "Error reading the Sudoku from file: illegal character ('%c') in shape definitions in line %d at position %d.", c, readStatus->fileLineNo, x + 1);
