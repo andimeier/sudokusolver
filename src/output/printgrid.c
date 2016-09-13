@@ -75,6 +75,7 @@ static void drawVerticalBorderLeft(unsigned x, unsigned y);
 
 // line character set in the order of the enum LineChars
 static char asciiLines[13] = " |-+++++++++";
+static char reducedAsciiLines[13] = " |-    +++++";
 static char drawnLines[13] = {0x20, 0x78, 0x71, 0x6a, 0x6b, 0x6c, 0x6d, 0x75, 0x77, 0x74, 0x76, 0x6e};
 static char *charset;
 
@@ -104,6 +105,7 @@ void printGrid(FieldValue whichValue) {
     clear();
 
     charset = asciiLines;
+    charset = reducedAsciiLines;
 //        charset = drawnLines;
 
     printBoxBoundaries();
