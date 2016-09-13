@@ -15,7 +15,7 @@ extern "C" {
 #endif
 
     unsigned createShapeContainers(ContainerSet *containerSet);
-    void setShapes(unsigned *_shapes);
+    void setShapes(char *_shapeIds, char *_shapes);
 
 #ifdef	__cplusplus
 }

@@ -26,7 +26,8 @@ extern "C" {
         unsigned boxWidth;
         unsigned boxHeight;
         unsigned *initialValues;
-        unsigned *shapes;
+        char *shapeIds; // null-terminated list of shape IDs
+        char *shapes; // shape identifiers for each field
     } Parameters;
 
     Parameters *readSudoku(char *inputFilename);

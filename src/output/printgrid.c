@@ -104,7 +104,7 @@ void printGrid(FieldValue whichValue) {
     clear();
 
     charset = asciiLines;
-    //    charset = drawnLines;
+//        charset = drawnLines;
 
     printBoxBoundaries();
 
@@ -481,6 +481,9 @@ unsigned getContainerSetIndexForPrintingBoxes() {
         case X_SUDOKU:
         case COLOR_SUDOKU:
             containerTypeContainingBoxes = BOXES;
+            break;
+        case JIGSAW_SUDOKU:
+            containerTypeContainingBoxes = SHAPES;
             break;
         default:
             // we should never get here

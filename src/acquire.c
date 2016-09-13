@@ -38,6 +38,11 @@ static void allocateValues(Parameters *parameters);
 static void allocateShapeDefinitions(Parameters *parameters);
 static void set(Parameters *parameters, char *name, char *value);
 
+// char list functions
+static Bool charListContains(const char *charList, char c);
+static size_t numberOfChars(const char *charList);
+static void appendChar(char *charList, char c);
+
 Parameters parameters;
 
 /**
@@ -98,22 +103,27 @@ Parameters *readSudoku(char *inputFilename) {
     fclose(file);
 
     if (readStatus.sudokuLinesRead != parameters.maxNumber) {
-        logError("Error reading the Sudoku from file: too few data rows.");
+        logError("error reading the Sudoku from file: too few data rows.");
         exit(EXIT_FAILURE);
     }
 
     if (parameters.gameType == JIGSAW_SUDOKU
             && readStatus.shapeLinesRead != parameters.maxNumber) {
-        logError("Error reading the Jigsaw Sudoku from file: too few rows with shape definitions.");
+        logError("error reading the Jigsaw Sudoku from file: too few rows with shape definitions.");
         exit(EXIT_FAILURE);
     }
-
-    return &parameters;
 
     if (parameters.gameType != JIGSAW_SUDOKU && readStatus.shapeLinesRead) {
         logError("shape definitions found, but game type is not \"Jigsaw\".");
         exit(EXIT_FAILURE);
     }
+
+    if (parameters.gameType == JIGSAW_SUDOKU
+            && numberOfChars(parameters.shapeIds) != parameters.maxNumber) {
+        logError("error reading the Jigsaw Sudoku from file: too few shape IDs.");
+        exit(EXIT_FAILURE);
+    }
+
 
     return &parameters;
 }
@@ -360,13 +370,25 @@ void readLineWithShapes(ReadStatus *readStatus, Parameters *parameters, char *li
 
 
     /*
-     * go through all chars of the line, should be only digits
+     * go through all chars of the line, should be only digits or letters
      */
     for (x = 0; x < maxNumber; x++) {
         c = line[x];
 
-        if ((c >= '0') && (c <= (char) (maxNumber + (int) '0'))) {
-            parameters->shapes[y * parameters->maxNumber + x] = (int) (c - '0');
+        // allowed chars are 0-9, a-z and A-Z (case sensitive)
+        if (isalnum(c)) {
+            parameters->shapes[y * parameters->maxNumber + x] = c;
+
+            if (!charListContains(parameters->shapeIds, c)) {
+                // add new shape ID to current list of shape IDs
+                if (numberOfChars(parameters->shapeIds) < maxNumber) {
+                    appendChar(parameters->shapeIds, c);
+                } else {
+                    sprintf(buffer, "Error reading the Sudoku from file: more than %u different shape IDs. The %u'th one is: %c (in line %d at position %d). The other ones are: %s.", maxNumber, maxNumber + 1, c, readStatus->fileLineNo, x + 1, parameters->shapeIds);
+                    logError(buffer);
+                    exit(EXIT_FAILURE);
+                }
+            }
 
         } else {
             sprintf(buffer, "Error reading the Sudoku from file: illegal character ('%c') in shape definitions in line %d at position %d.", c, readStatus->fileLineNo, x + 1);
@@ -403,16 +425,21 @@ void allocateValues(Parameters *parameters) {
  */
 void allocateShapeDefinitions(Parameters *parameters) {
     int i;
-    unsigned *shapeDefinitions;
+    char *shapeDefinitions;
+    char *shapeIds;
 
     // initialize Sudoku data lines
-    shapeDefinitions = (unsigned *) xmalloc(sizeof (unsigned) * parameters->numberOfFields);
+    shapeDefinitions = (char *) xmalloc(sizeof (char) * parameters->numberOfFields);
+    shapeIds = (char *) xmalloc(sizeof (char) * (parameters->maxNumber + 1));
 
     for (i = parameters->numberOfFields - 1; i >= 0; i--) {
-        shapeDefinitions[i] = 0; // default for each field: no shape ID given
+        shapeDefinitions[i] = '\0'; // default for each field: no shape ID given
     }
 
+    shapeIds[0] = '\0'; // empty list
+
     parameters->shapes = shapeDefinitions;
+    parameters->shapeIds = shapeIds;
 }
 
 /**
@@ -447,4 +474,36 @@ void initParameters() {
     parameters.boxHeight = 0; // uninitialized yet
     parameters.initialValues = NULL;
     parameters.shapes = NULL;
+    parameters.shapeIds = NULL;
+}
+
+/**
+ * sort shape IDs inline.
+ * 
+ * @param parameters
+ */
+void sortShapeIds(Parameters *parameters) {
+}
+
+/**
+ * checks if the list of characters contains the given character
+ * 
+ * @param charList '\0' terminated list of characters
+ * @param c the character to be searched for
+ * @return TRUE if the list container the character, FALSE if not
+ */
+Bool charListContains(const char *charList, char c) {
+    return strchr(charList, (int) c) ? TRUE : FALSE;
+}
+
+size_t numberOfChars(const char *charList) {
+    return strlen(charList);
+}
+
+void appendChar(char *charList, char c) {
+    char *oneChar;
+
+    oneChar = strdup("X"); // one dummy character
+    oneChar[0] = c;
+    strcat(charList, oneChar);
 }

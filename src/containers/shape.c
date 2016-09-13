@@ -13,7 +13,8 @@
 static char *getShapeName(unsigned index);
 static void fillContainerFields(unsigned containerIndex, FieldsVector *fields);
 
-static unsigned *shapes;
+static char *shapeIds;
+static char *shapes;
 
 /**
  * get the name of a shape container
@@ -25,7 +26,7 @@ static unsigned *shapes;
 char *getShapeName(unsigned index) {
     assert(index >= 0 && index < 26);
 
-    sprintf(buffer, "shape %u", index + 1);
+    sprintf(buffer, "shape %c", shapeIds[index]);
     return strdup(buffer);
 }
 
@@ -39,9 +40,14 @@ char *getShapeName(unsigned index) {
  */
 void fillContainerFields(unsigned containerIndex, FieldsVector *containerFields) {
     unsigned i;
+    char shapeId;
+    
+    shapeId = shapeIds[containerIndex];
+    
+    assert(shapeId != '\0');
     
     for (i = 0; i < numberOfFields; i++) {
-        if (shapes[i] == containerIndex) {
+        if (shapes[i] == shapeId) {
             *containerFields = &(fields[i]);
             containerFields++;
         }
@@ -63,16 +69,18 @@ unsigned createShapeContainers(ContainerSet *containerSet) {
     containerSet->fillContainerFields = &fillContainerFields;
     containerSet->getContainerName = &getShapeName;
 
-    // maxNumber shapees have been generated
+    // maxNumber shapes have been generated
     return maxNumber;
 }
 
 /**
  * creates the shapes definitions
  * 
+ * @param shapeIds the shape IDs as a null-terminated string
  * @param shapes the shape definitions, as an array of numbers representing the
  *   shape IDs
  */
-void setShapes(unsigned *_shapes) {
+void setShapes(char *_shapeIds, char *_shapes) {
     shapes = _shapes;
+    shapeIds = _shapeIds;
 }

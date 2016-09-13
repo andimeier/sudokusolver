@@ -91,6 +91,8 @@ Usage
 
 #### Control lines 
 With control lines in the Sudoku file, certain parameters can be set for the Sudoku.
+With control lines in the Sudoku file, certain parameters can be set for the Sudoku.
+With control lines in the Sudoku file, certain parameters can be set for the Sudoku.
 
 Such lines are made up like this:
 
@@ -129,8 +131,11 @@ Example:
 
 Specifies the shapes in a squiggly Sudoku (a Sudoku with irregular shaped boxes).
 
-The following lines specify the "squiggle index" each field belongs to. The indexes
-must range from 1 to maxNumber.
+The following lines specify the "shape ID" each field belongs to. The shape IDs are a single character of either
+
+* a digit
+* a lowercase letter
+* an uppercase letter
 
 There is no default - with squiggle Sudokus it is mandatory to specify the
 shapes with this directive.
