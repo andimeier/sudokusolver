@@ -60,7 +60,6 @@ typedef struct EntryRemoveCandidate {
     unsigned removedCandidate;
 } EntryRemoveCandidate;
 
-
 /**
  * set default values (which might be overridden by command line parameters
  * or other settings)
@@ -160,8 +159,10 @@ void initFields() {
     Field *field;
     unsigned *candidates;
     int i;
+    int f;
+    int n;
 
-    for (int f = 0; f < numberOfFields; f++) {
+    for (f = 0; f < numberOfFields; f++) {
         field = fields + f;
 
         field->x = f % maxNumber;
@@ -170,7 +171,7 @@ void initFields() {
         // allocate candidates
         candidates = (unsigned *) xmalloc(sizeof (unsigned) * maxNumber);
         // allow all candidates for the field
-        for (int n = 0; n < maxNumber; n++) {
+        for (n = 0; n < maxNumber; n++) {
             candidates[n] = n + 1;
         }
 
@@ -224,8 +225,9 @@ void initFields() {
  * free fields memory
  */
 void freeFields() {
+    int f;
 
-    for (int f = 0; f < numberOfFields; f++) {
+    for (f = 0; f < numberOfFields; f++) {
 
         free(fields[f].candidates);
     }
@@ -239,6 +241,9 @@ void freeFields() {
  */
 void initContainers() {
     unsigned index;
+    unsigned set;
+    unsigned containerIndex;
+    unsigned fieldIndex;
 
     // init and populate "all containers" vector
     allContainers = (Container *) xmalloc(sizeof (Container) * (numberOfContainers));
@@ -248,11 +253,11 @@ void initContainers() {
      * go through all container sets and generate all child containers for each
      * container set in turn
      */
-    for (unsigned set = 0; set < numberOfContainerSets; set++) {
+    for (set = 0; set < numberOfContainerSets; set++) {
         ContainerSet *containerSet = &(containerSets[set]);
 
         // generate the corresponding child containers
-        for (unsigned containerIndex = 0; containerIndex < containerSet->numberOfContainers; containerIndex++) {
+        for (containerIndex = 0; containerIndex < containerSet->numberOfContainers; containerIndex++) {
 
             containerPtr->name = containerSet->getContainerName(containerIndex);
             containerPtr->type = containerSet->type;
@@ -321,7 +326,7 @@ void initContainers() {
         Container *container = &(allContainers[index]);
 
         // check container
-        for (unsigned fieldIndex = 0; fieldIndex < maxNumber; fieldIndex++) {
+        for (fieldIndex = 0; fieldIndex < maxNumber; fieldIndex++) {
             // all maxNumber fields of the container must be initialized,
             // i.e. must point to a field
             assert(container->fields[fieldIndex]);
@@ -364,6 +369,10 @@ void freeContainers() {
 void setValue(Field *field, unsigned value) {
     Container **containers;
     Field *otherField;
+    int containerSetIndex;
+    int pos;
+    unsigned n;
+    unsigned *candidates;
 
     assert(value <= maxNumber);
 
@@ -374,14 +383,14 @@ void setValue(Field *field, unsigned value) {
     field->value = value;
 
     // check if the number does not occur in any neighbors in any containers
-    for (int containerSetIndex = 0; containerSetIndex < numberOfContainerSets; containerSetIndex++) {
+    for (containerSetIndex = 0; containerSetIndex < numberOfContainerSets; containerSetIndex++) {
         containers = field->containers[containerSetIndex];
 
         while (*containers) {
             Container *container;
 
             container = *containers;
-            for (int pos = 0; pos < maxNumber; pos++) {
+            for (pos = 0; pos < maxNumber; pos++) {
                 otherField = container->fields[pos];
                 if (otherField != field) {
                     /* 
@@ -397,8 +406,8 @@ void setValue(Field *field, unsigned value) {
     }
 
     // remove all candidates from this field
-    unsigned *candidates = field->candidates;
-    for (unsigned n = 1; n <= maxNumber; n++) {
+    candidates = field->candidates;
+    for (n = 1; n <= maxNumber; n++) {
 
         candidates[n - 1] = (n == value) ? value : 0;
     }
@@ -418,6 +427,7 @@ void setValue(Field *field, unsigned value) {
 void forbidNumberInNeighbors(Field *field, unsigned n) {
     Container **containers;
     unsigned numbers[2];
+    unsigned containerSetIndex;
 
     assert(n <= maxNumber);
 
@@ -438,7 +448,7 @@ void forbidNumberInNeighbors(Field *field, unsigned n) {
     preserve[1] = NULL;
 
     // forbid number in all other "neighboring fields"
-    for (unsigned containerSetIndex = 0; containerSetIndex < numberOfContainerSets; containerSetIndex++) {
+    for (containerSetIndex = 0; containerSetIndex < numberOfContainerSets; containerSetIndex++) {
         for (containers = field->containers[containerSetIndex]; *containers; containers++) {
             forbidNumbersInOtherFields(*containers, numbers, preserve);
         }
@@ -467,13 +477,14 @@ int forbidNumbersInOtherFields(Container *container, unsigned *n, Field **dontTo
     Field *field;
     unsigned candidate;
     unsigned *candidates;
+    int pos;
 
     //    showAllCandidates();
 
     progress = 0; // nothing has changed yet
 
     // walk through entire container
-    for (int pos = 0; pos < maxNumber; pos++) {
+    for (pos = 0; pos < maxNumber; pos++) {
         field = container->fields[pos];
 
         // ignore solved fields
@@ -868,7 +879,7 @@ void printLogRemoveCandidate(void *info) {
  * @return the field on the given coordinates
  */
 Field *getFieldAt(unsigned x, unsigned y) {
- 
+
     // sanity check
     if (!(x >= 0 && x < maxNumber) && settingUpContainer) {
         sprintf(buffer, "setting up container %s seems to be buggy (requested field at %u / %u)", settingUpContainer->name, x, y);
@@ -880,13 +891,12 @@ Field *getFieldAt(unsigned x, unsigned y) {
         logError(buffer);
         exit(EXIT_FAILURE);
     }
-    
+
     assert(x >= 0 && x < maxNumber);
     assert(y >= 0 && y < maxNumber);
 
     return (fields + y * maxNumber + x);
 }
-
 
 /**
  * dimension Sudoku and allocate fields
