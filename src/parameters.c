@@ -13,6 +13,11 @@
 
 static CommandLineArgs arguments;
 
+// variables defined by getopt
+extern char *optarg;
+extern int optind, opterr, optopt;
+
+
 /**
  * parse the command line arguments and provide them in a structure
  * 
