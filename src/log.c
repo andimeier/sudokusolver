@@ -60,7 +60,9 @@ void writeLog(print printFunc, void *info) {
  * calls the output function of the log entry
  */
 void printLog() {
-    for (unsigned i = 0; i < hist.count; i++) {
+    unsigned i;
+    
+    for (i = 0; i < hist.count; i++) {
         Entry *entry;
 
         entry = hist.entries[i];

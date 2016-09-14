@@ -65,7 +65,7 @@ TARGET = sudoku-solver
 LIBS = -lm
 CC = gcc
 #yypCFLAGS = -g -Wall -std=c99
-CFLAGS = -g -Wall
+CFLAGS = -g -Wall -std=c99
 
 TEST_TARGET = testrunner-sudoku-solver
 

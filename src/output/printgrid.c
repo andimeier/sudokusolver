@@ -19,11 +19,15 @@ static unsigned gridLineLength;
 static unsigned lineLength;
 static unsigned lineLengthWithLf;
 static unsigned numberOfLines;
+static unsigned numberOfLinesWithoutHeaderLines;
 static unsigned numberOfChars;
 static unsigned containerSetIndexForPrintingBoxes;
 
 /* 2 characters are reserved for row header */
 static const int rowHeaderChars = 2;
+
+/* 1 line reserved for column headers */
+static const int columnHeaderLines = 1;
 
 /*
  * line characters, e.g. t ... "line top", i.e. between quadrant I and II
@@ -75,6 +79,7 @@ static void drawVerticalBorderLeft(unsigned x, unsigned y);
 
 // line character set in the order of the enum LineChars
 static char asciiLines[13] = " |-+++++++++";
+static char reducedAsciiLines[13] = " |-    +++++";
 static char drawnLines[13] = {0x20, 0x78, 0x71, 0x6a, 0x6b, 0x6c, 0x6d, 0x75, 0x77, 0x74, 0x76, 0x6e};
 static char *charset;
 
@@ -96,7 +101,8 @@ void printGrid(FieldValue whichValue) {
     gridLineLength = maxNumber * 2 + 1; /* grid line length excl. LF */
     lineLength = gridLineLength + rowHeaderChars; /* line length excl. LF */
     lineLengthWithLf = lineLength + 1; /* line length incl. LF */
-    numberOfLines = 1 + maxNumber * 2 + 1; /* column header + data lines + terminating grid border */
+    numberOfLinesWithoutHeaderLines = 1 + maxNumber * 2;  /* data lines + terminating grid border */
+    numberOfLines = numberOfLinesWithoutHeaderLines + columnHeaderLines;
     numberOfChars = lineLengthWithLf * numberOfLines; /* times number of lines */
     output = (char *) xmalloc(sizeof (char) * (numberOfChars + 1));
 
@@ -104,18 +110,19 @@ void printGrid(FieldValue whichValue) {
     clear();
 
     charset = asciiLines;
+    charset = reducedAsciiLines;
 //        charset = drawnLines;
 
     printBoxBoundaries();
 
     printBorders();
 
-    printJunctions();
-
-    printCoordinates();
-
-    // fill out numbers
-    fillValues(whichValue);
+//    printJunctions();
+//
+//    printCoordinates();
+//
+//    // fill out numbers
+//    fillValues(whichValue);
 
     printOutput();
 
@@ -170,14 +177,14 @@ void printBorders() {
 
     // first column
     line = gridRow(0, -1);
-    for (i = 0; i < numberOfLines; i++) {
-        *line = charset[vert];
+    for (i = 0; i < numberOfLinesWithoutHeaderLines; i++) {
+        *line = 'K'; //charset[vert];
         line += lineLengthWithLf;
     }
 
     // last column
     line = gridRow(0, -1) + gridLineLength - 1;
-    for (i = 0; i < numberOfLines; i++) {
+    for (i = 0; i < numberOfLinesWithoutHeaderLines; i++) {
         *line = charset[vert];
         line += lineLengthWithLf;
     }
