@@ -1,7 +1,7 @@
 ﻿Sudoku solver
 ========
 
-A flexible and extensible Sudoku solver. Tries to solve Sudokus like a human would do. No brute force computing, but the tool applies different solving strategies in order to solve the riddle. 
+A flexible and extensible Sudoku solver. Tries to solve Sudokus like a human would do. No brute force computing, but the tool applies different solving strategies in order to solve the riddle. This implies that this tool is not able to solve 100 % of all Sudokus. Anyway - equipped with its strategies - it is able to solve most if not all of the "newspaper" Sudokus, even the tough ones.
 
 Some key features of the Sudoku solver:
 
