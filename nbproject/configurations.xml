@@ -16,6 +16,8 @@
       <in>logfile.h</in>
       <in>main.c</in>
       <in>numberlist.c</in>
+      <in>parameters.c</in>
+      <in>parameters.h</in>
       <in>show.c</in>
       <in>show.h</in>
       <in>solve.c</in>
@@ -83,6 +85,10 @@
       <item path="src/output/printgrid.c" ex="false" tool="0" flavor2="0">
       </item>
       <item path="src/output/printgrid.h" ex="false" tool="3" flavor2="0">
+      </item>
+      <item path="src/parameters.c" ex="false" tool="0" flavor2="0">
+      </item>
+      <item path="src/parameters.h" ex="false" tool="3" flavor2="0">
       </item>
       <item path="src/show.c" ex="false" tool="0" flavor2="0">
       </item>

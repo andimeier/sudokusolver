@@ -29,7 +29,7 @@ static void freeContainers();
 // static functions
 static void printLogSetUniqueNumber(void *info);
 static void printLogRemoveCandidate(void *info);
-
+static Bool containerContainsOnlyUniqueValues(Container *container);
 
 // grid geometry, initialize with 0 to indicate the state of being not initialized
 GameType sudokuType = STANDARD_SUDOKU; // type of Sudoku (e.g. X_SUDOKU))
@@ -929,4 +929,63 @@ void initSudoku(Parameters *parameters) {
         setShapes(parameters->shapeIds, parameters->shapes);
     }
     setBoxDimensions(parameters->boxWidth, parameters->boxHeight);
+}
+
+/**
+ * check if the board is a valid Sudoku, with no two same numbers in the same 
+ * box etc.
+ * 
+ * @return flag whether this Sudoku is valid or not
+ */
+Bool isValidSudoku() {
+    unsigned c;
+    Container *container;
+
+    // check each container: all containers must only contain unique values
+    for (c = 0; c < numberOfContainers; c++) {
+        container = &(allContainers[c]);
+        if (!(containerContainsOnlyUniqueValues(container))) {
+            return FALSE;
+        }
+    }
+
+    return TRUE;
+}
+
+/**
+ * checks if a container only contains unique values
+ * 
+ * @return TRUE if the container contains only unique values (OK case), FALSE 
+ *   if not
+ */
+Bool containerContainsOnlyUniqueValues(Container *container) {
+    unsigned n;
+    unsigned *values;
+    Bool ok;
+    unsigned value;
+
+    // TODO move alloc to isValidSudoku for performance reasons?
+    values = (unsigned *) xmalloc(sizeof (unsigned) * maxNumber);
+
+    // initialize check vector with zeros
+    for (n = 0; n < maxNumber; n++) {
+        values[n] = 0;
+    }
+
+    ok = TRUE;
+    for (n = 0; n < maxNumber; n++) {
+        value = container->fields[n]->value;
+        if (value) {
+            if (values[value - 1]) {
+                sprintf(buffer, "container %s contains the value %u twice!", container->name, value);
+                logError(buffer);
+                ok = FALSE;
+                break;
+            }
+            values[value - 1] = 1; // signal for: this value is already assigned
+        }
+    }
+
+    free(values);
+    return ok;
 }

@@ -46,6 +46,8 @@ extern "C" {
     void setupGrid();
     void releaseGrid();
 
+    Bool isValidSudoku();
+    
     // utility functions
     void setValue(Field *field, unsigned value);
     void forbidNumberInNeighbors(Field *field, unsigned n);

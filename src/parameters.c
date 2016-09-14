@@ -13,9 +13,9 @@
 
 static CommandLineArgs arguments;
 
-// variables defined by getopt
-extern char *optarg;
-extern int optind, opterr, optopt;
+//// variables defined by getopt
+//extern char *optarg;
+//extern int optind, opterr, optopt;
 
 
 /**
