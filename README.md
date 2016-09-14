@@ -172,7 +172,3 @@ Note that you could have omitted each or both of the lines
     box: 3x3
 
 in this case because these are the default values for these parameters anyway.
-
-### Bugs
-
-getUniquePositionInRow unterscheidet nicht zwischen "Unique auf 1. Zelle" (Return-Value 0) und "keine unique Zahl gefunden" (Return-Value 0). Dto. für getUniquePositionInColumn, ev. auch in getUniquePositionInBox?
