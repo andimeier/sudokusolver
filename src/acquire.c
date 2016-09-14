@@ -39,6 +39,8 @@ static void allocateShapeDefinitions(Parameters *parameters);
 static void set(Parameters *parameters, char *name, char *value);
 
 // char list functions
+static void sortShapeIds(Parameters *parameters);
+static int compareChars(const void * a, const void * b);
 static Bool charListContains(const char *charList, char c);
 static size_t numberOfChars(const char *charList);
 static void appendChar(char *charList, char c);
@@ -124,6 +126,9 @@ Parameters *readSudoku(char *inputFilename) {
         exit(EXIT_FAILURE);
     }
 
+    if (parameters.gameType == JIGSAW_SUDOKU) {
+        sortShapeIds(&parameters);
+    }
 
     return &parameters;
 }
@@ -483,6 +488,21 @@ void initParameters() {
  * @param parameters
  */
 void sortShapeIds(Parameters *parameters) {
+    char *shapeIds;
+
+    shapeIds = parameters->shapeIds;
+    qsort(shapeIds, parameters->maxNumber, sizeof (char), compareChars);
+}
+
+/**
+ * comparator function for sorting the shape IDs
+ * 
+ * @param a
+ * @param b
+ * @return 
+ */
+int compareChars(const void * a, const void * b) {
+    return (*(char *)a > *(char *)b) - (*(char *)a < *(char *)b);
 }
 
 /**
