@@ -130,7 +130,7 @@ Example:
 
 ##### Shapes
 
-Specifies the shapes in a squiggly Sudoku (a Sudoku with irregular shaped boxes).
+Specifies the shapes in a Jigsaw Sudoku (a Sudoku with irregular shaped boxes).
 
 The following lines specify the "shape ID" each field belongs to. The shape IDs are a single character of either
 
@@ -138,8 +138,8 @@ The following lines specify the "shape ID" each field belongs to. The shape IDs 
 * a lowercase letter
 * an uppercase letter
 
-There is no default - with squiggle Sudokus it is mandatory to specify the
-shapes with this directive.
+There are no default shapes - if a Jigsaw Sudoku is used, it is mandatory to specify the
+shapes using this directive.
 
 Example:
 
@@ -150,7 +150,7 @@ Example:
     ... [etc]
 
 
-A valid Sudoku input file may look like this:
+A valid Jigsaw Sudoku input file may look like this:
 
 ```
 type: standard
