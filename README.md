@@ -1,16 +1,16 @@
 ﻿Sudoku solver
 ========
 
-A flexible and extensible Sudoku solver. Tries to solve Sudokus like a human would do. No brute force computing, but the tool applies different solving strategies in order to solve the riddle. 
+A flexible and extensible Sudoku solver. Tries to solve Sudokus like a human would do. No brute force computing, but the tool applies different solving strategies in order to solve the riddle. This implies that this tool is not able to solve 100 % of all Sudokus. Anyway - equipped with its strategies - it is able to solve most if not all of the "newspaper" Sudokus, even the tough ones.
 
 Some key features of the Sudoku solver:
 
 * the tool has no notion of a "standard Sudoku"
 * Sudokus can basically have any number of numbers. A standard Sudoku has 9 numbers, but the solver does not care. Sudokus with a lower or higher number of different candidates are implicitly supported.
-* X-Sudokus, "Squigglies" and "Color Sudokus" are supported.
+* X-Sudokus, "Jigsaw Sudokus" (with irregular shaped containers) and "Color Sudokus" are supported.
 * new strategies can be added easily
 
-The internal structures for rows, columns and boxes are nothing more than specializations of a generic construct named "container". Thus, a container is just a set of fields on the Sudoku board which contains each number exactly once. Common examples of a container are:
+The internal structures for e.g. rows, columns and boxes are nothing more than specializations of a generic construct named "container". Thus, a container is just a set of fields on the Sudoku board which contains each number exactly once. Common examples of a container are:
 
 * a row
 * a column
@@ -20,10 +20,11 @@ Some common examples of containers in non-standard Sudokus are:
 
 * a diagonal (in a X-Sudoku)
 * "colors" in a color Sudoku
+* a "shape", i.e. an irregularly shaped container in a jigsaw Sudoku
 
 The strategies are very much influenced by the superb Sudoku solver web page by Andrew Stuart. Although I knew and used the strategies before, Andrew Stuart's site was the inspiration for the naming of the strategies as well as an input for some user interface details.
 
-The purpose of the Sudoko solver was to have a quick way of assessing a Sudoku with respect to its "difficulty". The "difficulty" of a Sudoku is not easily rated, but for me personally, the difficulty corresponds to the set and level of strategies I have to apply in order to solve it. I regard a Sudoku that can be solved with only hidden singles and naked pairs as more or less equally difficult to another one where the same strategies are used, regardless of how many clues are given initially. So I wanted to have a tool that tells me if a Sudoku requires more than the standard strategies, e.g. if an X-wing technique is required. Such Sudokus are more interesting to solve, so I wanted to identify them.
+The purpose of the Sudoko solver was to have a quick way of assessing a Sudoku with respect to its "difficulty". The "difficulty" of a Sudoku is not easily rated, but for me personally, the difficulty corresponds to the set and extent of strategies I have to apply in order to solve it. I regard a Sudoku that can be solved with only hidden singles and naked pairs as more or less equally difficult to another one where the same strategies are used, regardless of how many clues are given initially. So I wanted to have a tool that tells me if a Sudoku requires more than the standard strategies, e.g. if an X-wing technique is required. Such Sudokus are more interesting to solve, so I wanted to identify them.
 
 ## Implementing another container type
 
@@ -129,7 +130,7 @@ Example:
 
 ##### Shapes
 
-Specifies the shapes in a squiggly Sudoku (a Sudoku with irregular shaped boxes).
+Specifies the shapes in a Jigsaw Sudoku (a Sudoku with irregular shaped boxes).
 
 The following lines specify the "shape ID" each field belongs to. The shape IDs are a single character of either
 
@@ -137,8 +138,8 @@ The following lines specify the "shape ID" each field belongs to. The shape IDs 
 * a lowercase letter
 * an uppercase letter
 
-There is no default - with squiggle Sudokus it is mandatory to specify the
-shapes with this directive.
+There are no default shapes - if a Jigsaw Sudoku is used, it is mandatory to specify the
+shapes using this directive.
 
 Example:
 
@@ -149,7 +150,7 @@ Example:
     ... [etc]
 
 
-A valid Sudoku input file may look like this:
+A valid Jigsaw Sudoku input file may look like this:
 
 ```
 type: standard
@@ -171,7 +172,3 @@ Note that you could have omitted each or both of the lines
     box: 3x3
 
 in this case because these are the default values for these parameters anyway.
-
-### Bugs
-
-getUniquePositionInRow unterscheidet nicht zwischen "Unique auf 1. Zelle" (Return-Value 0) und "keine unique Zahl gefunden" (Return-Value 0). Dto. für getUniquePositionInColumn, ev. auch in getUniquePositionInBox?
