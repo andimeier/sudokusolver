@@ -81,6 +81,11 @@ int main(int argc, char **argv) {
      */
     setupGrid();
 
+    if (!isValidSudoku()) {
+        logError("invalid Sudoku");
+        exit(EXIT_FAILURE);
+    }
+    
     initLog();
 
     // START (solve Sudoku)
@@ -93,7 +98,6 @@ int main(int argc, char **argv) {
     sprintf(buffer, "Gametype: %s", getGameTypeString(sudokuType));
     logAlways(buffer);
 
-    show(1);
     printSvg(1);
 
     logAlways("");

@@ -16,7 +16,6 @@ extern "C" {
 
     struct Field;
 
-    void show(int showInit);
     void printSudokuString(int showInit);
     void printSvg(int finalVersion);
     char *position(Field *field);

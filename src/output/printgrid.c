@@ -110,7 +110,7 @@ void printGrid(FieldValue whichValue) {
     clear();
 
     charset = asciiLines;
-    charset = reducedAsciiLines;
+//    charset = reducedAsciiLines;
 //        charset = drawnLines;
 
     printBoxBoundaries();
@@ -178,7 +178,7 @@ void printBorders() {
     // first column
     line = gridRow(0, -1);
     for (i = 0; i < numberOfLinesWithoutHeaderLines; i++) {
-        *line = 'K'; //charset[vert];
+        *line = charset[vert];
         line += lineLengthWithLf;
     }
 
