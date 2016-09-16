@@ -47,21 +47,21 @@ extern "C" {
     void releaseGrid();
 
     Bool isValidSudoku();
-    
+
     // utility functions
     void setValue(Field *field, unsigned value);
     void forbidNumberInNeighbors(Field *field, unsigned n);
-    int forbidNumbersInOtherFields(Container *container, unsigned *n, Field **dontTouch);
-    int forbidNumber(Field *field, unsigned n);
-    int fieldHasCandidate(Field *field, unsigned n);
-    int setUniqueNumber(Field *field);
+    Bool forbidNumbersInOtherFields(Container *container, unsigned *n, Field **dontTouch);
+    Bool forbidNumber(Field *field, unsigned n);
+    Bool fieldHasCandidate(Field *field, unsigned n);
+    unsigned setUniqueNumber(Field *field);
     FieldsVector *fieldsWithCandidate(FieldsVector *fields, unsigned n);
-    unsigned equalNumberOfFieldsAndCandidates(FieldsVector *fieldsVector, unsigned *numbers);
+    Bool equalNumberOfFieldsAndCandidates(FieldsVector *fieldsVector, unsigned *numbers);
     int getUniquePositionInContainer(Field **container, unsigned n);
-    int isFinished();
+    Bool isFinished();
     void cleanUpCandidates();
-    int isCandidate(Field *field, unsigned candidate);
-    int removeCandidate(Field *field, unsigned candidate);
+    Bool isCandidate(Field *field, unsigned candidate);
+    Bool removeCandidate(Field *field, unsigned candidate);
     void solveField(Field *field, unsigned n);
     Field *getFieldAt(unsigned x, unsigned y);
 

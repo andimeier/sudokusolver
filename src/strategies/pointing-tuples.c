@@ -18,7 +18,7 @@
 #include "pointing-tuples.h"
 
 // aux functions for pointing tuples
-static int eliminateCandidatesFromOtherFields(Container *container, FieldsVector *fields, unsigned candidate);
+static Bool eliminateCandidatesFromOtherFields(Container *container, FieldsVector *fields, unsigned candidate);
 
 
 /**
@@ -28,17 +28,17 @@ static int eliminateCandidatesFromOtherFields(Container *container, FieldsVector
  * fields of the box AND these two fields share also the same row, then all 
  * other ocurrences of the number 3 in the rest of the row can be eliminated.
  * 
- * @return progress flag: 1 for "something has changed", 0 for "no change"
+ * @return progress flag: TRUE for "something has changed", FALSE for "no change"
  */
-int findPointingTuples() {
+Bool findPointingTuples() {
     //ContainerSet *unit;
-    int progress; // flag: something has changed
+    Bool progress; // flag: something has changed
     Container *container;
     FieldsVector *fieldsBuffer;
     //unsigned tuple[maxNumber];
     //unsigned n;
 
-    progress = 0;
+    progress = FALSE;
 
 
     printf("[pii] starting findPointingTuples ...\n");
@@ -70,15 +70,15 @@ int findPointingTuples() {
  *   pre-allocated buffer to be used by this strategy. Performance issue, so 
  *   that not every iteration has to allocate buffer, but a "common" buffer is
  *   used
- * @return progress flag: 1 for "something has changed", 0 for "no change"
+ * @return progress flag: TRUE for "something has changed", FALSE for "no change"
  */
-unsigned findPointingTuplesInContainer(Container *container, FieldsVector *fieldsWithCandidate) {
-    unsigned progress;
+Bool findPointingTuplesInContainer(Container *container, FieldsVector *fieldsWithCandidate) {
+    Bool progress;
     ContainerSet *containerSet;
     Container *commonContainer;
     FieldsVector *fieldsWithCandidatePtr;
 
-    progress = 0;
+    progress = FALSE;
 
     /*
      * strategy: for each container (for the given container in this function),
@@ -128,7 +128,7 @@ unsigned findPointingTuplesInContainer(Container *container, FieldsVector *field
                     // Depending on whether some candidates could be eliminated, the
                     // board has changed or not
                     if (eliminateCandidatesFromOtherFields(commonContainer, fieldsWithCandidate, n)) {
-                        return 1;
+                        return TRUE;
                     }
                 }
             }
@@ -149,12 +149,12 @@ unsigned findPointingTuplesInContainer(Container *container, FieldsVector *field
  * @param fields the fields to be preserved. The candidates of these fields are
  *   not touched
  * @param candidate the candidate to be removed from the other fields
- * @return progress flag: 1 if something has changed (candidates eliminated) or
- *   0 if not
+ * @return progress flag: TRUE if something has changed (candidates eliminated) or
+ *   FALSE if not
  */
-int eliminateCandidatesFromOtherFields(Container *container, FieldsVector *fields, unsigned candidate) {
+Bool eliminateCandidatesFromOtherFields(Container *container, FieldsVector *fields, unsigned candidate) {
     unsigned *candidates;
-    int progress;
+    Bool progress;
 
     candidates = (unsigned *) xmalloc(sizeof (unsigned) * 2);
     candidates[0] = candidate;

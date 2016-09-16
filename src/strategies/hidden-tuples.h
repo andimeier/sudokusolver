@@ -15,10 +15,10 @@ extern "C" {
 #endif
 
     // strategies
-    int findHiddenTuples();
+    Bool findHiddenTuples();
 
     // auxiliary functions
-    unsigned findHiddenTuplesInContainer(Container *container, unsigned dimension, NumberList *includedCandidates, unsigned *candidatesLeft, FieldsVector *fieldsWithCandidates);
+    Bool findHiddenTuplesInContainer(Container *container, unsigned dimension, NumberList *includedCandidates, unsigned *candidatesLeft, FieldsVector *fieldsWithCandidates);
     
 #ifdef	__cplusplus
 }

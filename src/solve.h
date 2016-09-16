@@ -8,6 +8,8 @@
 #ifndef SOLVE_H
 #define SOLVE_H
 
+#include "typedefs.h"
+
 #ifdef __cplusplus
 extern "C" {
 #endif
@@ -17,15 +19,15 @@ extern "C" {
 
     typedef struct Strategy {
         char *name;
-        int (*solver)(void);
+        Bool (*solver)(void);
         int used; // flag if this strategy had to be used during solving
     } Strategy;
 
 
-    int solve();
+    Bool solve();
 
     // strategies
-    int checkForSolvedCells();
+    Bool checkForSolvedCells();
 
     // number of errors in the algorithm
     extern int errors;

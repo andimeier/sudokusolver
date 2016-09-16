@@ -20,18 +20,18 @@
 
 
 // auxiliary functions
-static unsigned recurseHiddenTuples(unsigned maxLevel, Container *container, unsigned level, NumberList *includedCandidates, unsigned *candidatesLeft, FieldsVector *fieldsWithCandidates);
-static int eliminateOtherCandidatesFromFields(FieldsVector *fields, unsigned *candidates);
+static Bool recurseHiddenTuples(unsigned maxLevel, Container *container, unsigned level, NumberList *includedCandidates, unsigned *candidatesLeft, FieldsVector *fieldsWithCandidates);
+static Bool eliminateOtherCandidatesFromFields(FieldsVector *fields, unsigned *candidates);
 static void populateCandidatesForHiddenTuples(unsigned *candidatesLeft, FieldsVector *allFields);
-static unsigned countDistinctFields(FieldsVector *fields, unsigned *candidates, size_t limit, FieldsVector *fieldsWithCandidates);
+static Bool countDistinctFields(FieldsVector *fields, unsigned *candidates, size_t limit, FieldsVector *fieldsWithCandidates);
 
 /**
  * find hidden tuples (pairs, triples, ...) in the same container
  * 
- * @return 1 if something has changed, 0 if not
+ * @return TRUE if something has changed, FALSE if not
  */
-int findHiddenTuples() {
-    int progress;
+Bool findHiddenTuples() {
+    Bool progress;
     Container *container;
     NumberList *includedCandidates;
     unsigned *candidatesLeft;
@@ -40,7 +40,7 @@ int findHiddenTuples() {
 
     logVerbose("[strategy] find hidden tuples ...");
 
-    progress = 0;
+    progress = FALSE;
 
     // allocate memory for strategy variables
     includedCandidates = createNumberList(MAX_TUPLE_DIMENSION);
@@ -87,14 +87,14 @@ int findHiddenTuples() {
  * @param candidatesLeft allocated buffer for the vector of fields left (yet to be 
  *   examined), terminated with NULL, thus must be the size of the dimension
  *   plus 1 (for the NULL terminator)
- * @return progress flag: 1 for "something has changed", 0 for "no change"
+ * @return progress flag: TRUE for "something has changed", FALSE for "no change"
  */
-unsigned findHiddenTuplesInContainer(Container *container, unsigned dimension, NumberList *includedCandidates, unsigned *candidatesLeft, FieldsVector *fieldsWithCandidates) {
-    unsigned progress;
+Bool findHiddenTuplesInContainer(Container *container, unsigned dimension, NumberList *includedCandidates, unsigned *candidatesLeft, FieldsVector *fieldsWithCandidates) {
+    Bool progress;
 
     assert(dimension > 0 && dimension < maxNumber);
 
-    progress = 0;
+    progress = FALSE;
 
     // we are in level 0 of recursion: initialize numbers vector
     emptyNumberList(includedCandidates);
@@ -105,7 +105,7 @@ unsigned findHiddenTuplesInContainer(Container *container, unsigned dimension, N
     if (recurseHiddenTuples(dimension, container, 1, includedCandidates, candidatesLeft, fieldsWithCandidates)) {
         // FIXME Optimierungsschritt: dieses gefundene hidden tuple merken, damit es nicht
         // in Zukunft jedesmal gefunden wird (aber ohne mehr etwas zu bewirken)
-        progress = 1;
+        progress = TRUE;
     } else {
 
         logVerbose("[1255] returned from recursion");
@@ -132,9 +132,9 @@ unsigned findHiddenTuplesInContainer(Container *container, unsigned dimension, N
  * @param candidatesLeft allocated buffer for the vector of candidates left 
  *   (yet to be examined), terminated with NULL, thus must be the size of the 
  *   dimension plus 1 (for the NULL terminator)
- * @return 1 if a hidden tuple has been found, 0 otherwise
+ * @return TRUE if a hidden tuple has been found, FALSE otherwise
  */
-unsigned recurseHiddenTuples(unsigned maxLevel, Container *container, unsigned level, NumberList *includedCandidates, unsigned *candidatesLeft, FieldsVector *fieldsWithCandidates) {
+Bool recurseHiddenTuples(unsigned maxLevel, Container *container, unsigned level, NumberList *includedCandidates, unsigned *candidatesLeft, FieldsVector *fieldsWithCandidates) {
     unsigned *left;
 
     assert(level >= 1);
@@ -144,7 +144,7 @@ unsigned recurseHiddenTuples(unsigned maxLevel, Container *container, unsigned l
         // maximum recursion depth reached => nothing found
         sprintf(buffer, "maximum recursion depth of %u reached.", maxLevel);
         logVerbose(buffer);
-        return 0;
+        return FALSE;
     }
 
 //    sc(container); // FIXME remove me
@@ -170,7 +170,7 @@ unsigned recurseHiddenTuples(unsigned maxLevel, Container *container, unsigned l
                 // recurse further
                 if (recurseHiddenTuples(maxLevel, container, level + 1, includedCandidates, left, fieldsWithCandidates)) {
                     // propagate success flag all levels down
-                    return 1;
+                    return TRUE;
                 }
             } else {
                 /*
@@ -184,11 +184,11 @@ unsigned recurseHiddenTuples(unsigned maxLevel, Container *container, unsigned l
                 // board has changed or not
                 if (eliminateOtherCandidatesFromFields(fieldsWithCandidates, includedCandidates->numbers)) {
                     // something has changed! success, we actually found something!
-                    return 1;
+                    return TRUE;
                 } else {
                     // restore candidates list to previous iteration
                     popFromNumberList(includedCandidates);
-                    return 0;
+                    return FALSE;
                 }
 
             }
@@ -205,7 +205,7 @@ unsigned recurseHiddenTuples(unsigned maxLevel, Container *container, unsigned l
     sprintf(buffer, "leaving recursion level %d/%d, going back one level\n", level, maxLevel);
     logVerbose(buffer);
 
-    return 0; // nothing found
+    return FALSE; // nothing found
 }
 
 /**
@@ -220,11 +220,11 @@ unsigned recurseHiddenTuples(unsigned maxLevel, Container *container, unsigned l
  * @return progress flag: 1 if something has changed (candidates eliminated) or
  *   0 if not
  */
-int eliminateOtherCandidatesFromFields(FieldsVector *fields, unsigned *candidates) {
+Bool eliminateOtherCandidatesFromFields(FieldsVector *fields, unsigned *candidates) {
     unsigned *candidatesPtr;
     int progress;
 
-    progress = 0;
+    progress = FALSE;
 
     while (*fields) {
 
@@ -318,8 +318,9 @@ void populateCandidatesForHiddenTuples(unsigned *candidatesLeft, FieldsVector *a
  * @param limit the maximum number of total distinct fields
  * @param fieldsWithCandidates vector of all fields containing the given 
  *   candidates (output of this function)
+ * @return TRUE if successful, FALSE if not
  */
-unsigned countDistinctFields(FieldsVector *fields, unsigned *candidates, size_t limit, FieldsVector *fieldsWithCandidates) {
+Bool countDistinctFields(FieldsVector *fields, unsigned *candidates, size_t limit, FieldsVector *fieldsWithCandidates) {
     size_t fieldsIndex;
     size_t count;
     FieldsVector *fieldsPtr;
@@ -352,7 +353,7 @@ unsigned countDistinctFields(FieldsVector *fields, unsigned *candidates, size_t 
                         if (count >= limit) {
                             // too many fields (adding this field to the
                             // set would exceed the given limit)
-                            return 0;
+                            return FALSE;
                         }
 
                         fieldsSet[fieldsIndex]++;
@@ -379,5 +380,5 @@ unsigned countDistinctFields(FieldsVector *fields, unsigned *candidates, size_t 
     // terminate list of candidates
     *fieldsWithCandidates = 0;
 
-    return 1;
+    return TRUE;
 }

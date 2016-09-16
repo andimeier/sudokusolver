@@ -14,10 +14,12 @@
 extern "C" {
 #endif
 
-    typedef int Bool;
+//    typedef int Bool;
 
-#define FALSE 0
-#define TRUE !FALSE
+    typedef enum { FALSE, TRUE } Bool;
+    
+//#define FALSE 0
+//#define TRUE !FALSE
 
     // ID values of the container types
 

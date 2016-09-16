@@ -15,10 +15,10 @@
 extern "C" {
 #endif
 
-    int findNakedTuples();
+    Bool findNakedTuples();
 
     // auxiliary functions
-    unsigned findNakedTuplesInContainer(Container *container, unsigned dimension, FieldList *includedFields, FieldsVector *fieldsLeft);
+    Bool findNakedTuplesInContainer(Container *container, unsigned dimension, FieldList *includedFields, FieldsVector *fieldsLeft);
     
 #ifdef	__cplusplus
 }

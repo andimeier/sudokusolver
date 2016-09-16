@@ -13,7 +13,7 @@ extern "C" {
 #endif
 
     // strategies
-    int findHiddenSingles();
+    Bool findHiddenSingles();
     
 #ifdef	__cplusplus
 }

@@ -104,18 +104,18 @@ void appendField(Field **fields, Field *newField) {
  * 
  * @param list list of Field references, terminated with NULL
  * @param field field to look for
- * @return 1 if the field is in the field list, 0 if it is not
+ * @return TRUE if the field is in the field list, FALSE if it is not
  */
-int containsField(Field **list, Field * field) {
+Bool containsField(Field **list, Field * field) {
 
     assert(*list != NULL);
     assert(field != NULL);
 
     for (int i = 0; list[i] != NULL; i++) {
         if (field == list[i])
-            return 1;
+            return TRUE;
     }
-    return 0;
+    return FALSE;
 }
 
 /**
@@ -124,11 +124,11 @@ int containsField(Field **list, Field * field) {
  * 
  * @param field pointer to field for which the candidates should be checked
  * @param numbers vector of numbers, terminated with 0
- * @return 1 if the field's candidates are a (strict or non-strict) subset of
- *   the given numbers vector. 0 if they are not or if the field is already
+ * @return TRUE if the field's candidates are a (strict or non-strict) subset of
+ *   the given numbers vector. FALSE if they are not or if the field is already
  *   solved.
  */
-int fieldCandidatesAreSubsetOf(Field *field, unsigned *numbers) {
+Bool fieldCandidatesAreSubsetOf(Field *field, unsigned *numbers) {
     unsigned *numbersPtr;
     int found;
 
@@ -139,7 +139,7 @@ int fieldCandidatesAreSubsetOf(Field *field, unsigned *numbers) {
 
     if (field->value) {
         // already solved => nothing to do with the candidates
-        return 0;
+        return FALSE;
     }
 
     for (int i = 0; i < maxNumber; i++) {
@@ -159,11 +159,11 @@ int fieldCandidatesAreSubsetOf(Field *field, unsigned *numbers) {
             if (!found) {
                 // found a field candidate which is not in the given list of
                 // numbers
-                return 0;
+                return FALSE;
             }
         }
     }
-    return 1;
+    return TRUE;
 }
 
 /**

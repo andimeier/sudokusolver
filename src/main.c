@@ -50,8 +50,8 @@ int main(int argc, char **argv) {
     }
 
     /*
-     * start with a default Sudoku grid, can be overridden when the command
-     * line parameters or Sudoku file parameters are actually used
+     * start with a default Sudoku grid, will be overridden by the 
+     * actual parameters
      */
     setDefaults();
 
@@ -81,11 +81,17 @@ int main(int argc, char **argv) {
      */
     setupGrid();
 
+    /*
+     * check if the initial board is valid
+     */
     if (!isValidSudoku()) {
         logError("invalid Sudoku");
         exit(EXIT_FAILURE);
     }
-    
+
+    /*
+     * start logging
+     */
     initLog();
 
     // START (solve Sudoku)

@@ -470,10 +470,10 @@ void forbidNumberInNeighbors(Field *field, unsigned n) {
  * @param dontTouch ... NULL terminated list of Field pointers. These fields
  *   will not be touched. In all other fields in the container, the given 
  *   numbers will be removed as candidates
- * @return progress flag: 1 if something has changed, 0 if nothing has changed
+ * @return progress flag: TRUE if something has changed, FALSE if nothing has changed
  */
-int forbidNumbersInOtherFields(Container *container, unsigned *n, Field **dontTouch) {
-    int progress;
+Bool forbidNumbersInOtherFields(Container *container, unsigned *n, Field **dontTouch) {
+    Bool progress;
     Field *field;
     unsigned candidate;
     unsigned *candidates;
@@ -481,7 +481,7 @@ int forbidNumbersInOtherFields(Container *container, unsigned *n, Field **dontTo
 
     //    showAllCandidates();
 
-    progress = 0; // nothing has changed yet
+    progress = FALSE; // nothing has changed yet
 
     // walk through entire container
     for (pos = 0; pos < maxNumber; pos++) {
@@ -522,13 +522,15 @@ int forbidNumbersInOtherFields(Container *container, unsigned *n, Field **dontTo
     return progress;
 }
 
-//-------------------------------------------------------------------
-// Verbiete eine Zahl in einer bestimmten Zelle
-// Return-Wert:
-//   1 ... Nummer wurde verboten
-//   0 ... keine Aenderung, Nummer war bereits verboten
-
-int forbidNumber(Field *field, unsigned n) {
+/**
+ * removes a candidate from a field
+ * 
+ * @param field field in which a candidate should be forbidden
+ * @param n the candidate to be forbidden (removed)
+ * @return TRUE if something has changed, FALSE if not (candidate has already
+ *   been removed before)
+ */
+Bool forbidNumber(Field *field, unsigned n) {
 
     assert(n >= 1 && n <= maxNumber);
 
@@ -547,9 +549,9 @@ int forbidNumber(Field *field, unsigned n) {
 
             setUniqueNumber(field);
         }
-        return 1;
+        return TRUE;
     }
-    return 0;
+    return FALSE;
 }
 
 /**
@@ -558,11 +560,11 @@ int forbidNumber(Field *field, unsigned n) {
  * 
  * @param field the field to check
  * @param n the number to check
- * @return 1 if the number is a possible candidate, 0 if it is not
+ * @return TRUE if the number is a possible candidate, FALSE if it is not
  */
-int fieldHasCandidate(Field *field, unsigned n) {
+Bool fieldHasCandidate(Field *field, unsigned n) {
 
-    return !field->value && (field->candidates[n - 1] == n);
+    return (!field->value && (field->candidates[n - 1] == n)) ? TRUE : FALSE;
 }
 
 
@@ -575,7 +577,7 @@ int fieldHasCandidate(Field *field, unsigned n) {
 // Return-Wert:
 //   die fixierte Zahl
 
-int setUniqueNumber(Field *field) {
+unsigned setUniqueNumber(Field *field) {
     unsigned n;
 
     // field should not be solved already
@@ -664,19 +666,19 @@ FieldsVector *fieldsWithCandidate(FieldsVector *fields, unsigned n) {
  * @param fieldsVector vector or pointers to Fields, terminated with a NULL 
  *   pointer
  * @param numbers vector of numbers, terminated with 0
- * @return 1 both have equal length. 0 if they differ
+ * @return TRUE both have equal length. FALSE if they differ
  */
-unsigned equalNumberOfFieldsAndCandidates(FieldsVector *fieldsVector, unsigned *numbers) {
+Bool equalNumberOfFieldsAndCandidates(FieldsVector *fieldsVector, unsigned *numbers) {
     do {
         if (*fieldsVector == NULL && *numbers == 0) {
-            return 1;
+            return TRUE;
         }
 
         // if we are still here, then at least one of the vectors is not null.
         // However, if the other one is exhausted, then both vectors apparently
         // do not have the same length
         if (*fieldsVector == NULL || *numbers == 0) {
-            return 0;
+            return FALSE;
         }
 
         fieldsVector++;
@@ -738,15 +740,15 @@ int getUniquePositionInContainer(Field **container, unsigned n) {
  * 
  * @param field pointer to field for which the candidates should be checked
  * @param numbers vector of numbers, terminated with 0
- * @return 1 if the field's candidates are a (strict or non-strict) superset of
- *   the given numbers vector. 0 if they are not or if the field is already
- *   solved.
+ * @return TRUE if the field's candidates are a (strict or non-strict) superset 
+ *   of the given numbers vector. FALSE if they are not or if the field is 
+ *   already solved.
  */
-int fieldCandidatesContainAllOf(Field *field, unsigned *numbers) {
+Bool fieldCandidatesContainAllOf(Field *field, unsigned *numbers) {
 
     if (field->value) {
         // already solved => nothing to do with the candidates
-        return 0;
+        return FALSE;
     }
 
     while (*numbers) {
@@ -756,12 +758,12 @@ int fieldCandidatesContainAllOf(Field *field, unsigned *numbers) {
             sprintf(buffer, "number %u not found in candidates (%u)", *numbers, field->candidates[*numbers - 1]);
             logVerbose(buffer);
 
-            return 0;
+            return FALSE;
         }
         numbers++;
     }
 
-    return 1;
+    return TRUE;
 }
 
 
@@ -769,19 +771,19 @@ int fieldCandidatesContainAllOf(Field *field, unsigned *numbers) {
 // Checkt, ob alle Zellen mit einer Zahl befuellt sind, dann sind 
 // wir naemlich fertig!
 // Return-Wert:
-//   1 ... fertig (in jeder Zelle steht eine Zahl)
-//   0 ... noch nicht fertig
+//   TRUE ... fertig (in jeder Zelle steht eine Zahl)
+//   FALSE ... noch nicht fertig
 
-int isFinished() {
+Bool isFinished() {
     int f;
 
     for (f = 0; f < numberOfFields; f++) {
         if (!fields[f].value)
             // ein leeres Feld gefunden => wir sind noch nicht fertig!
 
-            return 0;
+            return FALSE;
     }
-    return 1;
+    return TRUE;
 }
 
 /**
@@ -817,10 +819,10 @@ void cleanUpCandidates() {
  * 
  * @param field the field from which a candidate shall be determined
  * @param candidate the candidate to be determined
- * @return 1 if the candidate is still valid for this field, or 0 if it is not
+ * @return TRUE if the candidate is still valid for this field, or FALSE if it is not
  */
-int isCandidate(Field *field, unsigned candidate) {
-    return field->candidates[candidate - 1];
+Bool isCandidate(Field *field, unsigned candidate) {
+    return field->candidates[candidate - 1] ? TRUE : FALSE;
 }
 
 /**
@@ -828,10 +830,10 @@ int isCandidate(Field *field, unsigned candidate) {
  * 
  * @param field the field from which a candidate shall be removed
  * @param candidate the candidate to be removed
- * @return 1 if the candidate has been removed, or 0 if nothing has changed
- *   (candidate has already been removed before)
+ * @return TRUE if the candidate has been removed, or FALSE if nothing has 
+ *   changed (candidate has already been removed before)
  */
-int removeCandidate(Field *field, unsigned candidate) {
+Bool removeCandidate(Field *field, unsigned candidate) {
     unsigned *c;
 
     c = field->candidates + candidate - 1;
@@ -857,10 +859,10 @@ int removeCandidate(Field *field, unsigned candidate) {
             exit(EXIT_FAILURE);
         }
 
-        return 1;
+        return TRUE;
     }
 
-    return 0;
+    return FALSE;
 }
 
 void printLogRemoveCandidate(void *info) {

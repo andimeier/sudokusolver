@@ -117,12 +117,12 @@ void printGrid(FieldValue whichValue) {
 
     printBorders();
 
-//    printJunctions();
-//
-//    printCoordinates();
-//
-//    // fill out numbers
-//    fillValues(whichValue);
+    printJunctions();
+
+    printCoordinates();
+
+    // fill out numbers
+    fillValues(whichValue);
 
     printOutput();
 

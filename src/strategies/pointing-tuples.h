@@ -15,10 +15,10 @@ extern "C" {
 #endif
 
     // strategies
-    int findPointingTuples();
+    Bool findPointingTuples();
 
     // auxiliary functions
-    unsigned findPointingTuplesInContainer(Container *container, FieldsVector *fieldsWithCandidate);
+    Bool findPointingTuplesInContainer(Container *container, FieldsVector *fieldsWithCandidate);
     
 #ifdef	__cplusplus
 }

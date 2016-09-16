@@ -15,21 +15,20 @@
 /**
  * strategy "find hidden singles"
  * 
- * @return 1 if something has changed, 0 if not
+ * @return TRUE if something has changed, FALSE if not
  */
-int findHiddenSingles() {
-    int progress; // flag: something has changed
+Bool findHiddenSingles() {
+    Bool progress; // flag: something has changed
     Container *container;
 
     logVerbose("[strategy] find hidden singles ...");
 
-    progress = 0;
+    progress = FALSE;
 
     // search in all unit types (rows, cols, boxes, ...) for numbers which can 
     // only occur on one position within the unit (even if there would be
     // several candidates for this cell, but the other candidates can be
     // discarded in this case)
-
 
     for (unsigned c = 0; c < numberOfContainers; c++) {
         container = &(allContainers[c]);
@@ -45,7 +44,7 @@ int findHiddenSingles() {
                 sprintf(buffer, "*** [hidden single] hidden single in unit %s, field %s: %u ... ", container->name, field->name, n);
                 logVerbose(buffer);
 
-                progress = 1; // Flag "neue Erkenntnis" setzen
+                progress = TRUE; // set flag "changes!"
             }
         }
         container++;

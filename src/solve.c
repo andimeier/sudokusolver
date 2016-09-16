@@ -43,7 +43,7 @@ int errors;
  * @return 1 ... Sudoku has been solved successfully. 0 ... algorithm got stuck,
  *   indefinite iteration cancelled.
  */
-int solve() {
+Bool solve() {
     int iteration;
     int progress; // flag: something has changed in the iteration
     Strategy **currentStrategy;
@@ -88,7 +88,7 @@ int solve() {
         }
 
         if (isFinished()) {
-            return 1;
+            return TRUE;
         }
 
     } while (progress);
@@ -98,7 +98,7 @@ int solve() {
     // wir kommen hierher, weil die letzte Iteration keine einzige Aenderung gebracht
     // hat => wir bleiben stecken mit unseren Algorithmen. Ohne Aenderung in der
     // Implementierung ist dieses Sudoku nicht loesbar
-    return 0;
+    return FALSE;
 }
 
 
@@ -166,23 +166,23 @@ Strategy **buildStrategies() {
  * check for cells having only one candidate left and set their value (and
  * thus eliminate this value in neighboring fields)
  * 
- * @return 1 ... something has changed, 0 ... nothing changed
+ * @return TRUE ... something has changed, FALSE ... nothing changed
  */
-int checkForSolvedCells() {
+Bool checkForSolvedCells() {
     int f;
     Field *field;
     int progress; // Flag: in einer Iteration wurde zumindest eine Erkenntnis gewonnen
 
     logVerbose("[strategy] check for solved cells ...");
 
-    progress = 0;
+    progress = FALSE;
 
     for (f = 0; f < numberOfFields; f++) {
         field = fields + f;
 
         if (field->candidatesLeft == 1 && !field->value) {
             setUniqueNumber(field);
-            progress = 1;
+            progress = TRUE;
         }
 
     }

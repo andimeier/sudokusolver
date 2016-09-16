@@ -27,24 +27,24 @@
 
 
 // auxiliary functions
-static unsigned recurseNakedTuples(unsigned maxLevel, Container *container, unsigned level, FieldList *includedFields, FieldsVector *fieldsLeft);
-static int eliminateFieldsCandidatesFromOtherFields(Container *container, FieldsVector *fields);
+static Bool recurseNakedTuples(unsigned maxLevel, Container *container, unsigned level, FieldList *includedFields, FieldsVector *fieldsLeft);
+static Bool eliminateFieldsCandidatesFromOtherFields(Container *container, FieldsVector *fields);
 static void populateFieldsForNakedTuples(FieldsVector *relevantFields, FieldsVector *allFields, unsigned dimension);
 
 /**
  * find naked tuples (pairs, triples, ...) in the same container
  * 
- * @return 1 if something has changed, 0 if not
+ * @return TRUE if something has changed, FALSE if not
  */
-int findNakedTuples() {
-    int progress;
+Bool findNakedTuples() {
+    Bool progress;
     Container *container;
     FieldList *includedFields;
     FieldsVector *fieldsLeft;
 
     logVerbose("[strategy] find naked tuples ...");
 
-    progress = 0;
+    progress = FALSE;
 
     // allocate memory for strategy variables
     includedFields = createFieldList(MAX_TUPLE_DIMENSION);
@@ -90,14 +90,14 @@ int findNakedTuples() {
  * @param fieldsLeft allocated buffer for the vector of fields left (yet to be 
  *   examined), terminated with NULL, thus must be the size of the dimension
  *   plus 1 (for the NULL terminator)
- * @return progress flag: 1 for "something has changed", 0 for "no change"
+ * @return progress flag: TRUE for "something has changed", FALSE for "no change"
  */
-unsigned findNakedTuplesInContainer(Container *container, unsigned dimension, FieldList *includedFields, FieldsVector *fieldsLeft) {
-    unsigned progress;
+Bool findNakedTuplesInContainer(Container *container, unsigned dimension, FieldList *includedFields, FieldsVector *fieldsLeft) {
+    Bool progress;
 
     assert(dimension > 0 && dimension < maxNumber);
 
-    progress = 0;
+    progress = FALSE;
 
     // we are in level 0 of recursion: initialize numbers vector
     emptyFieldList(includedFields);
@@ -108,7 +108,7 @@ unsigned findNakedTuplesInContainer(Container *container, unsigned dimension, Fi
     if (recurseNakedTuples(dimension, container, 1, includedFields, fieldsLeft)) {
         // FIXME Optimierungsschritt: dieses gefundene naked tuple merken, damit es nicht
         // in Zukunft jedesmal gefunden wird (aber ohne mehr etwas zu bewirken)
-        progress = 1;
+        progress = TRUE;
     } else {
 
         logVerbose("[1244] returned from recursion");
@@ -132,9 +132,9 @@ unsigned findNakedTuplesInContainer(Container *container, unsigned dimension, Fi
  * @param fieldsLeft allocated buffer for the vector of fields left (yet to be 
  *   examined), terminated with NULL, thus must be the size of the dimension
  *   plus 1 (for the NULL terminator)
- * @return 1 if a naked tuple has been found, 0 otherwise
+ * @return TRUE if a naked tuple has been found, FALSE otherwise
  */
-unsigned recurseNakedTuples(unsigned maxLevel, Container *container, unsigned level, FieldList *includedFields, FieldsVector *fieldsLeft) {
+Bool recurseNakedTuples(unsigned maxLevel, Container *container, unsigned level, FieldList *includedFields, FieldsVector *fieldsLeft) {
     FieldsVector *left;
 
     assert(level >= 1);
@@ -144,7 +144,7 @@ unsigned recurseNakedTuples(unsigned maxLevel, Container *container, unsigned le
         // maximum recursion depth reached => nothing found
         sprintf(buffer, "maximum recursion depth of %u reached.", maxLevel);
         logVerbose(buffer);
-        return 0;
+        return FALSE;
     }
 
     sprintf(buffer, "Entering recursion level %u/%u ...", level, maxLevel);
@@ -168,7 +168,7 @@ unsigned recurseNakedTuples(unsigned maxLevel, Container *container, unsigned le
                 // recurse further
                 if (recurseNakedTuples(maxLevel, container, level + 1, includedFields, left)) {
                     // propagate success flag all levels down
-                    return 1;
+                    return TRUE;
                 }
             } else {
                 /*
@@ -182,11 +182,11 @@ unsigned recurseNakedTuples(unsigned maxLevel, Container *container, unsigned le
                 // board has changed or not
                 if (eliminateFieldsCandidatesFromOtherFields(container, includedFields->fields)) {
                     // something has changed! success, we actually found something!
-                    return 1;
+                    return TRUE;
                 } else {
                     // restore field list to previous iteration
                     popFromFieldList(includedFields);
-                    return 0;
+                    return FALSE;
                 }
 
             }
@@ -203,7 +203,7 @@ unsigned recurseNakedTuples(unsigned maxLevel, Container *container, unsigned le
     sprintf(buffer, "leaving recursion level %d/%d, going back one level\n", level, maxLevel);
     logVerbose(buffer);
 
-    return 0; // nothing found
+    return FALSE; // nothing found
 }
 
 /**
@@ -215,12 +215,12 @@ unsigned recurseNakedTuples(unsigned maxLevel, Container *container, unsigned le
  * @param container the container in which candidates should be eliminated
  * @param fields the fields of which the candidates should be taken. These 
  *   candidates are forbidden in all of the *other* fields of the container
- * @return progress flag: 1 if something has changed (candidates eliminated) or
- *   0 if not
+ * @return progress flag: TRUE if something has changed (candidates eliminated) or
+ *   FALSE if not
  */
-int eliminateFieldsCandidatesFromOtherFields(Container *container, FieldsVector *fields) {
+Bool eliminateFieldsCandidatesFromOtherFields(Container *container, FieldsVector *fields) {
     unsigned *candidates;
-    int progress;
+    Bool progress;
     FieldsVector *fieldsPtr;
 
     // add 1 item as a zero termination in the purely theoretical case that a
