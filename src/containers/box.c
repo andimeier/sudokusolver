@@ -30,25 +30,6 @@ char *getBoxName(unsigned index) {
     return strdup(buffer);
 }
 
-///**
-// * determines the index of the box container which contains the field on the
-// * given Sudoku coordinates
-// * 
-// * @param x X coordinate (starting with 0) of the specified field
-// * @param y Y coordinate (starting with 0) of the specified field
-// * @return index of the box container which contains the specified field, 
-// *   or -1 if no such container contains the specified field (which is not
-// *   possible with box containers, but might be possible for other types of
-// *   containers)
-// */
-//int determineBoxContainer(unsigned x, unsigned y) {
-//    assert(x >= 0 && x < maxNumber);
-//    assert(y >= 0 && y < maxNumber);
-//    assert(boxHeight > 0);
-//    assert(boxWidth > 0);
-//
-//    return (y / boxHeight) * (maxNumber / boxWidth) + (x / boxWidth);
-//}
 
 /**
  * fills the given fields vector with the list of fields which are members

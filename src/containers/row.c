@@ -26,21 +26,6 @@ char *getRowName(unsigned index) {
     return strdup(buffer);
 }
 
-///**
-// * determines the index of the row container which contains the field on the
-// * given Sudoku coordinates
-// * 
-// * @param x X coordinate (starting with 0) of the specified field
-// * @param y Y coordinate (starting with 0) of the specified field
-// * @return index of the row container which contains the specified field, 
-// *   or -1 if no such container contains the specified field (which is not
-// *   possible with row containers, but might be possible for other types of
-// *   containers)
-// */
-//int determineRowContainer(unsigned x, unsigned y) {
-//    return y;
-//}
-
 
 /**
  * fills the given fields vector with the list of fields which are members

@@ -35,28 +35,6 @@ char *getDiagonalName(unsigned index) {
     assert(0); // we should never get here
 }
 
-///**
-// * determines the index of the diagonal container which contains the field on 
-// * the given Sudoku coordinates
-// * 
-// * @param x X coordinate (starting with 0) of the specified field
-// * @param y Y coordinate (starting with 0) of the specified field
-// * @return index of the diagonal container which contains the specified field, 
-// *   or -1 if no such container contains the specified field (a field that 
-// *   does not lie on one of the two diagonals)
-// */
-//int determineDiagonalContainer(unsigned x, unsigned y) {
-//    assert(x >= 0 && x < maxNumber);
-//    assert(y >= 0 && y < maxNumber);
-//
-//    if (x == y) {
-//        return 0; // on falling diagonal
-//    }
-//    if (x + y + 1 == maxNumber) {
-//        return 1; // on ascending diagonal
-//    }
-//    return -1;
-//}
 
 /**
  * fills the given fields vector with the list of fields which are members
