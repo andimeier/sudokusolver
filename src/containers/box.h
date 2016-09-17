@@ -16,7 +16,10 @@ extern "C" {
 
     unsigned createBoxContainers(ContainerSet *containerSet);
     void setBoxDimensions(unsigned width, unsigned height);
-
+    void determineBoxDimensions(unsigned maxNumber, unsigned *width, unsigned *height);
+    unsigned getBoxWidth();
+    unsigned getBoxHeight();
+    
 #ifdef	__cplusplus
 }
 #endif

@@ -76,6 +76,16 @@ ContainerType *getContainerTypes(GameType gameType) {
             break;
 
         case COLOR_SUDOKU:
+            logVerbose("Game type: Color Sudoku");
+
+            numberOfContainerTypes = 4;
+            containerTypes = (unsigned *) xmalloc(sizeof (ContainerType) * (numberOfContainerTypes + 1));
+
+            ptr = containerTypes;
+            *ptr++ = ROWS;
+            *ptr++ = COLS;
+            *ptr++ = BOXES;
+            *ptr++ = COLORS;
             break;
     }
 

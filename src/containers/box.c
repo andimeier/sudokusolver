@@ -12,7 +12,6 @@
 
 static char *getBoxName(unsigned index);
 static void fillContainerFields(unsigned containerIndex, FieldsVector *fields);
-static void getBoxDimensions(unsigned maxNumber, unsigned *width, unsigned *height);
 
 static unsigned boxWidth = 0;
 static unsigned boxHeight = 0;
@@ -89,7 +88,7 @@ unsigned createBoxContainers(ContainerSet *containerSet) {
     // if box dimensions are not yet set manually, try to determine the
     // dimensions automatically, based on the "side length" of the Sudoku
     if (!boxWidth) {
-        getBoxDimensions(maxNumber, &boxWidth, &boxHeight);
+        determineBoxDimensions(maxNumber, &boxWidth, &boxHeight);
     }
 
     if (!boxWidth) {
@@ -107,7 +106,7 @@ unsigned createBoxContainers(ContainerSet *containerSet) {
         logError(buffer);
         exit(EXIT_FAILURE);
     }
-    
+
     // delegate container creation to generic generator function
     createContainers(BOXES, strdup("box"), maxNumber, containerSet);
 
@@ -128,7 +127,7 @@ unsigned createBoxContainers(ContainerSet *containerSet) {
  * @param *width [out] return the calculated width of the boxes
  * @param *height [out] return the calculated height of the boxes
  */
-void getBoxDimensions(unsigned maxNumber, unsigned *width, unsigned *height) {
+void determineBoxDimensions(unsigned maxNumber, unsigned *width, unsigned *height) {
     unsigned w = 0;
     unsigned h = 0;
 
@@ -167,4 +166,28 @@ void getBoxDimensions(unsigned maxNumber, unsigned *width, unsigned *height) {
 void setBoxDimensions(unsigned width, unsigned height) {
     boxWidth = width;
     boxHeight = height;
+}
+
+/**
+ * returns the box width (and computes it if not set already)
+ * 
+ * @return box width
+ */
+unsigned getBoxWidth() {
+    if (!boxWidth) {
+        determineBoxDimensions(maxNumber, &boxWidth, &boxHeight);
+    }
+    return boxWidth;
+}
+
+/**
+ * returns the box height (and computes it if not set already)
+ * 
+ * @return box height
+ */
+unsigned getBoxHeight() {
+    if (!boxHeight) {
+        determineBoxDimensions(maxNumber, &boxWidth, &boxHeight);
+    }
+    return boxHeight;
 }

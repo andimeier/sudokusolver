@@ -14,7 +14,7 @@
 extern "C" {
 #endif
 
-//    typedef int Bool;
+//    typedef unsigned char Bool;
 
     typedef enum { FALSE, TRUE } Bool;
     
@@ -24,7 +24,7 @@ extern "C" {
     // ID values of the container types
 
     typedef enum {
-        ROWS = 1, COLS, BOXES, DIAGONALS, SHAPES
+        ROWS = 1, COLS, BOXES, DIAGONALS, SHAPES, COLORS
     } ContainerType;
 
 
