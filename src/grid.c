@@ -37,10 +37,31 @@ size_t maxNumber = 0;
 size_t numberOfFields = 0; // == maxNumber^2
 
 // grid variables
-Field *fields; // the fields of the game board
-Container *allContainers; // all containers of the game board
-ContainerSet *containerSets; // all container types (e.g. [row, column, box])
+
+/*
+ * all fields of the game board
+ */
+Field *fields;
+
+/*
+ * all containers of the game board  (all rows and all columns and all boxes 
+ * and ...)
+ */
+Container *allContainers; 
+
+/*
+ * all container types (e.g. [row, column, box])
+ */
+ContainerSet *containerSets;
+
+/*
+ * number of container sets
+ */
 size_t numberOfContainerSets;
+
+/*
+ * number of containers
+ */
 size_t numberOfContainers;
 
 /*
@@ -49,6 +70,8 @@ size_t numberOfContainers;
  * "current" container at hand for displaying its name in the debugging output
  */
 static Container *settingUpContainer;
+
+// history entry types
 
 typedef struct EntrySolveField {
     char *fieldName;
@@ -94,8 +117,7 @@ void dimensionGrid(size_t _maxNumber) {
 }
 
 /**
- * 
- * @param gametype
+ * sets up all grid constructs (container sets, fields, containers)
  */
 void setupGrid() {
 
@@ -107,6 +129,9 @@ void setupGrid() {
     initContainers();
 }
 
+/**
+ * releases all grid constructs
+ */
 void releaseGrid() {
     freeContainers();
     freeFields();
@@ -412,19 +437,21 @@ void setValue(Field *field, unsigned value) {
         candidates[n - 1] = (n == value) ? value : 0;
     }
 
-    forbidNumberInNeighbors(field, value);
+    forbidCandidateInNeighbors(field, value);
 }
 
 /**
  * forbids a number in all neighbor fields of the given field. This is used
  * e.g. after setting the value of a field to eliminate this number from all
  * neighbors. The "neighbors" are determined in all containers containing
- * the specified field. No logging of removed candidates occurs.
+ * the specified field. 
+ * 
+ * Note that such removed candidates are not logged in any way.
  * 
  * @param field
  * @param n the number to be forbidden in neighboring fields
  */
-void forbidNumberInNeighbors(Field *field, unsigned n) {
+void forbidCandidateInNeighbors(Field *field, unsigned n) {
     Container **containers;
     unsigned numbers[2];
     unsigned containerSetIndex;
@@ -450,7 +477,7 @@ void forbidNumberInNeighbors(Field *field, unsigned n) {
     // forbid number in all other "neighboring fields"
     for (containerSetIndex = 0; containerSetIndex < numberOfContainerSets; containerSetIndex++) {
         for (containers = field->containers[containerSetIndex]; *containers; containers++) {
-            forbidNumbersInOtherFields(*containers, numbers, preserve);
+            forbidCandidatesInOtherFields(*containers, numbers, preserve);
         }
     }
 }
@@ -472,7 +499,7 @@ void forbidNumberInNeighbors(Field *field, unsigned n) {
  *   numbers will be removed as candidates
  * @return progress flag: TRUE if something has changed, FALSE if nothing has changed
  */
-Bool forbidNumbersInOtherFields(Container *container, unsigned *n, Field **dontTouch) {
+Bool forbidCandidatesInOtherFields(Container *container, unsigned *n, Field **dontTouch) {
     Bool progress;
     Field *field;
     unsigned candidate;
@@ -522,37 +549,37 @@ Bool forbidNumbersInOtherFields(Container *container, unsigned *n, Field **dontT
     return progress;
 }
 
-/**
- * removes a candidate from a field
- * 
- * @param field field in which a candidate should be forbidden
- * @param n the candidate to be forbidden (removed)
- * @return TRUE if something has changed, FALSE if not (candidate has already
- *   been removed before)
- */
-Bool forbidNumber(Field *field, unsigned n) {
-
-    assert(n >= 1 && n <= maxNumber);
-
-    if (field->candidates[n - 1]) {
-
-        if (field->correctSolution) {
-            assert(n != field->correctSolution);
-        }
-
-        field->candidates[n - 1] = 0;
-        field->candidatesLeft--;
-        assert(field->candidatesLeft > 0);
-
-        if (field->candidatesLeft == 1) {
-            // nur noch eine einzige Zahl ist moeglich => ausfuellen!
-
-            setUniqueNumber(field);
-        }
-        return TRUE;
-    }
-    return FALSE;
-}
+///**
+// * removes a candidate from a field
+// * 
+// * @param field field in which a candidate should be forbidden
+// * @param n the candidate to be forbidden (removed)
+// * @return TRUE if something has changed, FALSE if not (candidate has already
+// *   been removed before)
+// */
+//Bool forbidCandidate(Field *field, unsigned n) {
+//
+//    assert(n >= 1 && n <= maxNumber);
+//
+//    if (field->candidates[n - 1]) {
+//
+//        if (field->correctSolution) {
+//            assert(n != field->correctSolution);
+//        }
+//
+//        field->candidates[n - 1] = 0;
+//        field->candidatesLeft--;
+//        assert(field->candidatesLeft > 0);
+//
+//        if (field->candidatesLeft == 1) {
+//            // nur noch eine einzige Zahl ist moeglich => ausfuellen!
+//
+//            setUniqueNumber(field);
+//        }
+//        return TRUE;
+//    }
+//    return FALSE;
+//}
 
 /**
  * checks if the field is unresolved and the given number is a possible 

@@ -67,7 +67,6 @@ static void fillValues(FieldValue whichValue);
 static void printOutput();
 static int getBoxAt(unsigned x, unsigned y);
 static unsigned getContainerSetIndexForPrintingBoxes();
-static void printCharAtRawPosition(unsigned x, unsigned y, char c);
 static void printCharAtGridPosition(unsigned x, unsigned y, int deltaX, int deltaY, char c);
 static void printCharAtJunction(unsigned junctionX, unsigned junctionY, char c);
 static char *gridRow(unsigned y, int deltaY);
@@ -78,10 +77,15 @@ static void drawHorizontalBorderAbove(unsigned x, unsigned y);
 static void drawVerticalBorderLeft(unsigned x, unsigned y);
 
 // line character set in the order of the enum LineChars
+typedef enum {
+    CHARS_ASCII, CHARS_REDUCED, CHARS_DRAWN_LINES
+} CharSetType;
+
 static char asciiLines[13] = " |-+++++++++";
 static char reducedAsciiLines[13] = " |-    +++++";
 static char drawnLines[13] = {0x20, 0x78, 0x71, 0x6a, 0x6b, 0x6c, 0x6d, 0x75, 0x77, 0x74, 0x76, 0x6e};
 static char *charset;
+static CharSetType charsetType = CHARS_ASCII;
 
 /**
  * prints the Sudoku grid
@@ -109,9 +113,23 @@ void printGrid(FieldValue whichValue) {
     // clear output
     clear();
 
-    charset = asciiLines;
-//    charset = reducedAsciiLines;
-//        charset = drawnLines;
+    switch (charsetType) {
+        case CHARS_ASCII:
+            charset = asciiLines;
+            break;
+
+        case CHARS_REDUCED:
+            charset = reducedAsciiLines;
+            break;
+
+        case CHARS_DRAWN_LINES:
+            charset = drawnLines;
+            break;
+            
+        default:
+            // should never happen
+            assert(0);
+    }
 
     printBoxBoundaries();
 
@@ -508,17 +526,6 @@ unsigned getContainerSetIndexForPrintingBoxes() {
     assert(containerSetIndex > -1);
 
     return containerSetIndex;
-}
-
-/**
- * print a single character on the specified raw position
- * 
- * @param x x position (raw)
- * @param y y position (raw)
- * @param c character to be printed
- */
-void printCharAtRawPosition(unsigned x, unsigned y, char c) {
-    *(output + (y * lineLengthWithLf) + x) = c;
 }
 
 /**

@@ -40,7 +40,7 @@ void initLog() {
  * 
  * @param entry a log entry.
  */
-void writeLog(print printFunc, void *info) {
+void writeLog(PrintFunc printFunc, void *info) {
     if (hist.count >= hist.capacity) {
         // allocate another block for further log entries
         hist.entries = (Entry **) realloc(hist.entries, sizeof (Entry *) * (hist.capacity + INCREMENT_LOGSIZE));

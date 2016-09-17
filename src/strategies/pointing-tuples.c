@@ -161,7 +161,7 @@ Bool eliminateCandidatesFromOtherFields(Container *container, FieldsVector *fiel
     candidates[1] = 0;
 
     // forbid candidates in all other fields
-    progress = forbidNumbersInOtherFields(container, candidates, fields);
+    progress = forbidCandidatesInOtherFields(container, candidates, fields);
 
     free(candidates);
 

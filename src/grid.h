@@ -50,9 +50,9 @@ extern "C" {
 
     // utility functions
     void setValue(Field *field, unsigned value);
-    void forbidNumberInNeighbors(Field *field, unsigned n);
-    Bool forbidNumbersInOtherFields(Container *container, unsigned *n, Field **dontTouch);
-    Bool forbidNumber(Field *field, unsigned n);
+    void forbidCandidateInNeighbors(Field *field, unsigned n);
+    Bool forbidCandidatesInOtherFields(Container *container, unsigned *n, Field **dontTouch);
+//    Bool forbidCandidate(Field *field, unsigned n);
     Bool fieldHasCandidate(Field *field, unsigned n);
     unsigned setUniqueNumber(Field *field);
     FieldsVector *fieldsWithCandidate(FieldsVector *fields, unsigned n);

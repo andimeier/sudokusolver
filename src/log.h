@@ -13,11 +13,11 @@ extern "C" {
 #endif
 
     // pointer to "print log" function
-    typedef void (*print)(void *);
+    typedef void (*PrintFunc)(void *);
     
     typedef struct Entry {
         void *info;
-        print printFunc;
+        PrintFunc printFunc;
     } Entry;
 
     typedef struct History {
@@ -27,7 +27,7 @@ extern "C" {
     } History;
     
     void initLog();
-    void writeLog(print printFunc, void *info);
+    void writeLog(PrintFunc printFunc, void *info);
     void printLog();
 
 #ifdef	__cplusplus
