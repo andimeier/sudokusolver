@@ -33,9 +33,20 @@ Some common examples of containers in non-standard Sudokus are:
 
 The solving strategies are very much influenced by the superb Sudoku solver web page by Andrew Stuart. Although I knew and used the strategies before, Andrew Stuart's site was the inspiration for the naming of the strategies as well as an input for some user interface details.
 
+## Build
+
+Just run the Makefile:
+
+    make
+
+This will build the C sources into the following executable:
+
+    out/sudoku-solver
+
+
 ## Usage
 
-    sudoku-solver -l LOGFILE -s SVGFILE -v -h
+    sudoku-solver [ -l LOGFILE -s SVGFILE -v -h ] SUDOKU_FILE
 
 ### Parameters
 
