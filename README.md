@@ -9,6 +9,23 @@ A flexible and extensible Sudoku solver. Tries to solve Sudokus _like a human wo
 
 The purpose of this Sudoku solver is to have a quick way of assessing the "difficulty" of a Sudoku. There are no standard ways to determine how difficult a Sudoku is, but for me personally, the difficulty corresponds to the set and extent of strategies I have to apply in order to solve it. I regard a Sudoku that can be solved with only hidden singles and naked pairs as more or less equally difficult to another one where the same strategies are used, regardless of how many clues (starting numbers) are given initially. So I wanted to have a tool that tells me if a Sudoku requires more than the standard strategies, e.g. if an X-wing technique is required. Such Sudokus are more interesting to solve, so I wanted to identify them easily. That's why I wrote this Sudoku solver.
 
+## Output
+
+This Sudoku solver tries to solve the Sudoku. Then, it displays a list of strategies which have been needed to solve the Sudoku.
+
+An example output:
+
+    Utilized strategies:
+      X check for solved cells
+      X find hidden singles
+      - find naked tuples (not used)
+      - find pointing tuples (not used)
+      - find hidden tuples (not used)
+
+In this example, a quite easy Sudoku has been solved, using only the very basic strategies "check for solved cells" and "find hidden singles".
+
+Of course, the solved Sudoku itself will also be printed. But the list of applied strategies was the main point why this Sudoku solver has been implemented.
+
 ## Features
 
 Some key features of the Sudoku solver:
@@ -32,6 +49,45 @@ Some common examples of containers in non-standard Sudokus are:
 ## Solving strategies
 
 The solving strategies are very much influenced by the superb Sudoku solver web page by Andrew Stuart. Although I knew and used the strategies before, Andrew Stuart's site was the inspiration for the naming of the strategies as well as an input for some user interface details.
+
+### Check for solved cells
+
+This very basic strategy is actually not a strategy but just:
+
+1. go through all fields
+2. if only one candidate is left, mark the field as solved
+
+That's it. It marks the fields as solved.
+
+### Find hidden singles
+
+This very basic strategy looks for numbers which can only occur in one place within a container.
+
+For example, the candidate 3 is only allowed in the second field of row 3. 
+
+Result:
+
+* use "hidden single" in the field as solution and mark the field as solved
+
+
+### Find naked tuples
+
+This important basic strategy is:
+
+1. in any container, look for a set of two fields sharing the same pair of candidates. This is called a "naked pair"
+2. eliminate these 2 candidates from all other fields of the same container
+
+The same principle applies to a "naked triple":
+
+1. in any container, look for a set of three fields sharing the same triple of candidates. This is called a "naked triple"
+2. eliminate these 3 candidates from all other fields of the same container
+
+The strategy is called "naked tuple" because it searches for pairs, triples, quadruples and further, as you wish. At the moment, it is hard-coded to end after "quadruples".
+
+### Find pointing tuples
+
+### Find hidden tuples
+
 
 ## Build
 
