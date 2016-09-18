@@ -66,72 +66,7 @@ This will build the C sources into the following executable:
 
 ### Format of the Sudoku input file
 
-1. Each Sudoku row is written in a separate line
-2. Each line contains the initial numbers of a Sudoku row, empty Sudoku cells are represented by a dot '.' or '0' or '\_'.
-3. lines starting with a hashbang '#' are considered comments and are silently skipped
-4. Optional control lines can be used: these start with a keyword and a colon and then the specific setting.
-
-#### Control lines 
-With control lines in the Sudoku file, certain parameters can be set for the Sudoku.
-With control lines in the Sudoku file, certain parameters can be set for the Sudoku.
-With control lines in the Sudoku file, certain parameters can be set for the Sudoku.
-
-Such lines are made up like this:
-
-    Name: Value
-
-The name of the setting is case-insensitive. There may be spaces between the colon and the value.
-
-The following settings are recognized in control lines:
-
-##### Type
-Specifies the type of Sudoku. Possible values are:
-* `standard`
-* `x`
-* `color`
-
-Default is "standard". The values are recognized with a minimum of matching characters, so you can abbreviate the setting, e.g. "st" works also for setting a "standard" Sudoku.
-
-Example:
-
-    Type: col
-
-
-##### Box
-Specifies the box dimensions of the "boxes" (rectangular shaped containers). For a standard Sudoku, the boxes are 3x3.
-
-Format: `WIDTHxHEIGHT`
- 
-Default is "3x3". 
-
-Example:
-
-    Box: 3x2
-
-
-##### Shapes
-
-Specifies the shapes in a Jigsaw Sudoku (a Sudoku with irregular shaped boxes).
-
-The following lines specify the "shape ID" each field belongs to. The shape IDs are a single character of either
-
-* a digit
-* a lowercase letter
-* an uppercase letter
-
-There are no default shapes - if a Jigsaw Sudoku is used, it is mandatory to specify the
-shapes using this directive.
-
-Example:
-
-    Shapes:
-    111222333
-    112222233
-    111123333
-    ... [etc]
-
-
-A valid Jigsaw Sudoku input file may look like this:
+A Sudoku input file speicifies the starting numbers as well as "metadata" like Sudoku type. It is a plain text file and basically looks like this:
 
 ```
 type: standard
@@ -147,12 +82,119 @@ box: 3x3
 2.56....1
 ```
 
+The number of values of a Sudoku (i.e., the Sudoku size) is determined automatically from the number of characters per line. In a standard Sudoku, there would be 9 characters per line (initial values and placeholder for empty fields).
+
 Note that you could have omitted each or both of the lines
 
     type: standard
     box: 3x3
 
 in this case because these are the default values for these parameters anyway.
+
+The rules for a Sudoku file are:
+
+1. Each Sudoku row is written in a separate line
+2. Each line contains the initial numbers of a Sudoku row, empty Sudoku cells are represented by a dot '.' or '0' or '\_'.
+3. lines starting with a hashbang '#' are considered comments and are silently skipped
+4. Optional control lines can be used: these start with a keyword and a colon and then the specific setting.
+
+#### Options in Sudoku files
+
+With options used in the Sudoku file, certain parameters can be set for the Sudoku, e.g.:
+
+* the type of Sudoku (e.g. a X-Sudoku)
+* the box dimensions (if different than 3x3 boxes)
+
+Such lines are made up like this:
+
+    NAME: VALUE
+
+The name of the setting is case-insensitive. There may be spaces between the colon and the value.
+
+The following settings are recognized as options:
+
+* type ... set the type of Sudoku (default: standard)
+* box ... set the dimension of the "boxes" (default: 3x3)
+* shapes ... specifiy the irregular shapes for a Jigsaw Sudoku
+
+The following sections describes these options in more detail.
+
+##### Type
+
+Specifies the type of Sudoku. Possible values are:
+* `standard`
+* `x`
+* `color`
+
+Default is "standard". The values are recognized with a minimum of matching characters, so you can abbreviate the setting, e.g. "st" works also for setting a "standard" Sudoku.
+
+Example:
+
+    Type: col
+
+##### Box
+
+Specifies the box dimensions of the "boxes" (rectangular shaped containers). For a standard Sudoku, the boxes are 3x3. However, they could be different. E.g. for a 6x6 Sudoku, the boxes would normally be 3x2, but could also be 2x3.
+
+Format: `WIDTHxHEIGHT`
+ 
+Default is "3x3". 
+
+Example:
+
+    Box: 3x2
+
+
+##### Shapes
+
+Specifies the shapes in a Jigsaw Sudoku (a Sudoku with irregular shaped boxes).
+
+The following lines specify the "shape identifiers" each field belongs to. A shape identifier is a single character of either
+
+* a digit
+* a lowercase letter
+* an uppercase letter
+
+There are no default shapes - if a Jigsaw Sudoku is used, it is mandatory to specify the
+shapes using this directive.
+
+Each line of the "Shapes" setting correspond to one row of the Sudoku. So, each line must have the same number of characters as the Sudoku rows.
+
+Example:
+
+    Shapes:
+    111222333
+    112222233
+    111123333
+    ... [etc]
+
+
+A valid Jigsaw Sudoku input file may look like this:
+
+```
+type: jigsaw
+601007208
+802403001
+080000000
+010060002
+000000000
+200030070
+000000080
+100208503
+903800604
+shapes:
+111122222
+111132322
+144333332
+444535366
+445555566
+447575666
+87777766u
+88787uuuu
+88888uuuu
+```
+
+Note, that the last jigsaw shape has a "shape identifier" of "u". This is just to demonstrate that the characters used as shape identifiers do not matter as long as they conform to the rules above.
 
 ## For developers
 
