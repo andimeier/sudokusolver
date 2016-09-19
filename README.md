@@ -86,8 +86,13 @@ The strategy is called "naked tuple" because it searches for pairs, triples, qua
 
 ### Find pointing tuples
 
+If any one number occurs twice or three times in just one container (e.g. a row, column or box) then that number can be removed from the intersection of another container. For example:
+
+A Pair or Triple in a box - if they are aligned on a row, n can be removed from the rest of the row.
+
 ### Find hidden tuples
 
+If n numbers can only occur in n fields of the same container, then each of these n fields must contain exactly one of each of these n numbers. Consequently, all other candidates than these n numbers can be removed from these n fields.
 
 ## Build
 
