@@ -396,7 +396,7 @@ void set(Parameters *parameters, char *name, char *value) {
 
     } else if (!strcmp(name, "candidates")) {
         // specify syntax of possible candidates
-        parameters->valueChars = value;
+        parameters->valueChars = strdup(value);
     }
 }
 

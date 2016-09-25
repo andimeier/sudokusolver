@@ -30,6 +30,7 @@ static void freeContainers();
 static void printLogSetUniqueNumber(void *info);
 static void printLogRemoveCandidate(void *info);
 static Bool containerContainsOnlyUniqueValues(Container *container);
+static char getFieldValueChar(unsigned value);
 
 // grid geometry, initialize with 0 to indicate the state of being not initialized
 GameType sudokuType = STANDARD_SUDOKU; // type of Sudoku (e.g. X_SUDOKU))
@@ -48,7 +49,7 @@ Field *fields;
  * all containers of the game board  (all rows and all columns and all boxes 
  * and ...)
  */
-Container *allContainers; 
+Container *allContainers;
 
 /*
  * all container types (e.g. [row, column, box])
@@ -421,7 +422,7 @@ void setValue(Field *field, unsigned value) {
     }
 
     field->value = value;
-    field->valueChar = valueChars[value - 1];
+    field->valueChar = getFieldValueChar(value);
 
     // check if the number does not occur in any neighbors in any containers
     for (containerSetIndex = 0; containerSetIndex < numberOfContainerSets; containerSetIndex++) {
@@ -965,8 +966,15 @@ void initSudoku(Parameters *parameters) {
     for (i = 0; i < numberOfFields; i++) {
         value = initialValues[i];
         fields[i].value = value;
-        fields[i].valueChar = value ? valueChars[value - 1] : '0';
-        fields[i].initiallySolved = value ? TRUE : FALSE;
+        if (value) {
+            // initially solved cell
+            fields[i].valueChar = getFieldValueChar(value);
+            fields[i].initiallySolved = TRUE;
+        } else {
+            // initially empty cell
+            fields[i].valueChar = '0';
+            fields[i].initiallySolved = FALSE;
+        }
         fields[i].correctSolution = 0;
     }
 
@@ -1035,4 +1043,22 @@ Bool containerContainsOnlyUniqueValues(Container *container) {
 
     free(values);
     return ok;
+}
+
+/**
+ * maps internal value to value character
+ * 
+ * @param value
+ * @return value character
+ */
+char getFieldValueChar(unsigned value) {
+    char c;
+
+    assert(value != 0);
+    
+    c = valueChars[value - 1];
+    
+    assert(c != '\0');
+    
+    return c;
 }
