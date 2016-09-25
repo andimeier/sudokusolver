@@ -27,6 +27,7 @@ extern "C" {
 
     void toLowerStr(char *str);
     void parseBoxDimensionString(char *boxDimensionString, unsigned *width, unsigned *height);
+    char *parseValueChars(char *valueCharsString, char *errorMsg[]);
 
 #ifdef	__cplusplus
 }

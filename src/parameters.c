@@ -17,7 +17,6 @@ static CommandLineArgs arguments;
 //extern char *optarg;
 //extern int optind, opterr, optopt;
 
-
 /**
  * parse the command line arguments and provide them in a structure
  * 
@@ -34,7 +33,7 @@ CommandLineArgs *parseCommandLineArguments(int argc, char **argv) {
     arguments.outputFilename = NULL; // filename of printlog file
     arguments.inputFilename = NULL;
     arguments.help = FALSE;
-    
+
     // read command line arguments
     opterr = 0;
 
@@ -104,4 +103,67 @@ void toLowerStr(char *str) {
  */
 void parseBoxDimensionString(char *boxDimensionString, unsigned *width, unsigned *height) {
     sscanf(boxDimensionString, "%ux%u", width, height);
+}
+
+/**
+ * expands a value characters string by expanding ranges of characters by their
+ * literal counterparts.
+ * E.g. convert a string like "0-9a-h" to "0123456789abcdefgh"
+ * 
+ * @param valueChars
+ * @param errorMsg the error message in case of an error (will be returned)
+ * @return the value characters expanded or NULL on error
+ */
+char *parseValueChars(char *valueCharsString, char *errorMsg[]) {
+    char buffer[27];
+    char *ptrSrc;
+    char *ptrDest;
+    char c;
+    unsigned len;
+
+    // replace '-' with the expanded range of characters
+    ptrSrc = valueCharsString;
+    ptrDest = buffer;
+    len = 0;
+
+    if (*ptrSrc == '-') {
+        *errorMsg = strdup("illegal string of characters: hyphen must be between two candidate characters, but is on start of string");
+        return NULL;
+    }
+
+    while (*ptrSrc) {
+        if (*ptrSrc == '-') {
+            // interpret as a range of characters
+            c = *(ptrSrc - 1) + 1;
+            ptrSrc++; // navigate to "upper boundary" character
+            if (*ptrSrc == '\0') {
+                *errorMsg = strdup("illegal string of characters: hyphen must be between two candidate characters, but is at end of string");
+                return NULL;
+            }
+            while (c <= *ptrSrc) {
+                if (len >= 26) {
+                    *errorMsg = strdup("illegal string of characters (more than 26 candidates)");
+                    return NULL;
+                }
+                *ptrDest = c;
+                ptrDest++;
+                c++;
+                len++;
+            }
+            ptrSrc++;
+
+        } else {
+            if (len >= 26) {
+                *errorMsg = strdup("illegal string of characters (more than 26 candidates)");
+                return NULL;
+            }
+            *ptrDest = *ptrSrc;
+            ptrDest++;
+            ptrSrc++;
+            len++;
+        }
+    }
+    *ptrDest = '\0'; // terminate destination buffer
+
+    return strdup(buffer);
 }

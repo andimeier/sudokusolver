@@ -54,7 +54,6 @@ Parameters parameters;
 /**
  * read Sudoku from file.
  * Ignore lines starting with '#'.
- * Space or dot will be interpreted as emtpy fields.
  *
  * @param inputFilename
  * @return the Sudoku parameters or NULL on error
@@ -384,6 +383,7 @@ void allocateShapeDefinitions(Parameters *parameters) {
  *   parameter without a value (e.g. 'Shapes')
  */
 void set(Parameters *parameters, char *name, char *value) {
+    char *errorMsg;
 
     // interpret the setting
     if (!strcmp(name, "type")) {
@@ -396,7 +396,12 @@ void set(Parameters *parameters, char *name, char *value) {
 
     } else if (!strcmp(name, "candidates")) {
         // specify syntax of possible candidates
-        parameters->valueChars = strdup(value);
+        parameters->valueChars = parseValueChars(value, &errorMsg);
+        
+        if (!parameters->valueChars) {
+            logError(errorMsg);
+            exit(EXIT_FAILURE);
+        }
     }
 }
 

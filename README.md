@@ -261,6 +261,10 @@ Note, that the last jigsaw shape has a "shape identifier" of "u". This is just t
 
 Specifies the characters to be used for the Sudoku field values. In standard Sudokus, these are the digits 1 through 9. However, in exotic Sudokus or Sudokus more then 9 cells wide, there may be letters used as well. The value of this option specifies all possible "value", i.e. characters. The number of specified characters must exactly match the width of the Sudoku game board.
 
+It is also possible to shorten a range of characters by using the hyphen, e.g.:
+
+    candidates: 0-9A-H
+
 Format: \<string\>
  
 Default is "123456789" (truncated to the width of the Sudoku). 
