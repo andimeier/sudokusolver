@@ -177,7 +177,7 @@ The following settings are recognized as options:
 * type ... set the type of Sudoku (default: standard)
 * box ... set the dimension of the "boxes" (default: 3x3)
 * shapes ... specifiy the irregular shapes for a Jigsaw Sudoku
-* candidates …characters used for the Sudoku field values 
+* candidates ... characters used for the Sudoku field values 
 
 The following sections describes these options in more detail.
 
