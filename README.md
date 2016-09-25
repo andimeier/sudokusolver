@@ -177,6 +177,7 @@ The following settings are recognized as options:
 * type ... set the type of Sudoku (default: standard)
 * box ... set the dimension of the "boxes" (default: 3x3)
 * shapes ... specifiy the irregular shapes for a Jigsaw Sudoku
+* candidates …characters used for the Sudoku field values 
 
 The following sections describes these options in more detail.
 
@@ -256,6 +257,18 @@ shapes:
 ```
 
 Note, that the last jigsaw shape has a "shape identifier" of "u". This is just to demonstrate that the characters used as shape identifiers do not matter as long as they conform to the rules above.
+#### Candidates
+
+Specifies the characters to be used for the Sudoku field values. In standard Sudokus, these are the digits 1 through 9. However, in exotic Sudokus or Sudokus more then 9 cells wide, there may be letters used as well. The value of this option specifies all possible "value", i.e. characters. The number of specified characters must exactly match the width of the Sudoku game board.
+
+Format: \<string\>
+ 
+Default is "123456789" (truncated to the width of the Sudoku). 
+
+Example:
+
+    Candidates: "123456789ABCDEFG"
+
 
 ## For developers
 

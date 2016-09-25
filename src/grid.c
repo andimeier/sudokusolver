@@ -963,8 +963,9 @@ void initSudoku(Parameters *parameters) {
     initialValues = parameters->initialValues;
     for (i = 0; i < numberOfFields; i++) {
         value = initialValues[i];
-        fields[i].initialValue = value;
         fields[i].value = value;
+        fields[i].valueChar = valueChars[value - 1];
+        fields[i].initiallySolved = TRUE;
         fields[i].correctSolution = 0;
     }
 

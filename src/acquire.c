@@ -14,6 +14,7 @@
 #include "acquire.h"
 #include "gametype.h"
 #include "parameters.h"
+#include "util.h"
 
 typedef enum {
     VALUES_DATA, SHAPES_DATA
@@ -37,6 +38,9 @@ static void readLineWithShapes(ReadStatus *readStatus, Parameters *parameters, c
 static void allocateValues(Parameters *parameters);
 static void allocateShapeDefinitions(Parameters *parameters);
 static void set(Parameters *parameters, char *name, char *value);
+static void validateInput(ReadStatus *readStatus);
+static void convertValueChars(Parameters *parameters);
+static unsigned getValueFromChar(char *valueChars, char valueChar);
 
 // char list functions
 static void sortShapeIds(Parameters *parameters);
@@ -104,94 +108,14 @@ Parameters *readSudoku(char *inputFilename) {
 
     fclose(file);
 
-    if (readStatus.sudokuLinesRead != parameters.maxNumber) {
-        logError("error reading the Sudoku from file: too few data rows.");
-        exit(EXIT_FAILURE);
-    }
-
-    if (parameters.gameType == JIGSAW_SUDOKU
-            && readStatus.shapeLinesRead != parameters.maxNumber) {
-        logError("error reading the Jigsaw Sudoku from file: too few rows with shape definitions.");
-        exit(EXIT_FAILURE);
-    }
-
-    if (parameters.gameType != JIGSAW_SUDOKU && readStatus.shapeLinesRead) {
-        logError("shape definitions found, but game type is not \"Jigsaw\".");
-        exit(EXIT_FAILURE);
-    }
-
-    if (parameters.gameType == JIGSAW_SUDOKU
-            && numberOfChars(parameters.shapeIds) != parameters.maxNumber) {
-        logError("error reading the Jigsaw Sudoku from file: too few shape IDs.");
-        exit(EXIT_FAILURE);
-    }
+    validateInput(&readStatus);
 
     if (parameters.gameType == JIGSAW_SUDOKU) {
         sortShapeIds(&parameters);
     }
 
-    if (!parameters.valueChars) {
-        // FIXME: remove this ilne: and replace it with a check plus default value setting
-        parameters.valueChars = strdup("123456789");
-    }
-    
     return &parameters;
-
-#ifdef READ_SUDOKU_STRING
-
-/**
- * import a sudoku as a sequence of characters representing the initial numbers.
- * Empty fields can be defined by using 0, _ or .
- *
- * @param sudoku the Sudoku string
- * @result success flag: 1 if the Sudoku could be read successfully, 0 if not
- */
-Bool parseSudokuString(char *sudoku) {
-    int f;
-    char c;
-
-    for (f = 0; f < numberOfFields; f++) {
-        c = sudoku[f];
-        if (c == '\0') {
-            sprintf(buffer, "Error parsing the Sudoku input: unexpected end of Sudoku data after character #%d", f);
-            logError(buffer);
-            return FALSE;
-        }
-
-        if ((c >= '0') && (c <= (char) (maxNumber + (int) '0'))) {
-            fields[f].initialValue = (int) (c - '0');
-        } else if ((c == ' ') || (c == '.') || (c == '_')) {
-            fields[f].initialValue = 0;
-        } else {
-            sprintf(buffer, "Error parsing the Sudoku input: illegal character ('%c') at position %d.", c, f);
-            logError(buffer);
-            return FALSE;
-        }
-    }
-
-    // copy original grid
-    for (f = 0; f < numberOfFields; f++) {
-        fields[f].value = fields[f].initialValue;
-    }
-
-    return TRUE;
 }
-
-/**
- * parse Sudoku string 409176000610389040...
- *
- * @param sudoku the Sudoku string: all numbers concatenated in one string
- *   or - if maxNumber > 9 - characters beginning with 'A', concatenated in
- *   one string // FIXME characters not implenented
- * @param maxNumber maximum number in the Sudoku = width of Sudoku = height
- *   of Sudoku (will be 9 for a standard Sudoku)
- * @return
- */
-Bool parseSudokuString(char *sudoku, int maxNumber) {
-    // FIXME not used yet, should be the common function which readSudoku and importSudoku uses
-    return FALSE;
-}
-#endif
 
 /**
  * processes one line read from the file
@@ -336,21 +260,17 @@ void readLineWithValues(ReadStatus *readStatus, Parameters *parameters, char *li
     /*
      * go through all chars of the line, should be only digits and
      * spaces
+     * // FIXME no: should only be the defined valueChars
      */
     for (x = 0; x < maxNumber; x++) {
         c = line[x];
 
-        if ((c >= '0') && (c <= (char) (maxNumber + (int) '0'))) {
-            parameters->initialValues[y * parameters->maxNumber + x] = (int) (c - '0');
-
-        } else if ((c == ' ') || (c == '.') || (c == '_')) {
-            parameters->initialValues[y * parameters->maxNumber + x] = 0;
-
-        } else {
-            sprintf(buffer, "Error reading the Sudoku from file: illegal character ('%c') in line %d at position %d.", c, readStatus->fileLineNo, x + 1);
-            logError(buffer);
-            exit(EXIT_FAILURE);
+        // interpret '0' or ' ' or '.' or '_' as initially empty cells
+        if ((c == '0') || (c == ' ') || (c == '.') || (c == '_')) {
+            c = '0';
         }
+
+        parameters->initialValues[y * parameters->maxNumber + x] = c;
     }
     readStatus->sudokuLinesRead++;
 }
@@ -415,16 +335,16 @@ void readLineWithShapes(ReadStatus *readStatus, Parameters *parameters, char *li
  */
 void allocateValues(Parameters *parameters) {
     int i;
-    unsigned *initialValues;
+    char *initialValueChars;
 
     // initialize Sudoku data lines
-    initialValues = (unsigned *) xmalloc(sizeof (unsigned) * parameters->numberOfFields);
+    initialValueChars = (char *) xmalloc(sizeof (char) * parameters->numberOfFields);
 
     for (i = parameters->numberOfFields - 1; i >= 0; i--) {
-        initialValues[i] = 0; // default for each field: no value given
+        initialValueChars[i] = '0'; // default for each field: no value given
     }
 
-    parameters->initialValues = initialValues;
+    parameters->initialValueChars = initialValueChars;
 }
 
 /**
@@ -507,7 +427,7 @@ void sortShapeIds(Parameters *parameters) {
  * @return 
  */
 int compareChars(const void * a, const void * b) {
-    return (*(char *)a > *(char *)b) - (*(char *)a < *(char *)b);
+    return (*(char *) a > *(char *) b) - (*(char *) a < *(char *) b);
 }
 
 /**
@@ -531,4 +451,105 @@ void appendChar(char *charList, char c) {
     oneChar = strdup("X"); // one dummy character
     oneChar[0] = c;
     strcat(charList, oneChar);
+}
+
+/**
+ * performs some tests to check whether the input is valid
+ * 
+ * @param readStatus read status structure
+ */
+void validateInput(ReadStatus *readStatus) {
+
+    if (readStatus->sudokuLinesRead != parameters.maxNumber) {
+        logError("error reading the Sudoku from file: too few data rows.");
+        exit(EXIT_FAILURE);
+    }
+
+    if (parameters.gameType == JIGSAW_SUDOKU
+            && readStatus->shapeLinesRead != parameters.maxNumber) {
+        logError("error reading the Jigsaw Sudoku from file: too few rows with shape definitions.");
+        exit(EXIT_FAILURE);
+    }
+
+    if (parameters.gameType != JIGSAW_SUDOKU && readStatus->shapeLinesRead) {
+        logError("shape definitions found, but game type is not \"Jigsaw\".");
+        exit(EXIT_FAILURE);
+    }
+
+    if (parameters.gameType == JIGSAW_SUDOKU
+            && numberOfChars(parameters.shapeIds) != parameters.maxNumber) {
+        logError("error reading the Jigsaw Sudoku from file: too few shape IDs.");
+        exit(EXIT_FAILURE);
+    }
+
+    if (!parameters.valueChars) {
+        if (parameters.maxNumber <= 9) {
+            parameters.valueChars = strdup("123456789");
+        } else {
+            // don't know to represent an internal value of e.g. 10 ...
+            logError("Sudoku has more than 9 different candidates, but the option \"candidates\" is missing.");
+            exit(EXIT_FAILURE);
+        }
+    }
+
+    /*
+     * check used value characters.
+     * Go through all initial values and check whether the given character is
+     * one of the defined "value characters"
+     */
+    convertValueChars(&parameters);
+
+}
+
+/**
+ * converts all "value characters" in the initialValues to their internal value
+ * 
+ * @param parameters the parameters structure
+ */
+void convertValueChars(Parameters *parameters) {
+    unsigned ix;
+    unsigned value;
+    char c;
+
+    for (ix = 0; ix < parameters->numberOfFields; ix++) {
+        c = parameters->initialValueChars[ix];
+        if (c == '0') {
+            value = 0;
+        } else {
+            value = getValueFromChar(parameters->valueChars, c);
+
+            if (!value) {
+                // don't know to represent an internal value of e.g. 10 ...
+                sprintf(buffer, "illegal character on position %u: %c is not in list of possible candidates (which is: %s).", ix, c, parameters->valueChars);
+                logError(buffer);
+                exit(EXIT_FAILURE);
+            }
+        }
+        // store numerical representation (= internal value)
+        parameters->initialValues[ix] = value;
+    }
+}
+
+
+/**
+ * maps value character (value as a human reader sees it) into the "internal
+ * value". For standard Sudokus, the value character and the internal value is
+ * the same, but for Sudokus with > 9 numbers, there are letters (instead of or
+ * in addition to numbers), but the internal value is nonetheless an unsigned
+ * integer starting with 1.
+ * 
+ * @param valueChars list of characters representing the candidates
+ * @param the value character to be mapped to its internal value
+ * @return the internal value represented by the given value character or 0
+ *   if the character was not found in the value characters string
+ */
+unsigned getValueFromChar(char *valueChars, char valueChar) {
+    char *position;
+
+    position = strchr(valueChars, valueChar);
+    if (position != NULL) {
+        return 1 + (unsigned int) (position - valueChars);
+    } else {
+        return 0;
+    }
 }

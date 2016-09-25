@@ -12,9 +12,9 @@
 extern "C" {
 #endif
 
-    typedef enum { INITIAL, SOLVED } FieldValue;
+    typedef enum { INITIAL, SOLVED } FieldValueType;
 
-    void printGrid(FieldValue whichValue);
+    void printGrid(FieldValueType whichValue);
 
 #ifdef __cplusplus
 }

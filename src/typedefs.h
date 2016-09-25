@@ -68,7 +68,7 @@ extern "C" {
         Container ***containers;
 
         unsigned *candidates;
-        unsigned initialValue;
+        Bool initiallySolved; // true if field was initially filled
         unsigned correctSolution; // if known in advance, can be filled out
         // to test the algorithms
         unsigned candidatesLeft;

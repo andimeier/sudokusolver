@@ -63,7 +63,7 @@ static void printBorders();
 static void printBoxBoundaries();
 static void printJunctions();
 static void printCoordinates();
-static void fillValues(FieldValue whichValue);
+static void fillValues(FieldValueType whichValue);
 static void printOutput();
 static int getBoxAt(unsigned x, unsigned y);
 static unsigned getContainerSetIndexForPrintingBoxes();
@@ -77,6 +77,7 @@ static void drawHorizontalBorderAbove(unsigned x, unsigned y);
 static void drawVerticalBorderLeft(unsigned x, unsigned y);
 
 // line character set in the order of the enum LineChars
+
 typedef enum {
     CHARS_ASCII, CHARS_REDUCED, CHARS_DRAWN_LINES
 } CharSetType;
@@ -93,7 +94,7 @@ static CharSetType charsetType = CHARS_ASCII;
  * @param whichValue INITIAL ... print initial values, SOLVED ... print solved
  *   fields
  */
-void printGrid(FieldValue whichValue) {
+void printGrid(FieldValueType whichValue) {
 
     // find out which container holds the boxes info
     containerSetIndexForPrintingBoxes = getContainerSetIndexForPrintingBoxes();
@@ -105,7 +106,7 @@ void printGrid(FieldValue whichValue) {
     gridLineLength = maxNumber * 2 + 1; /* grid line length excl. LF */
     lineLength = gridLineLength + rowHeaderChars; /* line length excl. LF */
     lineLengthWithLf = lineLength + 1; /* line length incl. LF */
-    numberOfLinesWithoutHeaderLines = 1 + maxNumber * 2;  /* data lines + terminating grid border */
+    numberOfLinesWithoutHeaderLines = 1 + maxNumber * 2; /* data lines + terminating grid border */
     numberOfLines = numberOfLinesWithoutHeaderLines + columnHeaderLines;
     numberOfChars = lineLengthWithLf * numberOfLines; /* times number of lines */
     output = (char *) xmalloc(sizeof (char) * (numberOfChars + 1));
@@ -125,7 +126,7 @@ void printGrid(FieldValue whichValue) {
         case CHARS_DRAWN_LINES:
             charset = drawnLines;
             break;
-            
+
         default:
             // should never happen
             assert(0);
@@ -214,21 +215,22 @@ void printBorders() {
  * @param whichValue INITIAL ... print initial values, SOLVED ... print solved
  *   fields
  */
-void fillValues(FieldValue whichValue) {
+void fillValues(FieldValueType whichValue) {
     Field *field;
     unsigned f;
     unsigned value;
 
     for (f = 0; f < numberOfFields; f++) {
         field = &(fields[f]);
+        value = field->value;
 
         if (whichValue == INITIAL) {
-            value = field->initialValue;
-        } else {
-            value = field->value;
+            if (!field->initiallySolved) {
+                value = 0;
+            }
         }
         if (value) {
-            printCharAtGridPosition(field->x, field->y, 0, 0, valueChars[value - 1]);
+            printCharAtGridPosition(field->x, field->y, 0, 0, field->valueChar);
         }
     }
 
@@ -293,14 +295,14 @@ void printCoordinates() {
     /* column headers */
     line = gridRow(0, -2) + 1;
     for (i = 0; i < maxNumber; i++) {
-        *line = (char)(i + 1 + '0');
+        *line = (char) (i + 1 + '0');
         line += 2;
     }
 
     /* row headers */
     line = output + 2 * lineLengthWithLf;
     for (i = 0; i < maxNumber; i++) {
-        *line = (char)(i + 'A');
+        *line = (char) (i + 'A');
         line += lineLengthWithLf * 2;
     }
 }

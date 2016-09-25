@@ -39,13 +39,16 @@ void printSudokuString(int showInit) {
     // display sudoku string, e.g. 5600340701000403000130500020400000304
     char *buffer;
     int f;
-    int val;
+    char val;
 
     buffer = (char *) xmalloc(sizeof (char) * (numberOfFields + 1));
 
     for (f = 0; f < numberOfFields; f++) {
-        val = showInit ? fields[f].initialValue : fields[f].value;
-        buffer[f] = (char) (val + '0');
+        val = fields[f].valueChar;
+        if (showInit && !fields[f].initiallySolved) {
+            val = '0';
+        }
+        buffer[f] = val;
     }
     buffer[f] = '\0';
 
@@ -178,8 +181,8 @@ void showField(Field *field, int showContainers, int appendLf) {
     assert(maxNumber <= 9);
 
     printf("Field %s: ", field->name);
-    if (field->initialValue) {
-        printf(" (initial: %u) ", field->initialValue);
+    if (field->initiallySolved) {
+        printf(" (initial field) ");
     } 
     
     if (field->value) {

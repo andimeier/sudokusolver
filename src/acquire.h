@@ -25,6 +25,7 @@ extern "C" {
         unsigned numberOfFields;
         unsigned boxWidth;
         unsigned boxHeight;
+        char *initialValueChars;
         unsigned *initialValues;
         char *shapeIds; // null-terminated list of shape IDs
         char *shapes; // shape identifiers for each field
