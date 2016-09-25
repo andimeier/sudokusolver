@@ -17,7 +17,7 @@ Some key features of the Sudoku solver:
 * Sudokus can basically have any number of numbers. A standard Sudoku has 9 numbers, but the solver does not care. Sudokus with a lower or higher number of different candidates are implicitly supported.
 * new solving strategies can be added easily
 
-The internal structures for e.g. rows, columns and boxes are nothing more than specializations of a generic construct named "container". A container is just a set of fields on the Sudoku board which contains each number exactly once. So, in a standard Suduoku, a container has 9 fields and must contain every number from 1 to 9 once. Common examples of a container are:
+The internal structures for e.g. rows, columns and boxes are nothing more than specializations of a generic construct named "container". A container is just a set of fields on the Sudoku board which contains each number exactly once. So, in a standard Sudoku, a container has 9 fields and must contain every number from 1 to 9 once. Common examples of a container are:
 
 * a row
 * a column
@@ -26,12 +26,12 @@ The internal structures for e.g. rows, columns and boxes are nothing more than s
 Some common examples of containers in non-standard Sudokus are:
 
 * a diagonal (in a X-Sudoku)
-* "colors" in a color Sudoku
+* a "color" in a color Sudoku
 * a "shape", i.e. an irregularly shaped container in a jigsaw Sudoku
 
 ## Solving strategies
 
-The solving strategies are very much influenced by the superb Sudoku solver web page by Andrew Stuart. Although I knew and used the strategies before, Andrew Stuart's site was the inspiration for the naming of the strategies as well as an input for some user interface details.
+The solving strategies are very much influenced by the superb Sudoku solver web page by Andrew Stuart. Although I knew and used the strategies before, Andrew Stuart's site was the inspiration for the naming of the strategies. It also was an input for some user interface details.
 
 ## Build
 
@@ -230,5 +230,3 @@ Running
     make test
 
 in the project directory will try to locate Unity at `../unity/`.
-
-
