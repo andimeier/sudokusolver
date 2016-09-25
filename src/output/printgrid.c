@@ -228,7 +228,7 @@ void fillValues(FieldValue whichValue) {
             value = field->value;
         }
         if (value) {
-            printCharAtGridPosition(field->x, field->y, 0, 0, (char) (value + '0'));
+            printCharAtGridPosition(field->x, field->y, 0, 0, valueChars[value - 1]);
         }
     }
 

@@ -72,7 +72,8 @@ extern "C" {
         unsigned correctSolution; // if known in advance, can be filled out
         // to test the algorithms
         unsigned candidatesLeft;
-        unsigned value;
+        unsigned value; // internal value (numeric) of field
+        char valueChar; // displayed character of field value
         char name[4]; // "name" of field = coordinates, e.g. "A2"
     } Field;
 

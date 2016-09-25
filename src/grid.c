@@ -35,6 +35,7 @@ static Bool containerContainsOnlyUniqueValues(Container *container);
 GameType sudokuType = STANDARD_SUDOKU; // type of Sudoku (e.g. X_SUDOKU))
 size_t maxNumber = 0;
 size_t numberOfFields = 0; // == maxNumber^2
+char *valueChars;
 
 // grid variables
 
@@ -114,6 +115,20 @@ void dimensionGrid(size_t _maxNumber) {
 
     maxNumber = _maxNumber;
     numberOfFields = maxNumber * maxNumber;
+}
+
+/**
+ * dimensions the Sudoku grid
+ * 
+ * @param maxNumber number of numbers = side length of the Sudoku grid
+ */
+void setValueChars(char *valueCharacters) {
+
+    // if the Sudoku is wider than 26 numbers, we might have a memory 
+    // allocation issue with the field->name (what is right of "Z26"?)
+    assert(strlen(valueCharacters) == maxNumber);
+
+    valueChars = valueCharacters;
 }
 
 /**
@@ -941,6 +956,7 @@ void initSudoku(Parameters *parameters) {
 
     // initialize Sudoku data lines
     dimensionGrid(parameters->maxNumber);
+    setValueChars(parameters->valueChars);
 
     allocateFields(numberOfFields);
 
