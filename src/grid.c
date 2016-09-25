@@ -421,6 +421,7 @@ void setValue(Field *field, unsigned value) {
     }
 
     field->value = value;
+    field->valueChar = valueChars[value - 1];
 
     // check if the number does not occur in any neighbors in any containers
     for (containerSetIndex = 0; containerSetIndex < numberOfContainerSets; containerSetIndex++) {
@@ -964,8 +965,8 @@ void initSudoku(Parameters *parameters) {
     for (i = 0; i < numberOfFields; i++) {
         value = initialValues[i];
         fields[i].value = value;
-        fields[i].valueChar = valueChars[value - 1];
-        fields[i].initiallySolved = TRUE;
+        fields[i].valueChar = value ? valueChars[value - 1] : '0';
+        fields[i].initiallySolved = value ? TRUE : FALSE;
         fields[i].correctSolution = 0;
     }
 

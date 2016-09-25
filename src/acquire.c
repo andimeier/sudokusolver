@@ -270,7 +270,7 @@ void readLineWithValues(ReadStatus *readStatus, Parameters *parameters, char *li
             c = '0';
         }
 
-        parameters->initialValues[y * parameters->maxNumber + x] = c;
+        parameters->initialValueChars[y * parameters->maxNumber + x] = c;
     }
     readStatus->sudokuLinesRead++;
 }
@@ -336,15 +336,19 @@ void readLineWithShapes(ReadStatus *readStatus, Parameters *parameters, char *li
 void allocateValues(Parameters *parameters) {
     int i;
     char *initialValueChars;
+    unsigned *initialValues;
 
     // initialize Sudoku data lines
     initialValueChars = (char *) xmalloc(sizeof (char) * parameters->numberOfFields);
+    initialValues = (unsigned *) xmalloc(sizeof (unsigned) * parameters->numberOfFields);
 
     for (i = parameters->numberOfFields - 1; i >= 0; i--) {
         initialValueChars[i] = '0'; // default for each field: no value given
+        initialValues[i] = 0; // default for each field: no value given
     }
 
     parameters->initialValueChars = initialValueChars;
+    parameters->initialValues = initialValues;
 }
 
 /**
