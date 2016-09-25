@@ -130,8 +130,12 @@ Parameters *readSudoku(char *inputFilename) {
         sortShapeIds(&parameters);
     }
 
+    if (!parameters.valueChars) {
+        // FIXME: remove this ilne: and replace it with a check plus default value setting
+        parameters.valueChars = strdup("123456789");
+    }
+    
     return &parameters;
-}
 
 #ifdef READ_SUDOKU_STRING
 
@@ -480,6 +484,7 @@ void initParameters() {
     parameters.initialValues = NULL;
     parameters.shapes = NULL;
     parameters.shapeIds = NULL;
+    parameters.valueChars = NULL;
 }
 
 /**
