@@ -467,6 +467,8 @@ void appendChar(char *charList, char c) {
  * @param readStatus read status structure
  */
 void validateInput(ReadStatus *readStatus) {
+    char *sorted;
+    unsigned ix;
 
     if (readStatus->sudokuLinesRead != parameters.maxNumber) {
         logError("error reading the Sudoku from file: too few data rows.");
@@ -506,6 +508,17 @@ void validateInput(ReadStatus *readStatus) {
             logError(buffer);
             exit(EXIT_FAILURE);
         }
+
+        sorted = strdup(parameters.valueChars);
+        qsort(sorted, strlen(parameters.valueChars), sizeof (char), compareChars);
+        for (ix = strlen(parameters.valueChars) - 1; ix > 0; ix--) {
+            if (sorted[ix] == sorted[ix - 1]) {
+                sprintf(buffer, "error in candidate characters: duplicate entry of character '%c'", sorted[ix]);
+                logError(buffer);
+                exit(EXIT_FAILURE);
+            }
+        }
+        free(sorted);
     }
 
     /*
