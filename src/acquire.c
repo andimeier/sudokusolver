@@ -393,6 +393,10 @@ void set(Parameters *parameters, char *name, char *value) {
     } else if (!strcmp(name, "box")) {
         // specify box size
         parseBoxDimensionString(value, &(parameters->boxWidth), &(parameters->boxHeight));
+
+    } else if (!strcmp(name, "candidates")) {
+        // specify syntax of possible candidates
+        parameters->valueChars = value;
     }
 }
 
@@ -494,6 +498,14 @@ void validateInput(ReadStatus *readStatus) {
             logError("Sudoku has more than 9 different candidates, but the option \"candidates\" is missing.");
             exit(EXIT_FAILURE);
         }
+    } else {
+        // value characters given: must be exactly as many characters as 
+        // are possible candidates
+        if (strlen(parameters.valueChars) != parameters.maxNumber) {
+            sprintf(buffer, "number of candidate characters (%zu) is different from number of possible candidates (%u)", strlen(parameters.valueChars), parameters.maxNumber);
+            logError(buffer);
+            exit(EXIT_FAILURE);
+        }
     }
 
     /*
@@ -533,7 +545,6 @@ void convertValueChars(Parameters *parameters) {
         parameters->initialValues[ix] = value;
     }
 }
-
 
 /**
  * maps value character (value as a human reader sees it) into the "internal
