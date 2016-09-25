@@ -972,7 +972,7 @@ void initSudoku(Parameters *parameters) {
             fields[i].initiallySolved = TRUE;
         } else {
             // initially empty cell
-            fields[i].valueChar = '0';
+            fields[i].valueChar = ' ';
             fields[i].initiallySolved = FALSE;
         }
         fields[i].correctSolution = 0;

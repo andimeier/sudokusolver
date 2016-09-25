@@ -16,6 +16,9 @@
 #include "parameters.h"
 #include "util.h"
 
+// character representing "no value"
+#define NO_VALUE    '0'
+
 typedef enum {
     VALUES_DATA, SHAPES_DATA
 } DataLineType;
@@ -265,8 +268,8 @@ void readLineWithValues(ReadStatus *readStatus, Parameters *parameters, char *li
         c = line[x];
 
         // interpret '0' or ' ' or '.' or '_' as initially empty cells
-        if ((c == '0') || (c == ' ') || (c == '.') || (c == '_')) {
-            c = '0';
+        if ((c == NO_VALUE) || (c == ' ') || (c == '.') || (c == '_')) {
+            c = NO_VALUE;
         }
 
         parameters->initialValueChars[y * parameters->maxNumber + x] = c;
@@ -342,7 +345,7 @@ void allocateValues(Parameters *parameters) {
     initialValues = (unsigned *) xmalloc(sizeof (unsigned) * parameters->numberOfFields);
 
     for (i = parameters->numberOfFields - 1; i >= 0; i--) {
-        initialValueChars[i] = '0'; // default for each field: no value given
+        initialValueChars[i] = NO_VALUE; // default for each field: no value given
         initialValues[i] = 0; // default for each field: no value given
     }
 
@@ -547,7 +550,7 @@ void convertValueChars(Parameters *parameters) {
 
     for (ix = 0; ix < parameters->numberOfFields; ix++) {
         c = parameters->initialValueChars[ix];
-        if (c == '0') {
+        if (c == NO_VALUE) {
             value = 0;
         } else {
             value = getValueFromChar(parameters->valueChars, c);
