@@ -263,8 +263,10 @@ Specifies the characters to be used for the Sudoku field values. In standard Sud
 
 It is also possible to shorten a range of characters by using the hyphen, e.g.:
 
-    candidates: 0-9A-H
+    candidates: 1-9A-H
 
+Note that at the moment it is not possible for the character '0' to be a regular candidate. '0' is internally considered a placeholder for "no value set". So, if you try to solve a Sudoku with 0...9 and A...F, you have to map the values to 1...9 and A...G.
+	
 Format: \<string\>
  
 Default is "123456789" (truncated to the width of the Sudoku). 
@@ -275,6 +277,14 @@ Example:
 
 
 ## For developers
+
+### Acquiring from another source
+
+Acquiring a Sudoku means reading the Sudoku's characteristics and initial values from any source. 
+
+At the moment, only acquiring from a Sudoku file is implemented. If you want to implement another source (e.g. command line), it is important to know that the _output_ of your acquisition must be a set up `Parameters` structure containing all information about the Sudoku.
+
+This struct `Parameters` is the interface between acquisition and solver. A complete struct `Parameters` is all there is needed to set up the board and the solver.
 
 ### Implementing another container type
 
