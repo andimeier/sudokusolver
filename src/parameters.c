@@ -131,6 +131,31 @@ char *parseValueChars(char *valueCharsString, char *errorMsg[]) {
         return NULL;
     }
 
+    /*
+     * State Machine:
+     * switch (c)
+     *   case '-':
+     *     if (pos == 0)
+     *       ERROR(must not start with hyphen)
+     *     else
+     *       if (!range)
+     *         fromChar = lastChar;
+     *         range = TRUE
+     *       else
+     *         ERROR(two hyphens)
+     *   case '0'-'9', 'a'-'z', 'A'-'Z'
+     *     if (range)
+     *        if (from...to == lower...lower || upper...upper || digit...digit)
+     *          explodeRande
+     *          range = FALSE
+     *        else
+     *          ERROR(mixed range not allowed)
+     *     else
+     *        copyChar
+     * if (range)
+     *   ERROR(must not end with hyphen)
+     */ 
+    
     while (*ptrSrc) {
         if (*ptrSrc == '-') {
             // interpret as a range of characters
