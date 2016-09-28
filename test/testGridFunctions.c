@@ -713,7 +713,7 @@ void test_findHiddenPairInContainer(void) {
 }
 
 void test_determineDiagonalContainer() {
-    
+
     TEST_ASSERT_EQUAL(1, determineDiagonalContainer(0, 8));
     TEST_ASSERT_EQUAL(1, determineDiagonalContainer(1, 7));
     TEST_ASSERT_EQUAL(1, determineDiagonalContainer(2, 6));
@@ -739,10 +739,9 @@ void test_determineDiagonalContainer() {
     TEST_ASSERT_EQUAL(0, determineDiagonalContainer(8, 8));
 }
 
-
 void test_parseBoxDimensionString() {
     unsigned w, h;
-    
+
     parseBoxDimensionString("3x2", &w, &h);
     TEST_ASSERT_EQUAL(w, 3);
     TEST_ASSERT_EQUAL(h, 2);
@@ -764,6 +763,89 @@ void test_parseBoxDimensionString() {
     TEST_ASSERT_EQUAL(h, 2);
 }
 
+void test_parseValueChars() {
+    char *result;
+    char *errorMsg;
+
+    result = parseValueChars("1-9a-d", errorMsg);
+    TEST_ASSERT_EQUAL_STRING("123456789abcd", result);
+    TEST_ASSERT_NULL(errorMsg);
+
+    result = parseValueChars("3-5A-CDE-F", errorMsg);
+    TEST_ASSERT_EQUAL_STRING("345ABCDEF", result);
+    TEST_ASSERT_NULL(errorMsg);
+
+    result = parseValueChars("C12", errorMsg);
+    TEST_ASSERT_EQUAL_STRING("C12", result);
+    TEST_ASSERT_NULL(errorMsg);
+
+    result = parseValueChars("0-4HG", errorMsg);
+    TEST_ASSERT_EQUAL_STRING("01234HG", result);
+    TEST_ASSERT_NULL(errorMsg);
+
+    result = parseValueChars("0-12345-7a-cG-I", errorMsg);
+    TEST_ASSERT_EQUAL_STRING("01234567abcGHI", result);
+    TEST_ASSERT_NULL(errorMsg);
+
+    // swap characters
+    result = parseValueChars("0-12345-7G-Ia-c", errorMsg);
+    TEST_ASSERT_EQUAL_STRING("01234567GHIabc", result);
+    TEST_ASSERT_NULL(errorMsg);
+
+
+    // incomplete range specification
+    result = parseValueChars("-", errorMsg);
+    TEST_ASSERT_NULL(result);
+    TEST_ASSERT_NOT_NULL(errorMsg);
+    TEST_ASSERT_TRUE(strlen(errorMsg) > 0);
+
+    result = parseValueChars("-C12", errorMsg);
+    TEST_ASSERT_NULL(result);
+    TEST_ASSERT_NOT_NULL(errorMsg);
+    TEST_ASSERT_TRUE(strlen(errorMsg) > 0);
+
+    result = parseValueChars("C12-", errorMsg);
+    TEST_ASSERT_NULL(result);
+    TEST_ASSERT_NOT_NULL(errorMsg);
+    TEST_ASSERT_TRUE(strlen(errorMsg) > 0);
+
+    result = parseValueChars("-C12", errorMsg);
+    TEST_ASSERT_NULL(result);
+    TEST_ASSERT_NOT_NULL(errorMsg);
+    TEST_ASSERT_TRUE(strlen(errorMsg) > 0);
+
+    result = parseValueChars("C12--", errorMsg);
+    TEST_ASSERT_NULL(result);
+    TEST_ASSERT_NOT_NULL(errorMsg);
+    TEST_ASSERT_TRUE(strlen(errorMsg) > 0);
+
+    result = parseValueChars("--C12", errorMsg);
+    TEST_ASSERT_NULL(result);
+    TEST_ASSERT_NOT_NULL(errorMsg);
+    TEST_ASSERT_TRUE(strlen(errorMsg) > 0);
+
+    result = parseValueChars("C--F", errorMsg);
+    TEST_ASSERT_NULL(result);
+    TEST_ASSERT_NOT_NULL(errorMsg);
+    TEST_ASSERT_TRUE(strlen(errorMsg) > 0);
+
+    // mixed ranges not allowed
+    result = parseValueChars("C-g", errorMsg);
+    TEST_ASSERT_NULL(result);
+    TEST_ASSERT_NOT_NULL(errorMsg);
+    TEST_ASSERT_TRUE(strlen(errorMsg) > 0);
+
+    result = parseValueChars("1-F", errorMsg);
+    TEST_ASSERT_NULL(result);
+    TEST_ASSERT_NOT_NULL(errorMsg);
+    TEST_ASSERT_TRUE(strlen(errorMsg) > 0);
+
+    // too long
+    result = parseValueChars("0-4A-Z", errorMsg);
+    TEST_ASSERT_NULL(result);
+    TEST_ASSERT_NOT_NULL(errorMsg);
+    TEST_ASSERT_TRUE(strlen(errorMsg) > 0);
+}
 
 int main(void) {
     UNITY_BEGIN();
@@ -781,6 +863,7 @@ int main(void) {
     RUN_TEST(test_determineDiagonalContainer);
     RUN_TEST(test_showCandidates);
     RUN_TEST(test_parseBoxDimensionString);
+    RUN_TEST(test_parseValueChars);
     //        RUN_TEST(test_setupGrid);
     return UNITY_END();
 }

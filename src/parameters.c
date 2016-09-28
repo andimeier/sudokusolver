@@ -114,7 +114,7 @@ void parseBoxDimensionString(char *boxDimensionString, unsigned *width, unsigned
  * @param errorMsg the error message in case of an error (will be returned)
  * @return the value characters expanded or NULL on error
  */
-char *parseValueChars(char *valueCharsString, char *errorMsg[]) {
+char *OBSOLETE_parseValueChars(char *valueCharsString, char *errorMsg[]) {
     char buffer[27];
     char *ptrSrc;
     char *ptrDest;
@@ -154,8 +154,8 @@ char *parseValueChars(char *valueCharsString, char *errorMsg[]) {
      *        copyChar
      * if (range)
      *   ERROR(must not end with hyphen)
-     */ 
-    
+     */
+
     while (*ptrSrc) {
         if (*ptrSrc == '-') {
             // interpret as a range of characters
@@ -191,4 +191,173 @@ char *parseValueChars(char *valueCharsString, char *errorMsg[]) {
     *ptrDest = '\0'; // terminate destination buffer
 
     return strdup(buffer);
+}
+
+/**
+ * expands a value characters string by expanding ranges of characters by their
+ * literal counterparts.
+ * E.g. convert a string like "0-9a-h" to "0123456789abcdefgh"
+ * 
+ * @param valueChars
+ * @param errorMsg the error message in case of an error (will be returned)
+ * @return the value characters expanded or NULL on error
+ */
+char *parseValueChars(char *valueCharsString, char *errorMsg[]) {
+    char expandedValueChars[27];
+    char *ptrSrc;
+    char *ptrDest;
+    char c;
+    char fromChar;
+    char toChar;
+    unsigned len;
+    Bool processingRange;
+
+    // initialize errorMsg with an empty string
+    *errorMsg[0] = '\0';
+    
+    // init state machine variables
+    ptrSrc = valueCharsString;
+    ptrDest = expandedValueChars;
+    len = 0;
+    processingRange = FALSE;
+
+
+
+    if (*ptrSrc == '-') {
+        return NULL;
+    }
+
+    while (*ptrSrc) {
+        c = *ptrSrc;
+
+        if (c == '-') {
+            if (len == 0) {
+                *errorMsg = strdup("illegal string of characters: hyphen must be between two candidate characters, but is on start of string");
+            } else {
+                if (processingRange) {
+                    // already in range, detected a second hyphen ... oops
+                    *errorMsg = strdup("two hyphens");
+                    break;
+                } else {
+                    // start of range definition
+                    fromChar = *(ptrSrc - 1);
+                    processingRange = TRUE;
+                }
+            }
+        } else if (isdigit(c) || islower(c) || isupper(c)) {
+            if (processingRange) {
+
+                // "toChar" detected
+                if ((isdigit(fromChar) && isdigit(c)) ||
+                        (islower(fromChar) && islower(c)) ||
+                        (isupper(fromChar) && isupper(c))) {
+                    toChar = c;
+                    if (toChar < fromChar) {
+                        sprintf(buffer, "range must be defined in ascending order, but was defined as %c-%c", fromChar, toChar);
+                        *errorMsg = strdup(buffer);
+                        break;
+                    }
+
+                    // explode range
+                    
+                    /*
+                     * start with the next character after fromChar, because
+                     * fromChar has already been copied
+                     */
+                    c = fromChar + 1; 
+                    while (c <= toChar) {
+                        //                        if (addChar(ptrDest, c)) {
+                        //                            len++;
+                        //                        }
+                        if (len >= 26) {
+                            *errorMsg = strdup("illegal string of characters (more than 26 candidates)");
+                            return NULL;
+                        }
+                        *ptrDest = c;
+                        ptrDest++;
+                        len++;
+                        c++;
+                    }
+
+                    // range has been exploded, reset "range mode"
+                    processingRange = FALSE;
+
+                } else {
+                    sprintf(buffer, "mixed range (%c-%c) not allowed", fromChar, c);
+                    *errorMsg = strdup(buffer);
+                    break;
+                }
+            } else {
+                // not in range processing mode
+                *ptrDest = c;
+                ptrDest++;
+                len++;
+            }
+        } else {
+            sprintf(buffer, "illegal character in set of candidates: %c (only digits and letters are allowed)", c);
+            *errorMsg = strdup(buffer);
+            break;
+        }
+
+        /*
+         * State Machine:
+         *   case '0'-'9', 'a'-'z', 'A'-'Z'
+         *     if (range)
+         *        if (from...to == lower...lower || upper...upper || digit...digit)
+         *          explodeRande
+         *          range = FALSE
+         *        else
+         *          ERROR(mixed range not allowed)
+         *     else
+         *        copyChar
+         * if (range)
+         *   ERROR(must not end with hyphen)
+         */
+
+
+        if (*errorMsg[0] != '\0') {
+            break;
+        }
+        
+        ptrSrc++;
+    }
+
+    // are we in the middle of a range when we suddenly hit the end of the string?
+    if (processingRange) {
+        *errorMsg = strdup("illegal string of characters: hyphen must be between two candidate characters, but is at end of string");
+    }
+
+    if (*errorMsg[0] != '\0') {
+        return NULL;
+    }
+
+    *ptrDest = '\0'; // terminate destination buffer
+
+    return strdup(expandedValueChars);
+
+    /*
+     * State Machine:
+     * switch (c)
+     *   case '-':
+     *     if (pos == 0)
+     *       ERROR(must not start with hyphen)
+     *errorMsg = strdup("illegal string of characters: hyphen must be between two candidate characters, but is on start of string");
+     *     else
+     *       if (!range)
+     *         fromChar = lastChar;
+     *         range = TRUE
+     *       else
+     *         ERROR(two hyphens)
+     *   case '0'-'9', 'a'-'z', 'A'-'Z'
+     *     if (range)
+     *        if (from...to == lower...lower || upper...upper || digit...digit)
+     *          explodeRande
+     *          range = FALSE
+     *        else
+     *          ERROR(mixed range not allowed)
+     *     else
+     *        copyChar
+     * if (range)
+     *   ERROR(must not end with hyphen)
+     */
 }
