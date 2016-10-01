@@ -155,7 +155,7 @@ in this case because these are the default values for these parameters anyway.
 The rules for a Sudoku file are:
 
 1. Each Sudoku row is written in a separate line
-2. Each line contains the initial numbers of a Sudoku row, empty Sudoku cells are represented by a dot '.' or '0' or '\_'.
+2. Each line contains the initial numbers of a Sudoku row, empty Sudoku cells are represented by a dot '.' or '\_'. If '0' is no valid candidate, then '0' is also interpreted as empty cell.
 3. lines starting with a hashbang '#' are considered comments and are silently skipped
 4. Optional control lines can be used: these start with a keyword and a colon and then the specific setting.
 

@@ -17,7 +17,7 @@
 #include "util.h"
 
 // character representing "no value"
-#define NO_VALUE    '0'
+#define NO_VALUE    ' '
 
 typedef enum {
     VALUES_DATA, SHAPES_DATA
@@ -111,6 +111,11 @@ Parameters *readSudoku(char *inputFilename) {
     fclose(file);
 
     validateInput(&readStatus);
+
+    /*
+     * convert value characters by their internal numeric value
+     */
+    convertValueChars(&parameters);
 
     if (parameters.gameType == JIGSAW_SUDOKU) {
         sortShapeIds(&parameters);
@@ -260,17 +265,13 @@ void readLineWithValues(ReadStatus *readStatus, Parameters *parameters, char *li
 
 
     /*
-     * go through all chars of the line, should be only digits and
-     * spaces
-     * // FIXME no: should only be the defined valueChars
+     * go through all chars of the line and store their initial value. 
+     * It will be validated later whether the characters are valid characters
+     * (one of the candidate chars) or "spaces" or not. In this function, we
+     * only collect the characters
      */
     for (x = 0; x < maxNumber; x++) {
         c = line[x];
-
-        // interpret '0' or ' ' or '.' or '_' as initially empty cells
-        if ((c == NO_VALUE) || (c == ' ') || (c == '.') || (c == '_')) {
-            c = NO_VALUE;
-        }
 
         parameters->initialValueChars[y * parameters->maxNumber + x] = c;
     }
@@ -400,7 +401,7 @@ void set(Parameters *parameters, char *name, char *value) {
     } else if (!strcmp(name, "candidates")) {
         // specify syntax of possible candidates
         parameters->valueChars = parseValueChars(value, &errorMsg);
-        
+
         if (!parameters->valueChars) {
             logError(errorMsg);
             exit(EXIT_FAILURE);
@@ -528,14 +529,6 @@ void validateInput(ReadStatus *readStatus) {
         }
         free(sorted);
     }
-
-    /*
-     * check used value characters.
-     * Go through all initial values and check whether the given character is
-     * one of the defined "value characters"
-     */
-    convertValueChars(&parameters);
-
 }
 
 /**
@@ -547,9 +540,21 @@ void convertValueChars(Parameters *parameters) {
     unsigned ix;
     unsigned value;
     char c;
+    Bool candidate0;
+
+    // check if the character '0' is a valid candidate
+    candidate0 = (strchr(parameters->valueChars, '0') != NULL);
 
     for (ix = 0; ix < parameters->numberOfFields; ix++) {
         c = parameters->initialValueChars[ix];
+
+        if (!candidate0 && c == '0') {
+            c = NO_VALUE;
+        } else if ((c == ' ') || (c == '.') || (c == '_')) {
+            // interpret ' ' or '.' or '_' as initially empty cells
+            c = NO_VALUE;
+        }
+
         if (c == NO_VALUE) {
             value = 0;
         } else {
