@@ -540,15 +540,14 @@ void convertValueChars(Parameters *parameters) {
     unsigned ix;
     unsigned value;
     char c;
-    Bool candidate0;
 
     // check if the character '0' is a valid candidate
-    candidate0 = (strchr(parameters->valueChars, '0') != NULL);
+    parameters->candidate0 = (strchr(parameters->valueChars, '0') != NULL);
 
     for (ix = 0; ix < parameters->numberOfFields; ix++) {
         c = parameters->initialValueChars[ix];
 
-        if (!candidate0 && c == '0') {
+        if (!parameters->candidate0 && c == '0') {
             c = NO_VALUE;
         } else if ((c == ' ') || (c == '.') || (c == '_')) {
             // interpret ' ' or '.' or '_' as initially empty cells

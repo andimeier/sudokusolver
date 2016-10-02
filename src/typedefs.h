@@ -18,6 +18,8 @@ extern "C" {
 
     typedef enum { FALSE, TRUE } Bool;
     
+    typedef enum { INITIAL, SOLVED } FieldValueType;
+
 //#define FALSE 0
 //#define TRUE !FALSE
 

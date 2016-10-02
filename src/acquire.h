@@ -30,6 +30,7 @@ extern "C" {
         char *shapeIds; // null-terminated list of shape IDs
         char *shapes; // shape identifiers for each field
         char *valueChars; // list of characters representing the "internal numbers" of the fields
+        Bool candidate0; // '0' is a valid candidate?
     } Parameters;
 
     Parameters *readSudoku(char *inputFilename);

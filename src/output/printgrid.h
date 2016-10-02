@@ -12,8 +12,8 @@
 extern "C" {
 #endif
 
-    typedef enum { INITIAL, SOLVED } FieldValueType;
-
+#include "typedefs.h"
+    
     void printGrid(FieldValueType whichValue);
 
 #ifdef __cplusplus

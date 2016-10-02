@@ -35,7 +35,7 @@ static void showFieldsVector(FieldsVector *fields, int indent, size_t limit);
  * @param showInit {integer} if falsey, only print current grid. If truish,
  *   print original (init) grid and current grid
  */
-void printSudokuString(int showInit) {
+void printSudokuString(FieldValueType valueType) {
     // display sudoku string, e.g. 5600340701000403000130500020400000304
     char *buffer;
     int f;
@@ -45,7 +45,7 @@ void printSudokuString(int showInit) {
 
     for (f = 0; f < numberOfFields; f++) {
         val = fields[f].valueChar;
-        if (showInit && !fields[f].initiallySolved) {
+        if (valueType == INITIAL && !fields[f].initiallySolved) {
             val = '0';
         }
         buffer[f] = val;
