@@ -503,7 +503,7 @@ void validateInput(ReadStatus *readStatus) {
 
     if (!parameters.valueChars) {
         if (parameters.maxNumber <= 9) {
-            parameters.valueChars = strdup("123456789");
+            parameters.valueChars = strndup("123456789", parameters.maxNumber);
         } else {
             // don't know to represent an internal value of e.g. 10 ...
             logError("Sudoku has more than 9 different candidates, but the option \"candidates\" is missing.");

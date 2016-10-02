@@ -269,7 +269,7 @@ Note that at the moment it is not possible for the character '0' to be a regular
 	
 Format: \<string\>
  
-Default is "123456789" (truncated to the width of the Sudoku). 
+Default is "123456789" (truncated to the width of the Sudoku). So, for a standard Sudoku, the default is "123456789", for a 4x4 Sudoku it is "1234" etc.
 
 Example:
 
