@@ -114,7 +114,7 @@ int main(int argc, char **argv) {
         logAlways("-----------------------------------------------");
         logAlways("         SUDOKU HAS BEEN SOLVED!");
         logAlways("-----------------------------------------------");
-        printSudokuString(SOLVED);
+        printSudokuString(SOLVED, parameters->candidate0);
 
         // print the strategies involved
         printInvolvedStrategies();
@@ -131,7 +131,7 @@ int main(int argc, char **argv) {
         sprintf(buffer, "      Found %u of %zu cells.", numbersFound, numberOfFields);
         logAlways(buffer);
         logAlways("-----------------------------------------------");
-        printSudokuString(INITIAL);
+        printSudokuString(INITIAL, parameters->candidate0);
 
         // print the strategies involved
         printInvolvedStrategies();
