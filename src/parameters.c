@@ -37,13 +37,9 @@ CommandLineArgs *parseCommandLineArguments(int argc, char **argv) {
     // read command line arguments
     opterr = 0;
 
-    while ((c = getopt(argc, argv, "hvVl:s:")) != -1)
+    while ((c = getopt(argc, argv, "hvl:")) != -1)
         switch (c) {
             case 'v':
-                arguments.logLevel = LOGLEVEL_VERBOSE;
-                break;
-
-            case 'V':
                 arguments.logLevel = LOGLEVEL_VERBOSE;
                 break;
 
@@ -56,7 +52,7 @@ CommandLineArgs *parseCommandLineArguments(int argc, char **argv) {
                 break;
 
             case '?':
-                if (optopt == 'l' || optopt == 's')
+                if (optopt == 'l')
                     fprintf(stderr, "Option -%d requires an argument.\n", optopt);
                 else if (isprint(optopt))
                     fprintf(stderr, "Unknown option `-%c'.\n", optopt);
@@ -74,7 +70,7 @@ CommandLineArgs *parseCommandLineArguments(int argc, char **argv) {
     }
 
     // if no sudoku is given
-    if (!arguments.inputFilename) {
+    if (!arguments.inputFilename && !arguments.help) {
         fprintf(stderr, "Missing Sudoku filename\n");
         fprintf(stderr, "See usage page for details: -h");
         return NULL;
@@ -105,93 +101,6 @@ void parseBoxDimensionString(char *boxDimensionString, unsigned *width, unsigned
     sscanf(boxDimensionString, "%ux%u", width, height);
 }
 
-/**
- * expands a value characters string by expanding ranges of characters by their
- * literal counterparts.
- * E.g. convert a string like "0-9a-h" to "0123456789abcdefgh"
- * 
- * @param valueChars
- * @param errorMsg the error message in case of an error (will be returned)
- * @return the value characters expanded or NULL on error
- */
-char *OBSOLETE_parseValueChars(char *valueCharsString, char *errorMsg[]) {
-    char buffer[27];
-    char *ptrSrc;
-    char *ptrDest;
-    char c;
-    unsigned len;
-
-    // replace '-' with the expanded range of characters
-    ptrSrc = valueCharsString;
-    ptrDest = buffer;
-    len = 0;
-
-    if (*ptrSrc == '-') {
-        *errorMsg = strdup("illegal string of characters: hyphen must be between two candidate characters, but is on start of string");
-        return NULL;
-    }
-
-    /*
-     * State Machine:
-     * switch (c)
-     *   case '-':
-     *     if (pos == 0)
-     *       ERROR(must not start with hyphen)
-     *     else
-     *       if (!range)
-     *         fromChar = lastChar;
-     *         range = TRUE
-     *       else
-     *         ERROR(two hyphens)
-     *   case '0'-'9', 'a'-'z', 'A'-'Z'
-     *     if (range)
-     *        if (from...to == lower...lower || upper...upper || digit...digit)
-     *          explodeRande
-     *          range = FALSE
-     *        else
-     *          ERROR(mixed range not allowed)
-     *     else
-     *        copyChar
-     * if (range)
-     *   ERROR(must not end with hyphen)
-     */
-
-    while (*ptrSrc) {
-        if (*ptrSrc == '-') {
-            // interpret as a range of characters
-            c = *(ptrSrc - 1) + 1;
-            ptrSrc++; // navigate to "upper boundary" character
-            if (*ptrSrc == '\0') {
-                *errorMsg = strdup("illegal string of characters: hyphen must be between two candidate characters, but is at end of string");
-                return NULL;
-            }
-            while (c <= *ptrSrc) {
-                if (len >= 26) {
-                    *errorMsg = strdup("illegal string of characters (more than 26 candidates)");
-                    return NULL;
-                }
-                *ptrDest = c;
-                ptrDest++;
-                c++;
-                len++;
-            }
-            ptrSrc++;
-
-        } else {
-            if (len >= 26) {
-                *errorMsg = strdup("illegal string of characters (more than 26 candidates)");
-                return NULL;
-            }
-            *ptrDest = *ptrSrc;
-            ptrDest++;
-            ptrSrc++;
-            len++;
-        }
-    }
-    *ptrDest = '\0'; // terminate destination buffer
-
-    return strdup(buffer);
-}
 
 /**
  * expands a value characters string by expanding ranges of characters by their

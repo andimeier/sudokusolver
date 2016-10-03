@@ -161,20 +161,13 @@ void printUsage() {
     // print program usage
 
     puts("Usage: ");
-    puts(" sudoku-solver -l LOGFILE -s SVGFILE -v -h SUDOKU_FILE");
+    puts(" sudoku-solver [ -l LOGFILE -v -h ] SUDOKU_FILE");
     puts("");
     puts("Parameters:");
     puts("");
     puts("  -l LOGFILE  printlog into LOGFILE (filename) instead of stdout");
-    puts("  -s SVGFILE  write SVG representation of Sudoku grid into SVG files, each iteration will write");
-    puts("              another SVG file with a numeric suffix appended. The SVG file without an additional");
-    puts("              numeric suffix is the final, solved grid.");
-    puts("              For example, when the parameter -s test.svg is specified, you will end up with SVG");
-    puts("              files of test.svg.1, test.svg.2, test.svg.3 etc. plus the final grid, stored in the");
-    puts("              file test.svg (without additional suffix).");
     puts("  -v          verbose logging");
-    puts("  -V          very verbose logging");
     puts("  -h          this help screen");
-    puts("  SUDOKU_STRING a Sudoku in the one-string format. If given, overrides the -f setting.");
+    puts("  SUDOKU_FLIE the Sudoku input file");
 }
 

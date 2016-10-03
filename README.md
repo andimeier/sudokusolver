@@ -107,27 +107,23 @@ This will build the C sources into the following executable:
 
 ## Usage
 
-    sudoku-solver [ -l LOGFILE -s SVGFILE -v -h ] SUDOKU_FILE
+    sudoku-solver [ -l LOGFILE -v -h ] SUDOKU_FILE
 
 ### Parameters
 
-    -l LOGFILE  printlog into LOGFILE (filename) instead of stdout
+    Usage:
+     sudoku-solver [ -l LOGFILE -v -h ] SUDOKU_FILE
     
-    -s SVGFILE  write SVG representation of Sudoku grid into SVG files, each
-    iteration will write another SVG file with a numeric suffix appended.
-    The SVG file without an additional numeric suffix is the final, solved
-    grid.
-    For example, when the parameter -s test.svg is specified, you will end up with SVG
-    files of test.svg.1, test.svg.2, test.svg.3 etc. plus the final grid, stored in the
-    file test.svg (without additional suffix).
-
-    -v          verbose logging
-  
-    -h          this help screen
-
+    Parameters:
+    
+      -l LOGFILE  printlog into LOGFILE (filename) instead of stdout
+      -v          verbose logging
+      -h          this help screen
+      SUDOKU_FLIE the Sudoku input file
+    
 ### Format of the Sudoku input file
 
-A Sudoku input file speicifies the starting numbers as well as "metadata" like Sudoku type. It is a plain text file and basically looks like this:
+A Sudoku input file specifies the starting numbers as well as "metadata" such as the type of Sudoku (e.g. Color Sudoku). It is a plain text file and basically looks like this:
 
 ```
 type: standard
@@ -143,7 +139,7 @@ box: 3x3
 2.56....1
 ```
 
-The number of values of a Sudoku (i.e., the Sudoku size) is determined automatically from the number of characters per line. In a standard Sudoku, there would be 9 characters per line (initial values and placeholder for empty fields).
+The number of values of a Sudoku (i.e., the Sudoku size) is derived automatically from the number of characters per line. In a standard Sudoku, there would be 9 characters per line (initial values and placeholder for empty fields).
 
 Note that you could have omitted each or both of the lines
 
@@ -179,16 +175,26 @@ The following settings are recognized as options:
 * shapes ... specifiy the irregular shapes for a Jigsaw Sudoku
 * candidates ... characters used for the Sudoku field values 
 
-The following sections describes these options in more detail.
+The following sections describe these options in more detail.
 
 ##### Type
 
-Specifies the type of Sudoku. Possible values are:
-* `standard`
-* `x`
-* `color`
+This option specifies the type of Sudoku. More precisely, it specifies the types of containers used. Possible values of this option are:
 
-Default is "standard". The values are recognized with a minimum of matching characters, so you can abbreviate the setting, e.g. "st" works also for setting a "standard" Sudoku.
+* `standard` ... rows, columns and boxes are used as containers
+* `x` ... rows, columns, boxes and diagonals are used as containers
+* `color` ... rows, columns, boxes and colors are used as containers
+* `jigsaw` ... rows, columns and shapes  (irregularly shaped boxes) are used as containers
+
+Default is "standard" (with rows, columns and boxes). The values are recognized with a minimum of matching characters, so you can abbreviate the setting, e.g. "st" works also for setting a "standard" Sudoku.
+
+With a `x` Sudoku, the two diagonals are used as container, so each of the two diagonals must contain all possible values.
+
+With a `color` Sudoku, all n'th members of a box form a container of the same "color". For example, the left top cell of each box would be the color "color 1".
+
+With a `jigsaw` Sudoku, the boxes have irregular shapes. The "shapes" must be defined in the Sudoku file as well.
+
+
 
 Example:
 
@@ -209,7 +215,7 @@ Example:
 
 ##### Shapes
 
-Specifies the shapes in a Jigsaw Sudoku (a Sudoku with irregular shaped boxes).
+Specifies the shapes in a Jigsaw Sudoku (a Sudoku with irregular shaped boxes). This is a mandatory setting when Jigsaw Sudoku is used as the Sudoku type.
 
 The following lines specify the "shape identifiers" each field belongs to. A shape identifier is a single character of either
 
@@ -265,7 +271,7 @@ It is also possible to shorten a range of characters by using the hyphen, e.g.:
 
     candidates: 1-9A-H
 
-Note that at the moment it is not possible for the character '0' to be a regular candidate. '0' is internally considered a placeholder for "no value set". So, if you try to solve a Sudoku with 0...9 and A...F, you have to map the values to 1...9 and A...G.
+Note that it is also possible for the character '0' to be a regular candidate. In this case, it is not possible to use '0' as a placeholder for an empty cell in the matrix of initial values. If '0' is no valid candidate, then empty cells can be specified with '0' as well in the Sudoku file.
 	
 Format: \<string\>
  
@@ -278,7 +284,7 @@ Example:
 
 ## For developers
 
-### Acquiring from another source
+### Acquiring a Sudoku from another source
 
 Acquiring a Sudoku means reading the Sudoku's characteristics and initial values from any source. 
 
@@ -297,13 +303,7 @@ The new container type must be linked to a certain "game type". For example, a g
 
 Note that a field could be member of more than one container of a spdcific type (for example, the crossing between ascending and falling diagonal is the same field)
 
-Compile:
-
-    make clean all
-
-Call:
-
-    out/sudoku-solver < examples/sudoku1.sudoku
+## Unit tests
 
 ### Install Unity (Unit testing)
 
@@ -313,8 +313,18 @@ Download Unity from
 
 and place it in a folder beside the Sudoku solver project.
 
+### Run unit tests
+
 Running 
 
     make test
 
 in the project directory will try to locate Unity at `../unity/`.
+
+## Sudoku tests
+
+A test suite of Sudoku puzzles can be executed by:
+
+    ./test_all_sudokus.sh
+
+This will go through all files in the `examples` folder and its subfolders and try to solve all found Sudokus. The result is shown.

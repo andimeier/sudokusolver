@@ -82,10 +82,10 @@ TEST = test
 .PRECIOUS: $(OUT)/$(TARGET) $(OBJECTS)
 
 .init:
-	mkdir -p $(OUT)
+	@mkdir -p $(OUT)
 
 .init_test:
-	mkdir -p $(OUT)/$(TEST)
+	@mkdir -p $(OUT)/$(TEST)
 
 default: .init $(OUT)/$(TARGET)
 all: clean default
