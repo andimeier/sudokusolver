@@ -188,11 +188,11 @@ This option specifies the type of Sudoku. More precisely, it specifies the types
 
 Default is "standard" (with rows, columns and boxes). The values are recognized with a minimum of matching characters, so you can abbreviate the setting, e.g. "st" works also for setting a "standard" Sudoku.
 
-With a `x` Sudoku, the two diagonals are used as container, so each of the two diagonals must contain all possible values.
+A `x` Sudoku is a Sudoku with the two diagonals used as container, so each of the two diagonals must contain all possible values.
 
-With a `color` Sudoku, all n'th members of a box form a container of the same "color". For example, the left top cell of each box would be the color "color 1".
+In a `color` Sudoku, all n'th members of a box form a container of the same "color". For example, the left top cell of each box would be the color "color 1".
 
-With a `jigsaw` Sudoku, the boxes have irregular shapes. The "shapes" must be defined in the Sudoku file as well.
+A `jigsaw` Sudoku is a Sudoku with irregularly shaped boxes. The "shapes" must be defined in the Sudoku file as well.
 
 
 
