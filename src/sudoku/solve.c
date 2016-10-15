@@ -53,8 +53,6 @@ Bool solve() {
     iteration = 0;
     errors = 0; // no errors yet
 
-    printSvg(0);
-
     cleanUpCandidates();
 
     sf((Field *)(fields + 1));

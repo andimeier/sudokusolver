@@ -14,14 +14,18 @@
 extern "C" {
 #endif
 
-//    typedef unsigned char Bool;
+    //    typedef unsigned char Bool;
 
-    typedef enum { FALSE, TRUE } Bool;
-    
-    typedef enum { INITIAL, SOLVED } FieldValueType;
+    typedef enum {
+        FALSE, TRUE
+    } Bool;
 
-//#define FALSE 0
-//#define TRUE !FALSE
+    typedef enum {
+        INITIAL, SOLVED
+    } FieldValueType;
+
+    //#define FALSE 0
+    //#define TRUE !FALSE
 
     // ID values of the container types
 
@@ -135,6 +139,39 @@ extern "C" {
         Container **containers;
 
     } ContainerSet;
+
+    /*
+     * game types:
+     * STANDARD_SUDOKU: standard Sudoku with rows, columns and boxes
+     * X_SUDOKU: X-Sudoku with rows, columns, boxes and 2 diagonals
+     * COLOR_SUDOKU: with rows, columns, boxes and colors
+     */
+    typedef enum {
+        STANDARD_SUDOKU,
+        X_SUDOKU,
+        COLOR_SUDOKU,
+        JIGSAW_SUDOKU
+    } GameType;
+
+    /*
+     * entire set of the Sudoku input parameters. All parameters which are
+     * read from the Sudoku file or from other sources (e.g. as switches from
+     * the command line) are included in this structure.
+     */
+    typedef struct {
+        GameType gameType;
+        unsigned maxNumber;
+        unsigned numberOfFields;
+        unsigned boxWidth;
+        unsigned boxHeight;
+        char *initialValueChars;
+        unsigned *initialValues;
+        char *shapeIds; // null-terminated list of shape IDs
+        char *shapes; // shape identifiers for each field
+        char *valueChars; // list of characters representing the "internal numbers" of the fields
+        Bool candidate0; // '0' is a valid candidate?
+    } Parameters;
+
 
 #ifdef	__cplusplus
 }

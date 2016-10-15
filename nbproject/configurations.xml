@@ -5,6 +5,8 @@
       <df name="output">
         <in>printgrid.c</in>
         <in>printgrid.h</in>
+        <in>summary.c</in>
+        <in>summary.h</in>
       </df>
       <df name="sudoku">
         <in>fieldlist.c</in>
@@ -15,6 +17,8 @@
         <in>logfile.h</in>
         <in>numberlist.c</in>
         <in>solve.c</in>
+        <in>sudoku.c</in>
+        <in>sudoku.h</in>
         <in>util.c</in>
       </df>
       <in>acquire.c</in>
@@ -73,6 +77,10 @@
       </item>
       <item path="src/output/printgrid.h" ex="false" tool="3" flavor2="0">
       </item>
+      <item path="src/output/summary.c" ex="false" tool="0" flavor2="0">
+      </item>
+      <item path="src/output/summary.h" ex="false" tool="3" flavor2="0">
+      </item>
       <item path="src/parameters.c" ex="false" tool="0" flavor2="0">
       </item>
       <item path="src/parameters.h" ex="false" tool="3" flavor2="0">
@@ -92,6 +100,10 @@
       <item path="src/sudoku/numberlist.c" ex="false" tool="0" flavor2="2">
       </item>
       <item path="src/sudoku/solve.c" ex="false" tool="0" flavor2="2">
+      </item>
+      <item path="src/sudoku/sudoku.c" ex="false" tool="0" flavor2="0">
+      </item>
+      <item path="src/sudoku/sudoku.h" ex="false" tool="3" flavor2="0">
       </item>
       <item path="src/sudoku/util.c" ex="false" tool="0" flavor2="2">
       </item>

@@ -17,7 +17,6 @@ extern "C" {
     struct Field;
 
     void printSudokuString(FieldValueType valueType, Bool candidate0);
-    void printSvg(int finalVersion);
     char *position(Field *field);
 
     void printInvolvedStrategies();

@@ -6,19 +6,22 @@
 #include <unistd.h>
 #include "solve.h"
 #include "grid.h"
-#include "util.h"
-#include "show.h"
-#include "logfile.h"
-#include "log.h"
-#include "gametype.h"
 #include "acquire.h"
-#include "printgrid.h"
 #include "parameters.h"
-#include "shape.h"
-#include "box.h"
+#include "sudoku.h"
+#include "summary.h"
 
 static void printUsage();
 
+/**
+ * main function, orchestrates in a very high-level form the flow through the
+ * application.
+ * 
+ * @param argc
+ * @param argv
+ * @return EXIT_SUCCESS on no error (regardless whether the Sudoku has been 
+ *   solved or not. EXIT_FAILURE on user or application error.
+ */
 int main(int argc, char **argv) {
     int result;
     Parameters *parameters;
@@ -50,12 +53,6 @@ int main(int argc, char **argv) {
     }
 
     /*
-     * start with a default Sudoku grid, will be overridden by the 
-     * actual parameters
-     */
-    setDefaults();
-
-    /*
      * read Sudoku and fill the starting numbers
      * and possibly read grid parameters which override the default settings.
      * So, the settings which are defined in the Sudoku file will always
@@ -70,78 +67,17 @@ int main(int argc, char **argv) {
         exit(EXIT_FAILURE);
     }
 
-
-    // dimension Sudoku and allocate fields
-    initSudoku(parameters);
-
-
-    /*
-     * now that we definitely know the geometry and characteristics of the
-     * game board, initialize the game
-     */
-    setupGrid();
-
-    /*
-     * check if the initial board is valid
-     */
-    if (!isValidSudoku()) {
-        logError("invalid Sudoku");
-        exit(EXIT_FAILURE);
-    }
-
-    /*
-     * start logging
-     */
-    initLog();
-
     // START (solve Sudoku)
     // ====================
 
-    result = solve();
+    result = solveSudoku(parameters);
 
-    printLog();
-
-    sprintf(buffer, "Gametype: %s", getGameTypeString(sudokuType));
-    logAlways(buffer);
-
-    printSvg(1);
-
-    logAlways("");
-    printGrid(SOLVED);
-    logAlways("");
-
-    if (result) {
-        logAlways("-----------------------------------------------");
-        logAlways("         SUDOKU HAS BEEN SOLVED!");
-        logAlways("-----------------------------------------------");
-        printSudokuString(SOLVED, parameters->candidate0);
-
-        // print the strategies involved
-        printInvolvedStrategies();
-
-    } else {
-
-        unsigned numbersFound = 0;
-        for (int f = 0; f < numberOfFields; f++)
-            if (fields[f].value)
-                numbersFound++;
-
-        logAlways("-----------------------------------------------");
-        logAlways("      Sudoku could not be solved!");
-        sprintf(buffer, "      Found %u of %zu cells.", numbersFound, numberOfFields);
-        logAlways(buffer);
-        logAlways("-----------------------------------------------");
-        printSudokuString(INITIAL, parameters->candidate0);
-
-        // print the strategies involved
-        printInvolvedStrategies();
-    }
-
-    if (errors) {
-        sprintf(buffer, "%d ERRORS occurred!", errors);
-        logError(buffer);
-    }
-
+    
+    // print result
+    // ============
+    
+    printSummary(result, parameters->candidate0);
+    
 
     closeLogFile();
 
@@ -153,10 +89,9 @@ int main(int argc, char **argv) {
 }
 
 
-
-
-//-------------------------------------------------------------------
-
+/**
+ * prints the usage screen
+ */
 void printUsage() {
     // print program usage
 
@@ -170,4 +105,3 @@ void printUsage() {
     puts("  -h          this help screen");
     puts("  SUDOKU_FLIE the Sudoku input file");
 }
-

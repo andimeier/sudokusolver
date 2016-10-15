@@ -12,26 +12,7 @@
 extern "C" {
 #endif
 
-#include "gametype.h"
-
-    /*
-     * entire set of the Sudoku input parameters. All parameters which are
-     * read from the Sudoku file or from other sources (e.g. as switches from
-     * the command line) are included in this structure.
-     */
-    typedef struct {
-        GameType gameType;
-        unsigned maxNumber;
-        unsigned numberOfFields;
-        unsigned boxWidth;
-        unsigned boxHeight;
-        char *initialValueChars;
-        unsigned *initialValues;
-        char *shapeIds; // null-terminated list of shape IDs
-        char *shapes; // shape identifiers for each field
-        char *valueChars; // list of characters representing the "internal numbers" of the fields
-        Bool candidate0; // '0' is a valid candidate?
-    } Parameters;
+#include "typedefs.h"
 
     Parameters *readSudoku(char *inputFilename);
     //    int parseSudokuString(char *sudoku);
