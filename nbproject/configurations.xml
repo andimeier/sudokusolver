@@ -2,14 +2,32 @@
 <configurationDescriptor version="95">
   <logicalFolder name="root" displayName="root" projectFiles="true" kind="ROOT">
     <df root="src" name="0">
+      <df name="containers">
+        <in>box.c</in>
+        <in>color.c</in>
+        <in>color.h</in>
+        <in>column.c</in>
+        <in>container.c</in>
+        <in>diagonal.c</in>
+        <in>row.c</in>
+        <in>shape.c</in>
+      </df>
       <df name="output">
         <in>printgrid.c</in>
         <in>printgrid.h</in>
+        <in>show.c</in>
         <in>summary.c</in>
         <in>summary.h</in>
       </df>
+      <df name="strategies">
+        <in>hidden-singles.c</in>
+        <in>hidden-tuples.c</in>
+        <in>naked-tuples.c</in>
+        <in>pointing-tuples.c</in>
+      </df>
       <df name="sudoku">
         <in>fieldlist.c</in>
+        <in>gametype.c</in>
         <in>grid.c</in>
         <in>log.c</in>
         <in>log.h</in>
@@ -31,7 +49,8 @@
                    displayName="Important Files"
                    projectFiles="false"
                    kind="IMPORTANT_FILES_FOLDER">
-      <itemPath>src/Makefile</itemPath>
+      <itemPath>Makefile</itemPath>
+      <itemPath>README.md</itemPath>
     </logicalFolder>
     <itemPath>test/testGridFunctions.c</itemPath>
   </logicalFolder>
@@ -71,11 +90,29 @@
       </item>
       <item path="src/acquire.h" ex="false" tool="3" flavor2="0">
       </item>
+      <item path="src/containers/box.c" ex="false" tool="0" flavor2="0">
+      </item>
+      <item path="src/containers/color.c" ex="false" tool="0" flavor2="0">
+      </item>
+      <item path="src/containers/color.h" ex="false" tool="3" flavor2="0">
+      </item>
+      <item path="src/containers/column.c" ex="false" tool="0" flavor2="0">
+      </item>
+      <item path="src/containers/container.c" ex="false" tool="0" flavor2="0">
+      </item>
+      <item path="src/containers/diagonal.c" ex="false" tool="0" flavor2="0">
+      </item>
+      <item path="src/containers/row.c" ex="false" tool="0" flavor2="0">
+      </item>
+      <item path="src/containers/shape.c" ex="false" tool="0" flavor2="0">
+      </item>
       <item path="src/main.c" ex="false" tool="0" flavor2="2">
       </item>
       <item path="src/output/printgrid.c" ex="false" tool="0" flavor2="0">
       </item>
       <item path="src/output/printgrid.h" ex="false" tool="3" flavor2="0">
+      </item>
+      <item path="src/output/show.c" ex="false" tool="0" flavor2="0">
       </item>
       <item path="src/output/summary.c" ex="false" tool="0" flavor2="0">
       </item>
@@ -85,7 +122,17 @@
       </item>
       <item path="src/parameters.h" ex="false" tool="3" flavor2="0">
       </item>
+      <item path="src/strategies/hidden-singles.c" ex="false" tool="0" flavor2="0">
+      </item>
+      <item path="src/strategies/hidden-tuples.c" ex="false" tool="0" flavor2="0">
+      </item>
+      <item path="src/strategies/naked-tuples.c" ex="false" tool="0" flavor2="0">
+      </item>
+      <item path="src/strategies/pointing-tuples.c" ex="false" tool="0" flavor2="0">
+      </item>
       <item path="src/sudoku/fieldlist.c" ex="false" tool="0" flavor2="2">
+      </item>
+      <item path="src/sudoku/gametype.c" ex="false" tool="0" flavor2="0">
       </item>
       <item path="src/sudoku/grid.c" ex="false" tool="0" flavor2="2">
       </item>
