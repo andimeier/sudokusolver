@@ -13,7 +13,7 @@
 #include "util.h"
 #include "acquire.h"
 #include "gametype.h"
-#include "parameters.h"
+#include "arguments.h"
 #include "util.h"
 
 // character representing "no value"

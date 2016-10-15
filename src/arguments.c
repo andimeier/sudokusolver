@@ -1,5 +1,5 @@
 /**
- * Utility functions for parameter parsing
+ * utility functions for parameter parsing
  */
 #include <stdio.h>
 #include <stdlib.h>
@@ -7,8 +7,7 @@
 #include <ctype.h>
 #include <unistd.h>
 #include <assert.h>
-#include "logfile.h"
-#include "parameters.h"
+#include "arguments.h"
 
 static CommandLineArgs arguments;
 

@@ -7,7 +7,7 @@
 #include "solve.h"
 #include "grid.h"
 #include "acquire.h"
-#include "parameters.h"
+#include "arguments.h"
 #include "sudoku.h"
 #include "summary.h"
 

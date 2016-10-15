@@ -41,8 +41,8 @@
       </df>
       <in>acquire.c</in>
       <in>acquire.h</in>
+      <in>arguments.c</in>
       <in>main.c</in>
-      <in>parameters.c</in>
       <in>parameters.h</in>
     </df>
     <logicalFolder name="ExternalFiles"
@@ -90,6 +90,8 @@
       </item>
       <item path="src/acquire.h" ex="false" tool="3" flavor2="0">
       </item>
+      <item path="src/arguments.c" ex="false" tool="0" flavor2="0">
+      </item>
       <item path="src/containers/box.c" ex="false" tool="0" flavor2="0">
       </item>
       <item path="src/containers/color.c" ex="false" tool="0" flavor2="0">
@@ -117,8 +119,6 @@
       <item path="src/output/summary.c" ex="false" tool="0" flavor2="0">
       </item>
       <item path="src/output/summary.h" ex="false" tool="3" flavor2="0">
-      </item>
-      <item path="src/parameters.c" ex="false" tool="0" flavor2="0">
       </item>
       <item path="src/parameters.h" ex="false" tool="3" flavor2="0">
       </item>
