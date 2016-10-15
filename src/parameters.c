@@ -10,7 +10,6 @@
 #include "logfile.h"
 #include "parameters.h"
 
-
 static CommandLineArgs arguments;
 
 //// variables defined by getopt

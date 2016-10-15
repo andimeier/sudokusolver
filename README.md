@@ -284,6 +284,13 @@ Example:
 
 ## For developers
 
+### Flow of control
+
+1. parse command line parameters
+2. acquire Sudoku
+3. solve Sudoku
+4. display results
+
 ### Acquiring a Sudoku from another source
 
 Acquiring a Sudoku means reading the Sudoku's characteristics and initial values from any source. 

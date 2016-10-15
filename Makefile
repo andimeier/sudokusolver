@@ -97,14 +97,15 @@ execute_tests: $(OUT)/$(TEST_TARGET)
 
 OBJECTS = $(patsubst $(SRC)/%.c, $(OUT)/%.o, $(wildcard $(SRC)/*.c)) \
   $(patsubst $(SRC)/strategies/%.c, $(OUT)/%.o, $(wildcard $(SRC)/strategies/*.c)) \
-  $(patsubst $(SRC)/containers/%.c, $(OUT)/%.o, $(wildcard $(SRC)/containers/*.c)) \
-  $(patsubst $(SRC)/output/%.c, $(OUT)/%.o, $(wildcard $(SRC)/output/*.c))
+  $(patsubst $(SRC)/output/%.c,     $(OUT)/%.o, $(wildcard $(SRC)/output/*.c)) \
+  $(patsubst $(SRC)/sudoku/%.c,     $(OUT)/%.o, $(wildcard $(SRC)/sudoku/*.c)) \
+  $(patsubst $(SRC)/containers/%.c, $(OUT)/%.o, $(wildcard $(SRC)/containers/*.c))
 TEST_OBJECTS = \
   $(filter-out $(OUT)/main.o, $(patsubst $(SRC)/%.c, $(OUT)/%.o, $(wildcard $(SRC)/*.c))) \
   $(patsubst $(TEST)/%.c, $(OUT)/test/%.o, $(wildcard $(TEST)/test*.c))
 HEADERS = $(wildcard $(SRC)/*.h)
 
-INC_DIRS=-I$(SRC) -I$(SRC)/strategies -I$(SRC)/containers -I$(SRC)/output -I$(UNITY_ROOT)/src -I$(UNITY_ROOT)/extras/fixture/src
+INC_DIRS=-I$(SRC) -I$(SRC)/strategies -I$(SRC)/containers -I$(SRC)/sudoku -I$(SRC)/output -I$(UNITY_ROOT)/src -I$(UNITY_ROOT)/extras/fixture/src
 SYMBOLS=
 TEST_SRC_FILES = \
   $(UNITY_ROOT)/src/unity.c \
@@ -116,8 +117,8 @@ TEST_SRC_FILES = \
 #SRC_FILES = $(SRC)/%.c $(SRC)/strategies/%.c
 #SRC_FILES = $(wildcard $(SRC)/%.c)
 # $(wildcard $(SRC)/strategies/%.c)
-SRC_FILES = $(SRC)/*.c $(SRC)/strategies/*.c $(SRC)/containers/*.c $(SRC)/output/*.c
-HEADER_FILES = $(SRC)/*.h $(SRC)/strategies/*.h $(SRC)/containers/*.h $(SRC)/output/*.h
+SRC_FILES = $(SRC)/*.c $(SRC)/strategies/*.c $(SRC)/containers/*.c $(SRC)/sudoku/*.c $(SRC)/output/*.c
+HEADER_FILES = $(SRC)/*.h $(SRC)/strategies/*.h $(SRC)/containers/*.h $(SRC)/sudoku/*.h $(SRC)/output/*.h
 
 # compile source files
 #$(OUT)/%.o: $(SRC)/%.c $(HEADERS)
@@ -128,6 +129,8 @@ $(OUT)/%.o: $(SRC)/%.c $(HEADER_FILES)
 $(OUT)/%.o: $(SRC)/strategies/%.c $(HEADER_FILES)
 	$(CC) $(CFLAGS) $(INC_DIRS) $(SYMBOLS) -c $< -o $@
 $(OUT)/%.o: $(SRC)/containers/%.c $(HEADER_FILES)
+	$(CC) $(CFLAGS) $(INC_DIRS) $(SYMBOLS) -c $< -o $@
+$(OUT)/%.o: $(SRC)/sudoku/%.c $(HEADER_FILES)
 	$(CC) $(CFLAGS) $(INC_DIRS) $(SYMBOLS) -c $< -o $@
 $(OUT)/%.o: $(SRC)/output/%.c $(HEADER_FILES)
 	$(CC) $(CFLAGS) $(INC_DIRS) $(SYMBOLS) -c $< -o $@
