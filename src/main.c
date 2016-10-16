@@ -39,8 +39,8 @@ int main(int argc, char **argv) {
         exit(EXIT_SUCCESS);
     }
 
-    // init phase
-    // ==========
+    // set up loging
+    // =============
 
     setLogLevel(args->logLevel);
 
@@ -48,6 +48,9 @@ int main(int argc, char **argv) {
         openLogFile(args->outputFilename);
     }
 
+    // load Sudoku
+    // ===========
+    
     /*
      * read Sudoku and fill the starting numbers
      * and possibly read grid parameters which override the default settings.
@@ -57,7 +60,6 @@ int main(int argc, char **argv) {
      * The basic geometry of the board will be implicitly set by the given
      * numbers. 
      */
-    // try to load Sudoku from file
     parameters = readSudoku(args->inputFilename);
     if (!parameters) {
         exit(EXIT_FAILURE);
