@@ -74,7 +74,6 @@ size_t numberOfContainers;
 static Container *settingUpContainer;
 
 // history entry types
-
 typedef struct EntrySolveField {
     char *fieldName;
     unsigned number;

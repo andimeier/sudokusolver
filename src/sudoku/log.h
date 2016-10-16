@@ -15,17 +15,6 @@ extern "C" {
     // pointer to "print log" function
     typedef void (*PrintFunc)(void *);
     
-    typedef struct Entry {
-        void *info;
-        PrintFunc printFunc;
-    } Entry;
-
-    typedef struct History {
-        Entry **entries;
-        size_t capacity;
-        size_t count;
-    } History;
-    
     void initLog();
     void writeLog(PrintFunc printFunc, void *info);
     void printLog();

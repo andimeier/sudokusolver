@@ -13,6 +13,17 @@
 #define INIT_LOGSIZE    100
 #define INCREMENT_LOGSIZE   100
 
+typedef struct Entry {
+    void *info;
+    PrintFunc printFunc;
+} Entry;
+
+typedef struct History {
+    Entry **entries;
+    size_t capacity;
+    size_t count;
+} History;
+
 
 //static History *history;
 static History hist;
@@ -21,19 +32,19 @@ static History hist;
  * initializes the log
  */
 void initLog() {
-//    void *f;
+    //    void *f;
 
     hist.entries = (Entry **) xmalloc(sizeof (Entry *) * INIT_LOGSIZE);
     hist.capacity = INIT_LOGSIZE;
     hist.count = 0;
-//    return;
-//    
-//    history = (History *) xmalloc(sizeof (History));
-//    f = (void *) xmalloc(sizeof (Entry *) * INIT_LOGSIZE);
-//    history->entries = (Entry **) f;
-//    history->entries = (Entry **) xmalloc(sizeof (Entry *) * INIT_LOGSIZE);
-//    history->capacity = INIT_LOGSIZE;
-//    history->count = 0;
+    //    return;
+    //    
+    //    history = (History *) xmalloc(sizeof (History));
+    //    f = (void *) xmalloc(sizeof (Entry *) * INIT_LOGSIZE);
+    //    history->entries = (Entry **) f;
+    //    history->entries = (Entry **) xmalloc(sizeof (Entry *) * INIT_LOGSIZE);
+    //    history->capacity = INIT_LOGSIZE;
+    //    history->count = 0;
 }
 
 /**
@@ -61,11 +72,11 @@ void writeLog(PrintFunc printFunc, void *info) {
  */
 void printLog() {
     unsigned i;
-    
+
     for (i = 0; i < hist.count; i++) {
         Entry *entry;
 
         entry = hist.entries[i];
-        (*(entry->printFunc)) ((void *)(entry->info));
+        (*(entry->printFunc)) ((void *) (entry->info));
     }
 }
