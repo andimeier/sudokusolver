@@ -5,7 +5,7 @@
 #include <assert.h>
 #include <unistd.h>
 #include "solve.h"
-#include "grid.h"
+//#include "grid.h"
 #include "acquire.h"
 #include "args.h"
 #include "sudoku.h"
@@ -70,7 +70,9 @@ int main(int argc, char **argv) {
     // START (solve Sudoku)
     // ====================
 
-    result = solveSudoku(parameters);
+    setupSudoku(parameters);
+    
+    result = solveSudoku();
 
     
     // print result
@@ -79,11 +81,12 @@ int main(int argc, char **argv) {
     printSummary(result, parameters->candidate0);
     
 
+    // release resources
+    // =================
+    
+    releaseSudoku();
+
     closeLogFile();
-
-    free(strategies); // FIXME where to put that?
-
-    releaseGrid();
 
     exit(EXIT_SUCCESS);
 }

@@ -14,7 +14,9 @@ extern "C" {
 
 #include "typedefs.h"
 
-    Bool solveSudoku(Parameters *parameters);
+    void setupSudoku(Parameters *parameters);
+    Bool solveSudoku();
+    void releaseSudoku();
 
 #ifdef	__cplusplus
 }

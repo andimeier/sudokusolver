@@ -11,13 +11,11 @@
 
 
 /**
- * tries to solve a given sudoku
+ * allocates the necessary resources for the given Sudoku
  * 
  * @param parameters the Sudoku parameters (geometry, initial values, ...)
- * @return success flag: TRUE if the Sudoku could be solved successfully, 
- *   FALSE if not
  */
-Bool solveSudoku(Parameters *parameters) {
+void setupSudoku(Parameters *parameters) {
 
     // dimension Sudoku and allocate fields
     initSudoku(parameters);
@@ -27,6 +25,16 @@ Bool solveSudoku(Parameters *parameters) {
      * game board, initialize the game
      */
     setupGrid();
+}
+
+
+/**
+ * tries to solve a given sudoku
+ * 
+ * @return success flag: TRUE if the Sudoku could be solved successfully, 
+ *   FALSE if not
+ */
+Bool solveSudoku() {
 
     /*
      * check if the initial board is valid
@@ -43,4 +51,11 @@ Bool solveSudoku(Parameters *parameters) {
 
     // start working horse
     return solve();
+}
+
+
+/**
+ * release all resources allocated for this Sudoku
+ */
+void releaseSudoku() {
 }
