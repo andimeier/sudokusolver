@@ -12,6 +12,10 @@
         <in>row.c</in>
         <in>shape.c</in>
       </df>
+      <df name="input">
+        <in>acquire.c</in>
+        <in>args.c</in>
+      </df>
       <df name="output">
         <in>printgrid.c</in>
         <in>printgrid.h</in>
@@ -39,11 +43,8 @@
         <in>sudoku.h</in>
         <in>util.c</in>
       </df>
-      <in>acquire.c</in>
-      <in>acquire.h</in>
-      <in>arguments.c</in>
+      <in>args.h</in>
       <in>main.c</in>
-      <in>parameters.h</in>
     </df>
     <logicalFolder name="ExternalFiles"
                    displayName="Important Files"
@@ -86,11 +87,7 @@
           </cTool>
         </makeTool>
       </makefileType>
-      <item path="src/acquire.c" ex="false" tool="0" flavor2="0">
-      </item>
-      <item path="src/acquire.h" ex="false" tool="3" flavor2="0">
-      </item>
-      <item path="src/arguments.c" ex="false" tool="0" flavor2="0">
+      <item path="src/args.h" ex="false" tool="3" flavor2="0">
       </item>
       <item path="src/containers/box.c" ex="false" tool="0" flavor2="0">
       </item>
@@ -108,6 +105,10 @@
       </item>
       <item path="src/containers/shape.c" ex="false" tool="0" flavor2="0">
       </item>
+      <item path="src/input/acquire.c" ex="false" tool="0" flavor2="0">
+      </item>
+      <item path="src/input/args.c" ex="false" tool="0" flavor2="0">
+      </item>
       <item path="src/main.c" ex="false" tool="0" flavor2="2">
       </item>
       <item path="src/output/printgrid.c" ex="false" tool="0" flavor2="0">
@@ -119,8 +120,6 @@
       <item path="src/output/summary.c" ex="false" tool="0" flavor2="0">
       </item>
       <item path="src/output/summary.h" ex="false" tool="3" flavor2="0">
-      </item>
-      <item path="src/parameters.h" ex="false" tool="3" flavor2="0">
       </item>
       <item path="src/strategies/hidden-singles.c" ex="false" tool="0" flavor2="0">
       </item>
