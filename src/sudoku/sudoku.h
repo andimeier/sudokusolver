@@ -16,6 +16,7 @@ extern "C" {
 
     void setupSudoku(Parameters *parameters);
     Bool solveSudoku();
+    void printSudokuSummary();
     void releaseSudoku();
 
 #ifdef	__cplusplus

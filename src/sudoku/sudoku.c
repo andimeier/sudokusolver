@@ -8,15 +8,21 @@
 #include "logfile.h"
 #include "log.h"
 #include "solve.h"
+#include "summary.h"
 
+static Parameters *parameters;
+static Bool hasBeenSolved;
 
 /**
  * allocates the necessary resources for the given Sudoku
  * 
  * @param parameters the Sudoku parameters (geometry, initial values, ...)
  */
-void setupSudoku(Parameters *parameters) {
+void setupSudoku(Parameters *_parameters) {
 
+    // register parameters
+    parameters = _parameters;
+    
     // dimension Sudoku and allocate fields
     initSudoku(parameters);
 
@@ -50,7 +56,16 @@ Bool solveSudoku() {
     initLog();
 
     // start working horse
-    return solve();
+    hasBeenSolved = solve();
+    
+    return hasBeenSolved;
+}
+
+/**
+ * prints the summary
+ */
+void printSudokuSummary() {
+    printSummary(hasBeenSolved, parameters->candidate0);
 }
 
 

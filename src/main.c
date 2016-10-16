@@ -4,12 +4,9 @@
 #include <ctype.h>
 #include <assert.h>
 #include <unistd.h>
-#include "solve.h"
-//#include "grid.h"
-#include "acquire.h"
 #include "args.h"
+#include "acquire.h"
 #include "sudoku.h"
-#include "summary.h"
 
 static void printUsage();
 
@@ -23,7 +20,6 @@ static void printUsage();
  *   solved or not. EXIT_FAILURE on user or application error.
  */
 int main(int argc, char **argv) {
-    int result;
     Parameters *parameters;
     CommandLineArgs *args;
 
@@ -72,13 +68,13 @@ int main(int argc, char **argv) {
 
     setupSudoku(parameters);
     
-    result = solveSudoku();
+    solveSudoku();
 
     
     // print result
     // ============
     
-    printSummary(result, parameters->candidate0);
+    printSudokuSummary();
     
 
     // release resources
