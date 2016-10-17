@@ -13,7 +13,9 @@ extern "C" {
 #endif
 
     // pointer to "print log" function
-    typedef void (*PrintFunc)(void *);
+    // CAUTION: do not exceed the maximum string size, provided
+    //  with the given buffer definition in log.c!
+    typedef void (*PrintFunc)(char *msgBuffer, void *);
     
     void initLog();
     void writeLog(PrintFunc printFunc, void *info);

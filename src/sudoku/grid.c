@@ -27,8 +27,8 @@ static void freeFields();
 static void freeContainers();
 
 // static functions
-static void printLogSetUniqueNumber(void *info);
-static void printLogRemoveCandidate(void *info);
+static void printLogSetUniqueNumber(char *msgBuffer, void *info);
+static void printLogRemoveCandidate(char *msgBuffer, void *info);
 static Bool containerContainsOnlyUniqueValues(Container *container);
 static char getFieldValueChar(unsigned value);
 
@@ -662,13 +662,13 @@ void solveField(Field *field, unsigned n) {
     setValue(field, n);
 }
 
-void printLogSetUniqueNumber(void *info) {
+void printLogSetUniqueNumber(char *msgBuffer, void *info) {
 
     EntrySolveField *infoStruct;
 
     infoStruct = (EntrySolveField *) info;
 
-    printf("--- LOG: set value of field %s to %u\n", infoStruct->fieldName, infoStruct->number);
+    sprintf(msgBuffer, "--- LOG: set value of field %s to %u\n", infoStruct->fieldName, infoStruct->number);
 }
 
 /**
@@ -908,13 +908,13 @@ Bool removeCandidate(Field *field, unsigned candidate) {
     return FALSE;
 }
 
-void printLogRemoveCandidate(void *info) {
+void printLogRemoveCandidate(char *msgBuffer, void *info) {
 
     EntryRemoveCandidate *infoStruct;
 
     infoStruct = (EntryRemoveCandidate *) info;
 
-    printf("--- LOG: field %s: remove candidate %u\n", infoStruct->fieldName, infoStruct->removedCandidate);
+    sprintf(msgBuffer, "--- LOG: field %s: remove candidate %u\n", infoStruct->fieldName, infoStruct->removedCandidate);
 }
 
 /**

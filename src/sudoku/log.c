@@ -6,6 +6,7 @@
  */
 #include <assert.h>
 #include <stdlib.h>
+#include <stdio.h>
 #include "grid.h"
 #include "util.h"
 #include "log.h"
@@ -27,6 +28,10 @@ typedef struct History {
 
 //static History *history;
 static History hist;
+
+
+// message buffer for the log messages to store their messages into
+static char msgBuffer[2000];
 
 /**
  * initializes the log
@@ -77,6 +82,9 @@ void printLog() {
         Entry *entry;
 
         entry = hist.entries[i];
-        (*(entry->printFunc)) ((void *) (entry->info));
+
+        // let the print function fill the msgBuffer
+        (*(entry->printFunc)) (msgBuffer, (void *) (entry->info));
+        printf(msgBuffer);
     }
 }
