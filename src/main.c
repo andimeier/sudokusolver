@@ -6,6 +6,7 @@
 #include <unistd.h>
 #include "args.h"
 #include "acquire.h"
+#include "logfile.h"
 #include "sudoku.h"
 
 static void printUsage();

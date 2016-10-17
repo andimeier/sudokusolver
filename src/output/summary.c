@@ -3,7 +3,7 @@
 #include "grid.h"
 #include "printgrid.h"
 #include "solve.h"
-#include "log.h"
+#include "recorder.h"
 #include "logfile.h"
 #include "show.h"
 #include "acquire.h"
@@ -18,7 +18,7 @@
  */
 void printSummary(Bool hasBeenSolved, Bool candidate0) {
 
-    printLog();
+    printStep();
 
     sprintf(buffer, "Gametype: %s", getGameTypeString(sudokuType));
     logAlways(buffer);

@@ -13,7 +13,7 @@
 #include "util.h"
 #include "logfile.h"
 #include "solve.h"
-#include "log.h"
+#include "recorder.h"
 
 // global variables
 

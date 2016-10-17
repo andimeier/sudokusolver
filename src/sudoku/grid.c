@@ -10,7 +10,7 @@
 #include <stdlib.h>
 #include <string.h>
 #include "grid.h"
-#include "log.h"
+#include "recorder.h"
 #include "logfile.h"
 #include "util.h"
 #include "container.h"
@@ -657,7 +657,7 @@ void solveField(Field *field, unsigned n) {
     info->fieldName = field->name;
     info->number = n;
 
-    writeLog(printLogSetUniqueNumber, info);
+    recordStep(printLogSetUniqueNumber, info);
 
     setValue(field, n);
 }
@@ -894,7 +894,7 @@ Bool removeCandidate(Field *field, unsigned candidate) {
         EntryRemoveCandidate *info = (EntryRemoveCandidate *) xmalloc(sizeof (EntryRemoveCandidate));
         info->fieldName = strdup(field->name);
         info->removedCandidate = (*c + 1);
-        writeLog(printLogRemoveCandidate, info);
+        recordStep(printLogRemoveCandidate, info);
 
         if (field->candidatesLeft == 0) {
             sprintf(buffer, "no candidates left on field %s", field->name);

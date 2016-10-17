@@ -6,7 +6,7 @@
 #include "sudoku.h"
 #include "grid.h"
 #include "logfile.h"
-#include "log.h"
+#include "recorder.h"
 #include "solve.h"
 #include "summary.h"
 
@@ -35,7 +35,7 @@ void setupSudoku(Parameters *_parameters) {
 
 
 /**
- * tries to solve a given sudoku
+ * tries to solve the sudoku which has been previously set up
  * 
  * @return success flag: TRUE if the Sudoku could be solved successfully, 
  *   FALSE if not
@@ -53,7 +53,7 @@ Bool solveSudoku() {
     /*
      * start logging
      */
-    initLog();
+    initRecorder();
 
     // start working horse
     hasBeenSolved = solve();
@@ -73,4 +73,5 @@ void printSudokuSummary() {
  * release all resources allocated for this Sudoku
  */
 void releaseSudoku() {
+    releaseRecording();
 }
