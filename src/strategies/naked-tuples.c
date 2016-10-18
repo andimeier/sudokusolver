@@ -28,7 +28,6 @@
  */
 
 // solve path recorder: record naked tuple
-
 typedef struct {
     Container *container;
     unsigned dimension; // dimension of the naked tuple, 2 == pair etc.

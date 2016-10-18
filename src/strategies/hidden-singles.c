@@ -11,6 +11,19 @@
 #include "logfile.h"
 #include "fieldlist.h"
 #include "hidden-singles.h"
+#include "recorder.h"
+
+// solve path recorder: record naked tuple
+typedef struct {
+    Container *container;
+    Field *field;
+    unsigned candidate;
+} StepFoundHiddenSingle;
+
+
+static void recordFoundHiddenSingleStart(Container *container, Field *field, unsigned candidate);
+static void recordFoundHiddenSingleEnd();
+static void printFoundHiddenSingle(char *msgBuffer, STEP_TYPE stepType, void *info);
 
 /**
  * strategy "find hidden singles"
@@ -37,10 +50,15 @@ Bool findHiddenSingles() {
             Field **containerFields = container->fields;
             int pos = getUniquePositionInContainer(containerFields, n);
             if (pos != -1 && !containerFields[pos]->value) {
-                // number can only occur in the position pos in this container
-                setValue(containerFields[pos], n);
-
                 Field *field = containerFields[pos];
+
+                // number can only occur in the position pos in this container
+                recordFoundHiddenSingleStart(container, field, n);
+
+                setValue(field, n);
+ 
+                recordFoundHiddenSingleEnd();
+                
                 sprintf(buffer, "*** [hidden single] hidden single in unit %s, field %s: %u ... ", container->name, field->name, n);
                 logVerbose(buffer);
 
@@ -51,4 +69,40 @@ Bool findHiddenSingles() {
     }
 
     return progress;
+}
+
+/**
+ * records the start of the strategy finding "naked tuple"
+ * 
+ * @param container
+ * @param field
+ * @param candidate
+ */
+void recordFoundHiddenSingleStart(Container *container, Field *field, unsigned candidate) {
+    StepFoundHiddenSingle *info;
+
+    info = (StepFoundHiddenSingle *) xmalloc(sizeof (StepFoundHiddenSingle));
+
+    info->container = container;
+    info->field = field;
+    info->candidate = candidate;
+    
+    recordStartOfStrategyFinding(printFoundHiddenSingle, (void *) info);
+}
+
+void recordFoundHiddenSingleEnd() {
+    recordEndOfStrategyFinding();
+}
+
+
+void printFoundHiddenSingle(char *msgBuffer, STEP_TYPE stepType, void *info) {
+    StepFoundHiddenSingle *infoStruct;
+    
+    infoStruct = (StepFoundHiddenSingle *) info;
+       
+    sprintf(msgBuffer, "found hidden single in %s:\n"
+            "candidate %u can only occur in %s\n", 
+            infoStruct->container->name,
+            infoStruct->candidate,
+            infoStruct->field->name);
 }
