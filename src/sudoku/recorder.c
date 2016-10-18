@@ -132,6 +132,10 @@ void printStep() {
             // let the print function fill the msgBuffer
             (*(entry->printFunc)) (msgBuffer, entry->stepType, (void *) (entry->info));
             printf(msgBuffer);
+        } else {
+            if (entry->stepType == STEP_STRATEGY_FINDING_END) {
+                printf("---\n"); // mark end of stategy findings
+            }
         }
     }
 }

@@ -23,6 +23,7 @@ extern "C" {
     int countDistinctCandidates(FieldsVector *fields, size_t limit);
     FieldsVector *fieldsContainingCandidate(FieldsVector *fieldsWithCandidate, FieldsVector *fields, unsigned candidate);
     Container *getCommonContainer(FieldsVector *fieldsWithCandidate, size_t ContainerSetIndex); // or NULL if fields have no common container
+    unsigned *getCandidates(Field *field);
 
 #ifdef	__cplusplus
 }

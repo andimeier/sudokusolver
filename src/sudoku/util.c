@@ -326,7 +326,7 @@ Container *getCommonContainer(FieldsVector *fields, size_t containerSetIndex) {
                 break;
             }
         }
-        
+
         if (commonContainer != NULL) {
             // found a common container
             break;
@@ -334,4 +334,32 @@ Container *getCommonContainer(FieldsVector *fields, size_t containerSetIndex) {
     }
 
     return commonContainer;
+}
+
+/**
+ * determines all remaining candidates for a field and returns a list of
+ * the candidates.
+ * 
+ * @param field
+ * @return a null-terminated list of candidates
+ */
+unsigned *getCandidates(Field *field) {
+    unsigned *cands;
+    unsigned *candsPtr;
+    unsigned n;
+
+    cands = (unsigned *) xmalloc(sizeof (unsigned) * (maxNumber + 1));
+    candsPtr = cands;
+
+    for (n = 0; n < maxNumber; n++) {
+        if (field->candidates[n]) {
+            *candsPtr = n + 1;
+            candsPtr++;
+        }
+    }
+
+    // terminate list
+    *candsPtr = 0;
+
+    return cands;
 }

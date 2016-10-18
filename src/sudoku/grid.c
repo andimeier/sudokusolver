@@ -899,7 +899,7 @@ Bool removeCandidate(Field *field, unsigned candidate) {
         // TODO log removal of candidate
         StepRemoveCandidate *info = (StepRemoveCandidate *) xmalloc(sizeof (StepRemoveCandidate));
         info->fieldName = strdup(field->name);
-        info->removedCandidate = (*c + 1);
+        info->removedCandidate = candidate;
         recordStep(STEP_REMOVE_CANDIDATE, printLogRemoveCandidate, info);
 
         if (field->candidatesLeft == 0) {

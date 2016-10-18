@@ -18,6 +18,7 @@
 #include "fieldlist.h"
 #include "naked-tuples.h"
 #include "recorder.h"
+#include "util.h"
 
 /*
  * Optimisations:
@@ -31,6 +32,8 @@
 typedef struct {
     Container *container;
     unsigned dimension; // dimension of the naked tuple, 2 == pair etc.
+    FieldsVector *fields;
+    unsigned *candidates;
 } StepFoundNakedTuple;
 
 
@@ -345,11 +348,16 @@ void populateFieldsForNakedTuples(FieldsVector *relevantFields, FieldsVector *al
  * @param fields
  */
 void recordFoundNakedTupleStart(unsigned dimension, Container *container, FieldsVector *fields) {
-    StepFoundNakedTuple *info = (StepFoundNakedTuple *) xmalloc(sizeof (StepFoundNakedTuple));
+    StepFoundNakedTuple *info;
+
+    info = (StepFoundNakedTuple *) xmalloc(sizeof (StepFoundNakedTuple));
 
     info->container = container;
     info->dimension = dimension;
-
+    info->fields = (FieldsVector *) xmalloc(dimension * sizeof(Field *));
+    memcpy(info->fields, fields, dimension * sizeof(Field *));
+    info->candidates = getCandidates(fields[0]);
+    
     recordStartOfStrategyFinding(printFoundNakedTuple, (void *) info);
 }
 
@@ -359,7 +367,13 @@ void recordFoundNakedTupleEnd() {
 
 void printFoundNakedTuple(char *msgBuffer, STEP_TYPE stepType, void *info) {
     StepFoundNakedTuple *infoStruct;
-
+    
     infoStruct = (StepFoundNakedTuple *) info;
-    sprintf(msgBuffer, "Found naked tuple of dimension %u in %s\n", infoStruct->dimension, infoStruct->container->name);
+       
+    sprintf(msgBuffer, "found naked tuple of dimension %u in %s:\n"
+            "fields %s/%s share the same candidates: [ %u, %u ]\n", 
+            infoStruct->dimension, 
+            infoStruct->container->name,
+            infoStruct->fields[0]->name, infoStruct->fields[1]->name,
+            infoStruct->candidates[0], infoStruct->candidates[1]);
 }
