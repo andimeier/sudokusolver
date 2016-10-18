@@ -33,11 +33,11 @@
         <in>fieldlist.c</in>
         <in>gametype.c</in>
         <in>grid.c</in>
-        <in>log.h</in>
         <in>logfile.c</in>
         <in>logfile.h</in>
         <in>numberlist.c</in>
         <in>recorder.c</in>
+        <in>recorder.h</in>
         <in>solve.c</in>
         <in>sudoku.c</in>
         <in>sudoku.h</in>
@@ -135,8 +135,6 @@
       </item>
       <item path="src/sudoku/grid.c" ex="false" tool="0" flavor2="2">
       </item>
-      <item path="src/sudoku/log.h" ex="false" tool="3" flavor2="0">
-      </item>
       <item path="src/sudoku/logfile.c" ex="false" tool="0" flavor2="0">
       </item>
       <item path="src/sudoku/logfile.h" ex="false" tool="3" flavor2="0">
@@ -144,6 +142,8 @@
       <item path="src/sudoku/numberlist.c" ex="false" tool="0" flavor2="2">
       </item>
       <item path="src/sudoku/recorder.c" ex="false" tool="0" flavor2="0">
+      </item>
+      <item path="src/sudoku/recorder.h" ex="false" tool="3" flavor2="0">
       </item>
       <item path="src/sudoku/solve.c" ex="false" tool="0" flavor2="2">
       </item>

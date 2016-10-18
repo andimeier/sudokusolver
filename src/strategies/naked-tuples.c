@@ -17,6 +17,7 @@
 #include "solve.h"
 #include "fieldlist.h"
 #include "naked-tuples.h"
+#include "recorder.h"
 
 /*
  * Optimisations:
@@ -25,11 +26,23 @@
  * - skip fields with candidatesLeft > maxTupleDimensionToLookFor
  */
 
+// solve path recorder: record naked tuple
+
+typedef struct {
+    Container *container;
+    unsigned dimension; // dimension of the naked tuple, 2 == pair etc.
+} StepFoundNakedTuple;
+
 
 // auxiliary functions
 static Bool recurseNakedTuples(unsigned maxLevel, Container *container, unsigned level, FieldList *includedFields, FieldsVector *fieldsLeft);
 static Bool eliminateFieldsCandidatesFromOtherFields(Container *container, FieldsVector *fields);
 static void populateFieldsForNakedTuples(FieldsVector *relevantFields, FieldsVector *allFields, unsigned dimension);
+
+// aux functions for the solve path recorder
+void recordFoundNakedTupleStart(unsigned dimension, Container *container, FieldsVector *fields);
+void recordFoundNakedTupleEnd();
+void printFoundNakedTuple(char *msgBuffer, STEP_TYPE stepType, void *info);
 
 /**
  * find naked tuples (pairs, triples, ...) in the same container
@@ -136,6 +149,7 @@ Bool findNakedTuplesInContainer(Container *container, unsigned dimension, FieldL
  */
 Bool recurseNakedTuples(unsigned maxLevel, Container *container, unsigned level, FieldList *includedFields, FieldsVector *fieldsLeft) {
     FieldsVector *left;
+    Bool result;
 
     assert(level >= 1);
     //FIXME war fuer alten Algo, gehts fuer den neuen auch mit so etwas?    assert(level == 1 || (level >= 2 && numbers[level - 2] != 0));
@@ -178,17 +192,22 @@ Bool recurseNakedTuples(unsigned maxLevel, Container *container, unsigned level,
                  * candidates is maximum "dimension"
                  */
 
+                recordFoundNakedTupleStart(level, container, includedFields->fields);
+
                 // depending on whether some candidates could be eliminated, the
                 // board has changed or not
                 if (eliminateFieldsCandidatesFromOtherFields(container, includedFields->fields)) {
                     // something has changed! success, we actually found something!
-                    return TRUE;
+                    result = TRUE;
                 } else {
                     // restore field list to previous iteration
                     popFromFieldList(includedFields);
-                    return FALSE;
+                    result = FALSE;
                 }
 
+                recordFoundNakedTupleEnd();
+
+                return result;
             }
         }
 
@@ -316,4 +335,31 @@ void populateFieldsForNakedTuples(FieldsVector *relevantFields, FieldsVector *al
 
     // terminate fields vector
     *relevantFields = NULL;
+}
+
+/**
+ * records the start of the strategy finding "naked tuple"
+ * 
+ * @param dimension
+ * @param container
+ * @param fields
+ */
+void recordFoundNakedTupleStart(unsigned dimension, Container *container, FieldsVector *fields) {
+    StepFoundNakedTuple *info = (StepFoundNakedTuple *) xmalloc(sizeof (StepFoundNakedTuple));
+
+    info->container = container;
+    info->dimension = dimension;
+
+    recordStartOfStrategyFinding(printFoundNakedTuple, (void *) info);
+}
+
+void recordFoundNakedTupleEnd() {
+    recordEndOfStrategyFinding();
+}
+
+void printFoundNakedTuple(char *msgBuffer, STEP_TYPE stepType, void *info) {
+    StepFoundNakedTuple *infoStruct;
+
+    infoStruct = (StepFoundNakedTuple *) info;
+    sprintf(msgBuffer, "Found naked tuple of dimension %u in %s\n", infoStruct->dimension, infoStruct->container->name);
 }

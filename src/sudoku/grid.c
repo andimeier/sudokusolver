@@ -27,8 +27,8 @@ static void freeFields();
 static void freeContainers();
 
 // static functions
-static void printLogSetUniqueNumber(char *msgBuffer, void *info);
-static void printLogRemoveCandidate(char *msgBuffer, void *info);
+static void printLogSetUniqueNumber(char *msgBuffer, STEP_TYPE stepType, void *info);
+static void printLogRemoveCandidate(char *msgBuffer, STEP_TYPE stepType, void *info);
 static Bool containerContainsOnlyUniqueValues(Container *container);
 static char getFieldValueChar(unsigned value);
 
@@ -73,16 +73,16 @@ size_t numberOfContainers;
  */
 static Container *settingUpContainer;
 
-// history entry types
-typedef struct EntrySolveField {
+// solve path recorder: solve step types
+typedef struct {
     char *fieldName;
     unsigned number;
-} EntrySolveField;
+} StepSolveField;
 
-typedef struct EntryRemoveCandidate {
+typedef struct {
     char *fieldName;
     unsigned removedCandidate;
-} EntryRemoveCandidate;
+} StepRemoveCandidate;
 
 /**
  * set default values (which might be overridden by command line parameters
@@ -652,23 +652,29 @@ void solveField(Field *field, unsigned n) {
     assert(field->candidatesLeft == 1);
     assert(field->candidates[n - 1]);
 
-    EntrySolveField *info = (EntrySolveField *) xmalloc(sizeof (EntrySolveField));
+    StepSolveField *info = (StepSolveField *) xmalloc(sizeof (StepSolveField));
 
     info->fieldName = field->name;
     info->number = n;
 
-    recordStep(printLogSetUniqueNumber, info);
+    recordStep(STEP_SET_VALUE, printLogSetUniqueNumber, info);
 
     setValue(field, n);
 }
 
-void printLogSetUniqueNumber(char *msgBuffer, void *info) {
+/**
+ * records the solving step of setting a unique number as solution
+ * 
+ * @param msgBuffer provided by the recorder facility, a buffer to print the
+ *   solve step into
+ * @param info the recorded info, to be interpreted by this function
+ */
+void printLogSetUniqueNumber(char *msgBuffer, STEP_TYPE stepType, void *info) {
+    StepSolveField *infoStruct;
 
-    EntrySolveField *infoStruct;
+    infoStruct = (StepSolveField *) info;
 
-    infoStruct = (EntrySolveField *) info;
-
-    sprintf(msgBuffer, "--- LOG: set value of field %s to %u\n", infoStruct->fieldName, infoStruct->number);
+    sprintf(msgBuffer, "    set value of field %s to %u\n", infoStruct->fieldName, infoStruct->number);
 }
 
 /**
@@ -891,10 +897,10 @@ Bool removeCandidate(Field *field, unsigned candidate) {
         field->candidatesLeft--;
 
         // TODO log removal of candidate
-        EntryRemoveCandidate *info = (EntryRemoveCandidate *) xmalloc(sizeof (EntryRemoveCandidate));
+        StepRemoveCandidate *info = (StepRemoveCandidate *) xmalloc(sizeof (StepRemoveCandidate));
         info->fieldName = strdup(field->name);
         info->removedCandidate = (*c + 1);
-        recordStep(printLogRemoveCandidate, info);
+        recordStep(STEP_REMOVE_CANDIDATE, printLogRemoveCandidate, info);
 
         if (field->candidatesLeft == 0) {
             sprintf(buffer, "no candidates left on field %s", field->name);
@@ -908,13 +914,20 @@ Bool removeCandidate(Field *field, unsigned candidate) {
     return FALSE;
 }
 
-void printLogRemoveCandidate(char *msgBuffer, void *info) {
+/**
+ * records the solving step of removing one candidate
+ * 
+ * @param msgBuffer provided by the recorder facility, a buffer to print the
+ *   solve step into
+ * @param stepType the type of step
+ * @param info the recorded info, to be interpreted by this function
+ */
+void printLogRemoveCandidate(char *msgBuffer, STEP_TYPE stepType, void *info) {
+    StepRemoveCandidate *infoStruct;
 
-    EntryRemoveCandidate *infoStruct;
+    infoStruct = (StepRemoveCandidate *) info;
 
-    infoStruct = (EntryRemoveCandidate *) info;
-
-    sprintf(msgBuffer, "--- LOG: field %s: remove candidate %u\n", infoStruct->fieldName, infoStruct->removedCandidate);
+    sprintf(msgBuffer, "    field %s: remove candidate %u\n", infoStruct->fieldName, infoStruct->removedCandidate);
 }
 
 /**
