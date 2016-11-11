@@ -74,6 +74,7 @@ size_t numberOfContainers;
 static Container *settingUpContainer;
 
 // solve path recorder: solve step types
+
 typedef struct {
     char *fieldName;
     unsigned number;
@@ -317,8 +318,17 @@ void initContainers() {
                 containerPtr->fields[maxNumber] = NULL;
             }
 
-            // fill the field of the container
+            // fill the fields of the container
             (containerSet->fillContainerFields)(containerIndex, containerPtr->fields);
+
+            // sanity check: the returned vector of container fields must have
+            // maxNumber fields
+            for (index = 0; index < maxNumber; index++) {
+                // all maxNumber fields of the container must be initialized,
+                // i.e. must point to a field
+                assert(containerPtr->fields[index]);
+            }
+
 
             // link fields to containers: containerIndexes and containers
             // ----------------------------------------------------------
@@ -1067,10 +1077,10 @@ char getFieldValueChar(unsigned value) {
     char c;
 
     assert(value != 0);
-    
+
     c = valueChars[value - 1];
-    
+
     assert(c != '\0');
-    
+
     return c;
 }

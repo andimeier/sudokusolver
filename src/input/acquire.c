@@ -44,7 +44,8 @@ static void set(Parameters *parameters, char *name, char *value);
 static void validateInput(ReadStatus *readStatus);
 static void convertValueChars(Parameters *parameters);
 static unsigned getValueFromChar(char *valueChars, char valueChar);
-
+static Bool allShapesContainCorrectNumberOfFields(Parameters *parameters);
+    
 // char list functions
 static void sortShapeIds(Parameters *parameters);
 static int compareChars(const void * a, const void * b);
@@ -501,8 +502,17 @@ void validateInput(ReadStatus *readStatus) {
         exit(EXIT_FAILURE);
     }
 
+    if (parameters.gameType == JIGSAW_SUDOKU) {
+        // check if each shape contains exactly maxNumber Sudoku fields
+        if (!allShapesContainCorrectNumberOfFields(&parameters)) {
+            exit(EXIT_FAILURE);
+        }
+    }
+
     if (!parameters.valueChars) {
         if (parameters.maxNumber <= 9) {
+            // if valueChars are not explicitly given, use as much numbers as
+            // are possible
             parameters.valueChars = strndup("123456789", parameters.maxNumber);
         } else {
             // don't know to represent an internal value of e.g. 10 ...
@@ -592,4 +602,45 @@ unsigned getValueFromChar(char *valueChars, char valueChar) {
     } else {
         return 0;
     }
+}
+
+/**
+ * checks if all shapes (jigsaw containers) contain maxNumber fields each.
+ * Otherwise the shape definition is not correct
+ * 
+ * @param parameters the parameters
+ * @return true if everything seems ok, false if some shape container has more 
+ *   or less than maxNumber fields
+ */
+Bool allShapesContainCorrectNumberOfFields(Parameters *parameters) {
+    char *shapeId;
+    char *shape;
+    unsigned count;
+
+    shapeId = parameters->shapeIds;
+    while (*shapeId) {
+        // count number of occurrences of this shapeId (= number of fields in
+        // this shape)
+        shape = parameters->shapes;
+        count = 0;
+        while (*shape) {
+            if (*shape == *shapeId) {
+                count++;
+            }
+            
+            shape++;
+        }
+        if (count != parameters->maxNumber) {
+            // a container with a false number of fields
+            sprintf(buffer, "error reading the Jigsaw Sudoku from file: shape %c has %u fields instead of %d.", *shapeId, count, parameters->maxNumber);
+            logError(buffer);
+            return FALSE;
+        }
+
+
+        shapeId++;
+    }
+
+    // no error so far
+    return TRUE;
 }
